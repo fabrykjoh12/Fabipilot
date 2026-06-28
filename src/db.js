@@ -28,7 +28,6 @@ db.version(3)
     projectItems: 'id, projectId, stage, sortOrder, createdAt',
   })
   .upgrade(async (tx) => {
-    // Migrer gamle prosjekter (status aktiv/pause/ferdig, note) til nytt skjema.
     const map = { aktiv: 'active', pause: 'onice', ferdig: 'done' }
     await tx
       .table('projects')
@@ -40,6 +39,23 @@ db.version(3)
         delete p.note
         delete p.sortOrder
       })
+  })
+
+// v4: legg sortOrder tilbake på projects for manuell sortering.
+db.version(4)
+  .stores({
+    ideas: 'id, category, createdAt',
+    tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+    habits: 'id, sortOrder, createdAt',
+    subscriptions: 'id, createdAt',
+    projects: 'id, status, sortOrder, lastTouched, createdAt',
+    projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  })
+  .upgrade(async (tx) => {
+    const all = await tx.table('projects').orderBy('lastTouched').reverse().toArray()
+    for (let i = 0; i < all.length; i++) {
+      await tx.table('projects').update(all[i].id, { sortOrder: i * 1000 })
+    }
   })
 
 const uid = () => crypto.randomUUID()
@@ -151,22 +167,36 @@ export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 :
    - «Neste steg» = første item med stage='now' (etter sortOrder).
    ========================================================= */
 export async function listProjects() {
-  return db.projects.orderBy('lastTouched').reverse().toArray()
+  return db.projects.orderBy('sortOrder').toArray()
 }
 export const getProject = (id) => db.projects.get(id)
 export const countActiveProjects = () => db.projects.where('status').equals('active').count()
 
 export async function addProject({ name, why = '', status = 'active' }) {
+  const maxOrder = await db.projects.orderBy('sortOrder').last()
   const p = {
     id: uid(),
     name: name.trim(),
     why: why.trim ? why.trim() : why,
     status,
+    sortOrder: maxOrder ? (maxOrder.sortOrder ?? 0) + 1000 : 0,
     createdAt: now(),
     lastTouched: now(),
   }
   await db.projects.add(p)
   return p
+}
+
+export async function moveProject(id, direction) {
+  const all = await db.projects.orderBy('sortOrder').toArray()
+  const idx = all.findIndex((p) => p.id === id)
+  const swapIdx = idx + direction
+  if (swapIdx < 0 || swapIdx >= all.length) return
+  const a = all[idx], b = all[swapIdx]
+  const aOrder = a.sortOrder ?? idx * 1000
+  const bOrder = b.sortOrder ?? swapIdx * 1000
+  await db.projects.update(a.id, { sortOrder: bOrder })
+  await db.projects.update(b.id, { sortOrder: aOrder })
 }
 export const updateProject = (id, patch) => db.projects.update(id, { ...patch, lastTouched: now() })
 export async function deleteProject(id) {

@@ -5,6 +5,9 @@ import {
   listProjects,
   getProject,
   addProject,
+  updateProject,
+  deleteProject,
+  moveProject,
   setProjectStatus,
   countActiveProjects,
   listProjectItems,
@@ -72,25 +75,43 @@ function ProjectsList({ onOpen }) {
     }
   }
 
-  function Card({ p }) {
+  function Card({ p, idx, total }) {
     const next = nextByProject[p.id]
     return (
-      <button type="button" className="plist-card" onClick={() => onOpen(p.id)}>
-        <div className="plist-top">
-          <span className="plist-name">{p.name}</span>
-          <span className={'pstatus st-' + p.status}>{STATUS_LABEL[p.status]}</span>
+      <div className="plist-card-wrap">
+        <div className="plist-sort">
+          <button
+            type="button"
+            className="sort-btn"
+            aria-label="Flytt opp"
+            disabled={idx === 0}
+            onClick={(e) => { e.stopPropagation(); moveProject(p.id, -1) }}
+          >▲</button>
+          <button
+            type="button"
+            className="sort-btn"
+            aria-label="Flytt ned"
+            disabled={idx === total - 1}
+            onClick={(e) => { e.stopPropagation(); moveProject(p.id, 1) }}
+          >▼</button>
         </div>
-        <div className="plist-next">
-          {next ? (
-            <>
-              <span className="plist-dot" />
-              {next.text}
-            </>
-          ) : (
-            <span className="plist-empty">Ingen «neste steg» satt</span>
-          )}
-        </div>
-      </button>
+        <button type="button" className="plist-card" onClick={() => onOpen(p.id)}>
+          <div className="plist-top">
+            <span className="plist-name">{p.name}</span>
+            <span className={'pstatus st-' + p.status}>{STATUS_LABEL[p.status]}</span>
+          </div>
+          <div className="plist-next">
+            {next ? (
+              <>
+                <span className="plist-dot" />
+                {next.text}
+              </>
+            ) : (
+              <span className="plist-empty">Ingen «neste steg» satt</span>
+            )}
+          </div>
+        </button>
+      </div>
     )
   }
 
@@ -119,8 +140,8 @@ function ProjectsList({ onOpen }) {
                 {active.length}/{MAX_ACTIVE_PROJECTS}
               </span>
             </div>
-            {active.map((p) => (
-              <Card key={p.id} p={p} />
+            {active.map((p, i) => (
+              <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
             ))}
           </div>
         )}
@@ -132,7 +153,7 @@ function ProjectsList({ onOpen }) {
               <span className="ct">{onice.length}</span>
             </div>
             {onice.map((p) => (
-              <Card key={p.id} p={p} />
+              <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
             ))}
           </div>
         )}
@@ -144,7 +165,7 @@ function ProjectsList({ onOpen }) {
               <span className="ct">{done.length}</span>
             </div>
             {done.map((p) => (
-              <Card key={p.id} p={p} />
+              <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
             ))}
           </div>
         )}
@@ -253,9 +274,38 @@ function Roadmap({ projectId, onBack }) {
   const items = useLiveQuery(() => listProjectItems(projectId), [projectId], [])
   const [addVal, setAddVal] = useState('')
   const [doneCollapsed, setDoneCollapsed] = useState(true)
+  const [editingName, setEditingName] = useState(false)
+  const [editingWhy, setEditingWhy] = useState(false)
+  const [nameVal, setNameVal] = useState('')
+  const [whyVal, setWhyVal] = useState('')
   const heroCheckRef = useRef(null)
 
   if (!project) return <div className="screen" />
+
+  function startEditName() {
+    setNameVal(project.name)
+    setEditingName(true)
+  }
+  async function saveName() {
+    const v = nameVal.trim()
+    if (v && v !== project.name) await updateProject(project.id, { name: v })
+    setEditingName(false)
+  }
+
+  function startEditWhy() {
+    setWhyVal(project.why || '')
+    setEditingWhy(true)
+  }
+  async function saveWhy() {
+    await updateProject(project.id, { why: whyVal.trim() })
+    setEditingWhy(false)
+  }
+
+  async function handleDelete() {
+    if (!window.confirm(`Slett «${project.name}» og alle stegene i det?`)) return
+    await deleteProject(project.id)
+    onBack()
+  }
 
   const nowItems = items.filter((i) => i.stage === 'now')
   const nextItems = items.filter((i) => i.stage === 'next')
@@ -301,12 +351,44 @@ function Roadmap({ projectId, onBack }) {
         </button>
 
         <div className="phead">
-          <h1 className="pname">{project.name}</h1>
-          <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>
-            {STATUS_LABEL[project.status]}
-          </button>
+          {editingName ? (
+            <input
+              className="pname-input"
+              value={nameVal}
+              autoFocus
+              onChange={(e) => setNameVal(e.target.value)}
+              onBlur={saveName}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
+            />
+          ) : (
+            <h1 className="pname" onClick={startEditName} title="Trykk for å redigere">{project.name}</h1>
+          )}
+          <div className="phead-actions">
+            <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>
+              {STATUS_LABEL[project.status]}
+            </button>
+            <button type="button" className="pdel" aria-label="Slett prosjekt" onClick={handleDelete}>
+              <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg>
+            </button>
+          </div>
         </div>
-        {project.why && <p className="pwhy">{project.why}</p>}
+        {editingWhy ? (
+          <div className="pwhy-edit">
+            <input
+              className="pwhy-input"
+              value={whyVal}
+              autoFocus
+              placeholder="Hvorfor er dette viktig?"
+              onChange={(e) => setWhyVal(e.target.value)}
+              onBlur={saveWhy}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveWhy(); if (e.key === 'Escape') setEditingWhy(false) }}
+            />
+          </div>
+        ) : (
+          <p className="pwhy" onClick={startEditWhy} title="Trykk for å redigere">
+            {project.why || <span className="pwhy-placeholder">+ Legg til hvorfor…</span>}
+          </p>
+        )}
         <p className="ptouch">{touchedText(project.lastTouched)}</p>
 
         <div className="prog">
