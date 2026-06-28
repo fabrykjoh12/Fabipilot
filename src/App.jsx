@@ -9,7 +9,7 @@ import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
 import Money from './components/Money.jsx'
 import Projects from './components/Projects.jsx'
-import { db, exportAll, importAll } from './db.js'
+import { db, exportAll, importAll, pushAllToCloud } from './db.js'
 
 const ICONS = {
   today: (
@@ -79,6 +79,26 @@ const MODULES = [
   { k: 'money', label: 'Penger', Comp: Money },
   { k: 'projects', label: 'Prosjekter', Comp: Projects },
 ]
+
+/* Sky-sync-status → norsk etikett + farge-LED. */
+function syncLabel(s) {
+  if (!s) return 'Kobler til…'
+  if (s.status === 'offline' || s.phase === 'offline') return 'Frakoblet (jobber lokalt)'
+  if (s.status === 'error' || s.phase === 'error') return 'Sync-feil'
+  if (s.phase === 'pushing') return 'Laster opp…'
+  if (s.phase === 'pulling') return 'Henter…'
+  if (s.status === 'connecting') return 'Kobler til…'
+  if (s.phase === 'in-sync') return 'Synket ✓'
+  if (s.status === 'connected') return 'Tilkoblet'
+  return 'Ikke synket enda'
+}
+function syncLed(s) {
+  if (!s) return 'amber'
+  if (s.status === 'error' || s.phase === 'error') return 'red'
+  if (s.status === 'offline' || s.phase === 'offline') return 'grey'
+  if (s.phase === 'in-sync') return 'green'
+  return 'amber'
+}
 
 function NavIcon({ name }) {
   return (
@@ -283,7 +303,9 @@ export default function App() {
   const [active, setActive] = useState('overview')
   const [backupOpen, setBackupOpen] = useState(false)
   const currentUser = useObservable(db.cloud.currentUser)
+  const syncState = useObservable(db.cloud.syncState)
   const isLoggedIn = !!currentUser?.isLoggedIn
+  const [pushing, setPushing] = useState(false)
   const navRef = useRef(null)
 
   useEffect(() => {
@@ -339,6 +361,22 @@ export default function App() {
     }
   }
 
+  async function handlePush() {
+    setPushing(true)
+    try {
+      const { total } = await pushAllToCloud()
+      window.alert(
+        `Lastet opp ${total} ting til skyen ✓\n\n` +
+          'La appen være åpen og på nett noen sekunder til så den blir ferdig. ' +
+          'Logg deretter inn på de andre enhetene dine med samme e-post — da kommer alt ned dit automatisk.',
+      )
+    } catch (err) {
+      window.alert('Kunne ikke laste opp: ' + (err?.message || err))
+    } finally {
+      setPushing(false)
+    }
+  }
+
   return (
     <div className="app">
       <LoginInteraction />
@@ -379,10 +417,39 @@ export default function App() {
           onClick={() => setBackupOpen(false)}
         >
           <div className="backup-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="backup-title">Sikkerhetskopi</h2>
+            <h2 className="backup-title">Sky-sync & backup</h2>
+
+            <div className="sync-box">
+              <div className="sync-row">
+                <span className={'sync-led ' + syncLed(syncState)} />
+                <span className="sync-status">{syncLabel(syncState)}</span>
+              </div>
+              {currentUser?.email && (
+                <p className="sync-user">Innlogget som {currentUser.email}</p>
+              )}
+              <button
+                type="button"
+                className="btn backup-action sync-push"
+                disabled={pushing}
+                onClick={handlePush}
+              >
+                {pushing ? 'Laster opp…' : 'Last opp alt til skyen'}
+              </button>
+              <p className="sync-hint">
+                Kjør denne på enheten som har dataen din. Den dytter alt opp i skyen, så
+                kommer det ned på de andre enhetene når du logger inn med samme e-post.
+              </p>
+              <button
+                type="button"
+                className="sync-logout"
+                onClick={() => db.cloud.logout({ force: true })}
+              >
+                Logg ut
+              </button>
+            </div>
+
             <p className="backup-text">
-              Alt ligger lokalt på enheten. Last ned en backup av og til, og legg fila i
-              iCloud/Drive — så kan du flytte data eller hente alt tilbake.
+              Vil du ha en kopi på fil i tillegg? Eksporter en JSON og legg den i iCloud/Drive.
             </p>
             <button type="button" className="btn backup-action" onClick={handleExport}>
               Eksporter alt (last ned JSON)

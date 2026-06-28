@@ -337,3 +337,29 @@ export async function importAll(data) {
   }
   return added
 }
+
+/* =========================================================
+   SKY-SYNC — tving eksisterende lokal data opp til Dexie Cloud
+   ---------------------------------------------------------
+   Data som ble laget FØR sync ble skrudd på, er ikke registrert
+   for opplasting. Ved å skrive hver rad på nytt (bulkPut) mens man
+   er innlogget, registreres de som endringer og lastes opp til
+   brukerens egen sky-konto. Kjør dette ÉN gang på enheten som har
+   dataen (mens du er innlogget).
+   ========================================================= */
+export async function pushAllToCloud() {
+  const counts = {}
+  let total = 0
+  for (const t of TABLES) {
+    const rows = await db.table(t).toArray()
+    counts[t] = rows.length
+    total += rows.length
+    if (rows.length) await db.table(t).bulkPut(rows)
+  }
+  try {
+    await db.cloud.sync({ purpose: 'push' })
+  } catch {
+    // Sync skjer uansett i bakgrunnen så snart det er nett.
+  }
+  return { counts, total }
+}
