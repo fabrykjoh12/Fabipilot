@@ -19,7 +19,7 @@ export function burst(node) {
   const r = node.getBoundingClientRect()
   const cx = r.left + r.width / 2
   const cy = r.top + r.height / 2
-  const colors = ['#E8A53D', '#CC882B', '#42634A', '#E8A53D']
+  const colors = ['#1fa6bf', '#157f93', '#3a5a86', '#1fa6bf']
   for (let i = 0; i < 9; i++) {
     const s = document.createElement('div')
     s.className = 'spark'

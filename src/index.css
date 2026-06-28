@@ -1,7 +1,7 @@
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
-  color: #22281f;
+  color: #18202b;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -17,7 +17,7 @@ body {
 }
 
 body {
-  background: #e9ece5;
+  background: #e4e9ef;
   min-height: 100vh;
   min-height: 100dvh;
 }

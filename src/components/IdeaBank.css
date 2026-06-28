@@ -28,7 +28,7 @@
   outline: 0;
 }
 .ideabank .searchwrap input::placeholder {
-  color: #9aa394;
+  color: #97a1b2;
 }
 
 /* filter chips */
@@ -109,7 +109,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
-  background: #eef0ea;
+  background: #eef1f6;
   border-radius: 7px;
   padding: 3px 8px;
   cursor: pointer;
@@ -117,12 +117,12 @@
   font-family: inherit;
 }
 .ideabank .pill.ny {
-  color: #a98a52;
-  background: #f7f0e2;
+  color: #157f93;
+  background: #ddf0f3;
 }
 .ideabank .date {
   font-size: 12px;
-  color: #9aa394;
+  color: #97a1b2;
   font-weight: 500;
 }
 .ideabank .fav {
@@ -134,7 +134,7 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: #c3caba;
+  color: #c2cad6;
   border-radius: 50%;
   margin: -4px -6px 0 0;
 }
