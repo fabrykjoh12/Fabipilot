@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>I dag</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --canvas:#E9ECE5;
+    --surface:#FBFCF9;
+    --surface-focus:#FAF4E8;
+    --ink:#22281F;
+    --muted:#737B6E;
+    --line:#DCE0D5;
+    --accent:#CC882B;       /* ember — the one bold color */
+    --accent-bright:#E8A53D;
+    --accent-soft:rgba(204,136,43,.14);
+    --forest:#42634A;
+    --radius:18px;
+    --shadow:0 1px 2px rgba(34,40,31,.04), 0 6px 20px rgba(34,40,31,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#cfd4ca;
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    display:flex;justify-content:center;
+    min-height:100vh;
+  }
+  /* phone frame so it feels like mobile even on desktop */
+  .phone{
+    width:100%;max-width:430px;min-height:100vh;
+    background:var(--canvas);
+    position:relative;
+    display:flex;flex-direction:column;
+    box-shadow:0 0 60px rgba(0,0,0,.12);
+  }
+  .scroll{
+    flex:1;overflow-y:auto;
+    padding:34px 20px 130px;
+  }
+  /* ---- header ---- */
+  .eyebrow{
+    font-size:13px;letter-spacing:.04em;color:var(--muted);
+    text-transform:lowercase;margin:0 0 6px;font-weight:500;
+  }
+  .greeting{
+    font-family:'Bricolage Grotesque',sans-serif;
+    font-weight:600;font-size:31px;line-height:1.05;margin:0;
+    letter-spacing:-.02em;
+  }
+  .status{
+    margin:12px 0 0;font-size:14px;color:var(--muted);font-weight:500;
+    display:flex;align-items:center;gap:8px;
+  }
+  .pmeter{
+    flex:1;height:5px;border-radius:99px;background:#fff;overflow:hidden;
+    box-shadow:inset 0 0 0 1px var(--line);
+  }
+  .pmeter > i{
+    display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--forest),var(--accent));
+    transition:width .5s cubic-bezier(.2,.7,.2,1);
+  }
+  /* ---- section ---- */
+  .sec{margin-top:28px;}
+  .sec-label{
+    display:flex;align-items:center;gap:10px;
+    font-size:12px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin:0 2px 12px;
+  }
+  .sec-label .ln{flex:1;height:1px;background:var(--line);}
+  .sec-label .ct{color:var(--muted);font-variant-numeric:tabular-nums;}
+  /* ---- task ---- */
+  .task{
+    display:flex;align-items:center;gap:14px;
+    background:var(--surface);border-radius:var(--radius);
+    padding:15px 15px;margin-bottom:10px;
+    box-shadow:var(--shadow);
+    border:1px solid transparent;
+    animation:rise .42s cubic-bezier(.2,.8,.2,1) both;
+    will-change:transform,opacity;
+  }
+  .task.focus{
+    background:var(--surface-focus);
+    border-color:rgba(204,136,43,.28);
+  }
+  .task.done{
+    background:transparent;box-shadow:none;
+    padding-top:9px;padding-bottom:9px;margin-bottom:4px;
+  }
+  .task.leaving{animation:leave .38s ease forwards;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px) scale(.99);}to{opacity:1;transform:none;}}
+  @keyframes leave{to{opacity:0;transform:translateX(40px);height:0;margin:0;padding:0;}}
+  /* check */
+  .check{
+    flex:0 0 auto;width:30px;height:30px;border-radius:50%;
+    border:2px solid #C3CABA;background:#fff;
+    position:relative;cursor:pointer;
+    transition:transform .14s ease,border-color .2s,background .2s;
+  }
+  .check:active{transform:scale(.86);}
+  .check svg{position:absolute;inset:0;margin:auto;width:16px;height:16px;
+    stroke:#fff;stroke-width:3.2;fill:none;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:22;stroke-dashoffset:22;}
+  .task.done .check{background:var(--accent);border-color:var(--accent);}
+  .task.done .check svg{stroke-dashoffset:0;transition:stroke-dashoffset .3s ease .05s;}
+  .check.pop{animation:pop .34s cubic-bezier(.2,.9,.3,1.4);}
+  @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.28);}100%{transform:scale(1);}}
+  /* title */
+  .ttl{flex:1;font-size:16px;line-height:1.3;font-weight:500;min-width:0;
+    word-break:break-word;transition:color .25s;}
+  .task.done .ttl{color:var(--muted);text-decoration:line-through;text-decoration-color:#b9c0b0;font-weight:400;}
+  /* star */
+  .star{flex:0 0 auto;width:34px;height:34px;border:0;background:none;cursor:pointer;
+    display:grid;place-items:center;color:#C3CABA;border-radius:50%;}
+  .star.on{color:var(--accent);}
+  .star:active{transform:scale(.85);}
+  .star svg{width:19px;height:19px;}
+  /* carry buttons */
+  .carry-acts{display:flex;gap:7px;flex:0 0 auto;}
+  .cbtn{border:1px solid var(--line);background:#fff;border-radius:11px;
+    font-family:inherit;font-size:13px;font-weight:600;color:var(--forest);
+    padding:8px 11px;cursor:pointer;white-space:nowrap;}
+  .cbtn.drop{color:var(--muted);font-weight:500;padding:8px 12px;}
+  .cbtn:active{transform:scale(.94);}
+  /* done header toggle */
+  .done-head{display:flex;align-items:center;gap:10px;cursor:pointer;
+    margin:6px 2px 12px;user-select:none;}
+  .done-head .lbl{font-size:12px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);}
+  .done-head .ln{flex:1;height:1px;background:var(--line);}
+  .done-head .chev{color:var(--muted);transition:transform .25s;font-size:12px;}
+  .done-head.collapsed .chev{transform:rotate(-90deg);}
+  .done-wrap.collapsed{display:none;}
+  /* empty state */
+  .empty{text-align:center;color:var(--muted);padding:30px 16px;}
+  .empty .em-ttl{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;
+    font-size:19px;color:var(--ink);margin:0 0 6px;}
+  .empty p{margin:0;font-size:14px;line-height:1.5;}
+  /* ---- quick add ---- */
+  .addbar{
+    position:absolute;left:0;right:0;bottom:0;
+    padding:14px 16px calc(16px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,var(--canvas) 70%,rgba(233,236,229,0));
+  }
+  .addfield{
+    display:flex;align-items:center;gap:10px;
+    background:#fff;border-radius:16px;padding:7px 7px 7px 18px;
+    box-shadow:0 4px 22px rgba(34,40,31,.13);border:1px solid var(--line);
+  }
+  .addfield input{
+    flex:1;border:0;outline:0;font-family:inherit;font-size:16px;color:var(--ink);
+    background:none;padding:9px 0;
+  }
+  .addfield input::placeholder{color:#9aa394;}
+  .addbtn{
+    flex:0 0 auto;width:42px;height:42px;border:0;border-radius:12px;cursor:pointer;
+    background:var(--accent);color:#fff;display:grid;place-items:center;
+    transition:transform .12s,background .2s;
+  }
+  .addbtn:active{transform:scale(.9);}
+  .addbtn:disabled{background:#cdd2c7;}
+  .addbtn svg{width:22px;height:22px;stroke:#fff;stroke-width:2.4;fill:none;stroke-linecap:round;}
+  /* spark particles */
+  .spark{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:50;}
+  /* toast */
+  .toast{
+    position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(10px);
+    background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;
+    padding:11px 16px;border-radius:12px;opacity:0;pointer-events:none;
+    transition:opacity .25s,transform .25s;max-width:88%;text-align:center;z-index:40;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  :focus-visible{outline:2.5px solid var(--forest);outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scroll" id="scroll">
+    <p class="eyebrow" id="date">—</p>
+    <h1 class="greeting" id="greeting">Hei</h1>
+    <div class="status">
+      <span id="statusText">—</span>
+      <span class="pmeter"><i id="meter"></i></span>
+    </div>
+    <div id="lists"></div>
+  </div>
+
+  <div class="addbar">
+    <div class="addfield">
+      <input id="addInput" type="text" placeholder="Legg til noe…" autocomplete="off" enterkeyhint="done" />
+      <button class="addbtn" id="addBtn" disabled aria-label="Legg til">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+  let uid = 100;
+  // seeded so the screen feels alive — all editable
+  let tasks = [
+    {id:++uid, title:"Hanzi-dojo: fiks writing-practice bug", focus:true,  status:"today"},
+    {id:++uid, title:"Send learning agreement til Kansai",    focus:true,  status:"today"},
+    {id:++uid, title:"Les japansk 15 min",                    focus:false, status:"today"},
+    {id:++uid, title:"Trening",                               focus:false, status:"today"},
+    {id:++uid, title:"Bestill time hos tannlege",             focus:false, status:"today"},
+    {id:++uid, title:"Vaske klær",                            focus:false, status:"carry"},
+    {id:++uid, title:"Svar på Telia-melding",                 focus:false, status:"done"},
+  ];
+  let doneCollapsed = false;
+
+  const $ = s => document.querySelector(s);
+  const lists = $("#lists");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- header ---------- */
+  function header(){
+    const now = new Date();
+    $("#date").textContent = new Intl.DateTimeFormat("nb-NO",{weekday:"long",day:"numeric",month:"long"}).format(now);
+    const h = now.getHours();
+    const g = h<5?"God natt" : h<11?"God morgen" : h<17?"God dag" : h<22?"God kveld" : "God natt";
+    $("#greeting").textContent = g + ", Fabi";
+  }
+
+  /* ---------- icons ---------- */
+  const checkSvg = '<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>';
+  const starSvg  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.7 6.9 19.2l1-5.6-4.1-4 5.7-.8z"/></svg>';
+
+  /* ---------- render ---------- */
+  function render(){
+    const focus = tasks.filter(t=>t.status==="today" && t.focus);
+    const rest  = tasks.filter(t=>t.status==="today" && !t.focus);
+    const carry = tasks.filter(t=>t.status==="carry");
+    const done  = tasks.filter(t=>t.status==="done");
+    const openCount = focus.length + rest.length + carry.length;
+    const totalToday = openCount + done.length;
+
+    // status line + meter
+    $("#statusText").textContent = openCount===0
+      ? "alt unnagjort"
+      : focus.length + " i fokus · " + (rest.length+carry.length) + " igjen";
+    $("#meter").style.width = totalToday ? Math.round(done.length/totalToday*100)+"%" : "0%";
+
+    lists.innerHTML = "";
+
+    if(openCount===0 && done.length>0){
+      lists.appendChild(el(`<div class="empty"><p class="em-ttl">Ferdig for i dag 🌿</p><p>Resten kan vente. Legg gjerne til noe nytt, eller bare lukk appen med god samvittighet.</p></div>`));
+    }
+
+    if(focus.length) section("I fokus", focus, focus.length+"/3");
+    if(rest.length)  section("Resten", rest);
+    if(carry.length) section("Henger igjen", carry);
+
+    if(done.length){
+      const head = el(`<div class="done-head ${doneCollapsed?'collapsed':''}"><span class="lbl">Fullført</span><span class="ln"></span><span class="ct" style="color:var(--muted);font-size:12px;font-weight:600">${done.length}</span><span class="chev">▼</span></div>`);
+      head.onclick = ()=>{ doneCollapsed=!doneCollapsed; render(); };
+      lists.appendChild(head);
+      const wrap = el(`<div class="done-wrap ${doneCollapsed?'collapsed':''}"></div>`);
+      done.forEach(t=>wrap.appendChild(taskEl(t)));
+      lists.appendChild(wrap);
+    }
+  }
+
+  function section(label, items, count){
+    const sec = el(`<div class="sec"><div class="sec-label">${label}<span class="ln"></span>${count?`<span class="ct">${count}</span>`:""}</div></div>`);
+    items.forEach(t=>sec.appendChild(taskEl(t)));
+    lists.appendChild(sec);
+  }
+
+  function taskEl(t){
+    const node = el(`<div class="task ${t.focus?'focus':''} ${t.status==='done'?'done':''}"></div>`);
+
+    // check
+    const check = el(`<div class="check" role="checkbox" tabindex="0" aria-checked="${t.status==='done'}" aria-label="Fullfør">${checkSvg}</div>`);
+    const toggle = (e)=>{
+      if(t.status==="done"){ t.status="today"; render(); }
+      else { complete(t, check); }
+    };
+    check.onclick = toggle;
+    check.onkeydown = (e)=>{ if(e.key===" "||e.key==="Enter"){e.preventDefault();toggle(e);} };
+    node.appendChild(check);
+
+    // title
+    node.appendChild(el(`<div class="ttl">${escapeHtml(t.title)}</div>`));
+
+    // carry actions or star
+    if(t.status==="carry"){
+      const acts = el(`<div class="carry-acts"></div>`);
+      const toDay = el(`<button class="cbtn">→ i dag</button>`);
+      toDay.onclick = ()=>{ t.status="today"; render(); };
+      const drop = el(`<button class="cbtn drop">slipp</button>`);
+      drop.onclick = ()=>{ removeWithAnim(node, t); };
+      acts.appendChild(toDay); acts.appendChild(drop);
+      node.appendChild(acts);
+    } else if(t.status==="today"){
+      const star = el(`<button class="star ${t.focus?'on':''}" aria-label="Sett i fokus">${starSvg}</button>`);
+      star.onclick = ()=>{
+        if(!t.focus){
+          const fc = tasks.filter(x=>x.status==="today"&&x.focus).length;
+          if(fc>=3){ toast("Maks 3 i fokus — hold det enkelt 🌱"); return; }
+        }
+        t.focus=!t.focus; render();
+      };
+      node.appendChild(star);
+    }
+    return node;
+  }
+
+  /* ---------- complete with dopamine ---------- */
+  function complete(t, checkNode){
+    if(navigator.vibrate) navigator.vibrate([12,30,12]);
+    checkNode.classList.add("pop");
+    burst(checkNode);
+    t.status="done"; t.focus=false;
+    setTimeout(render, reduce?0:260);
+  }
+
+  function burst(node){
+    if(reduce) return;
+    const r = node.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const colors = ["#E8A53D","#CC882B","#42634A","#E8A53D"];
+    for(let i=0;i<9;i++){
+      const s = document.createElement("div");
+      s.className="spark";
+      s.style.background = colors[i%colors.length];
+      s.style.left = cx+"px"; s.style.top = cy+"px";
+      document.body.appendChild(s);
+      const ang = (Math.PI*2)*(i/9) + Math.random()*0.5;
+      const dist = 34 + Math.random()*26;
+      const dx = Math.cos(ang)*dist, dy = Math.sin(ang)*dist;
+      s.animate(
+        [{transform:"translate(-50%,-50%) scale(1)",opacity:1},
+         {transform:`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0)`,opacity:0}],
+        {duration:520+Math.random()*160,easing:"cubic-bezier(.2,.7,.2,1)"}
+      ).onfinish = ()=>s.remove();
+    }
+  }
+
+  function removeWithAnim(node, t){
+    node.classList.add("leaving");
+    setTimeout(()=>{ tasks = tasks.filter(x=>x!==t); render(); }, reduce?0:340);
+  }
+
+  /* ---------- quick add ---------- */
+  const input = $("#addInput"), addBtn = $("#addBtn");
+  input.addEventListener("input", ()=>{ addBtn.disabled = input.value.trim()===""; });
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter") add(); });
+  addBtn.onclick = add;
+  function add(){
+    const v = input.value.trim();
+    if(!v) return;
+    tasks.push({id:++uid, title:v, focus:false, status:"today"});
+    input.value=""; addBtn.disabled=true;
+    if(navigator.vibrate) navigator.vibrate(8);
+    render();
+    requestAnimationFrame(()=>$("#scroll").scrollTo({top:0,behavior:"smooth"}));
+  }
+
+  /* ---------- toast ---------- */
+  let tTimer;
+  function toast(msg){
+    const el = $("#toast"); el.textContent=msg; el.classList.add("show");
+    clearTimeout(tTimer); tTimer=setTimeout(()=>el.classList.remove("show"),2200);
+  }
+
+  /* ---------- helpers ---------- */
+  function el(html){ const d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+  function escapeHtml(s){ return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+  header(); render();
+})();
+</script>
+</body>
+</html>
