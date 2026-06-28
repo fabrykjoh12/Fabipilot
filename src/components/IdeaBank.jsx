@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listIdeas, addIdea, updateIdea, deleteIdea } from '../db.js'
+import { listIdeas, addIdea, updateIdea, deleteIdea, promoteIdeaToProject } from '../db.js'
 import { burst, vibrate, reduceMotion, autoGrow, fmtDate } from '../lib/fx.js'
 import './IdeaBank.css'
 
@@ -15,7 +15,7 @@ const CATS = [
 const catLabel = (k) => (CATS.find((c) => c.k === k) || CATS[0]).label
 
 /* ---------- ett idé-kort ---------- */
-function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDelete, onEdit }) {
+function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDelete, onEdit, onPromote }) {
   const [text, setText] = useState(idea.text)
   const [note, setNote] = useState(idea.note || '')
   const [leaving, setLeaving] = useState(false)
@@ -124,6 +124,16 @@ function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDe
           ))}
         </div>
         <div className="exfoot">
+          <button
+            type="button"
+            className="promote"
+            onClick={(e) => {
+              e.stopPropagation()
+              onPromote(idea)
+            }}
+          >
+            ↗ Forfremm til prosjekt
+          </button>
           <button type="button" className="del" onClick={handleDelete}>
             Slett idé
           </button>
@@ -158,6 +168,15 @@ export default function IdeaBank() {
   async function onDelete(id) {
     if (openId === id) setOpenId(null)
     await deleteIdea(id)
+  }
+  async function onPromote(idea) {
+    if (openId === idea.id) setOpenId(null)
+    const { capReached } = await promoteIdeaToProject(idea)
+    window.alert(
+      capReached
+        ? `«${idea.text}» ble lagt «på is» — du har allerede 3 aktive prosjekter. Den ligger nå under Prosjekter.`
+        : `«${idea.text}» er nå et aktivt prosjekt. Du finner det under Prosjekter.`,
+    )
   }
 
   async function handleAdd() {
@@ -275,6 +294,7 @@ export default function IdeaBank() {
                 onToggleFav={onToggleFav}
                 onDelete={onDelete}
                 onEdit={onEdit}
+                onPromote={onPromote}
               />
             ))
           )}

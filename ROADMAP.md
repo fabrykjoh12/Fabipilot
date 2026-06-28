@@ -4,9 +4,7 @@ Samme struktur som appen: Nå → Neste → Senere → Ferdig.
 Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CLAUDE.md).
 
 ## Nå
-- Verifisere «Prosjekter»-roadmapmodulen i browser, så committe + pushe den til `main`
-  (bygd: `projects` + `projectItems`, hero «neste steg», ryggrad Nå→Neste→Senere, WIP-tak 3,
-  «Forfremm til prosjekt» fra idébanken). Per nå ukommittert til den er testet.
+- (ingenting aktivt akkurat nå — plukk neste punkt fra Neste)
 
 ## Neste
 - Backup-vane: fast påminnelse/rutine for å eksportere JSON av og til (Del D i guiden).
@@ -28,6 +26,6 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - «I dag»: fokus (maks 3) / resten / henger igjen / fullført, fremgangsmåler, gnist ved fullføring.
 - «Vaner»: daglige vaner, hak av i dag, 7-dagers prikker, ingen skam-streaks.
 - «Penger»: abonnement med månedstotal (måned/år).
-- «Prosjekter»: roadmap-modul (bygd lokalt — se Nå for status på commit).
+- «Prosjekter»: roadmap-modul — oversikt (Aktive/På is) + roadmap-side, `projects` + `projectItems`, hero «neste steg», ryggrad Nå→Neste→Senere, WIP-tak 3, «Forfremm til prosjekt» fra idébanken.
 - Backup (eksport/import) dekker alle stores, samlet i app-skallet.
 - Lint (ESLint fra Vite-malen) grønt; `npm run lint` satt opp.

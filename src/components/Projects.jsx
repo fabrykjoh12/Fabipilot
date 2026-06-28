@@ -1,132 +1,153 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listProjects, addProject, updateProject, deleteProject } from '../db.js'
-import { vibrate, reduceMotion, autoGrow } from '../lib/fx.js'
+import {
+  db,
+  listProjects,
+  getProject,
+  addProject,
+  setProjectStatus,
+  countActiveProjects,
+  listProjectItems,
+  addProjectItem,
+  advanceItem,
+  setItemStage,
+  setItemEnergy,
+  deleteProjectItem,
+  MAX_ACTIVE_PROJECTS,
+} from '../db.js'
+import { burst, vibrate, reduceMotion } from '../lib/fx.js'
+import './Projects.css'
 
-const STATUSES = [
-  { k: 'aktiv', label: 'Aktiv' },
-  { k: 'pause', label: 'Pause' },
-  { k: 'ferdig', label: 'Ferdig' },
-]
-const nextStatus = (s) => STATUSES[(STATUSES.findIndex((x) => x.k === s) + 1) % STATUSES.length].k
+const CHECK = (
+  <svg viewBox="0 0 24 24">
+    <path d="M5 13l4 4L19 7" />
+  </svg>
+)
+const ADV = (
+  <svg viewBox="0 0 24 24">
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+)
+const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
+const NEXT_STATUS = { active: 'onice', onice: 'done', done: 'active' }
+const ENERGY_NEXT = { '': 'lav', lav: 'hoy', hoy: '' }
 
-function ProjectCard({ project, open, onOpen }) {
-  const [note, setNote] = useState(project.note || '')
-  const [leaving, setLeaving] = useState(false)
-  const noteRef = useRef(null)
-  const timer = useRef(null)
-
-  function onNote(e) {
-    const v = e.target.value
-    setNote(v)
-    autoGrow(noteRef.current)
-    clearTimeout(timer.current)
-    timer.current = setTimeout(() => updateProject(project.id, { note: v }), 400)
-  }
-  function handleDelete(e) {
-    e.stopPropagation()
-    setLeaving(true)
-    setTimeout(() => deleteProject(project.id), reduceMotion() ? 0 : 340)
-  }
-
-  return (
-    <div
-      className={'card project' + (open ? ' open' : '') + (leaving ? ' leaving' : '')}
-      onClick={() => onOpen(project.id)}
-    >
-      <div className="project-row">
-        <span className={'status-pill st-' + project.status}>
-          {STATUSES.find((s) => s.k === project.status)?.label}
-        </span>
-        <div className="project-name">{project.name}</div>
-        <button
-          type="button"
-          className="status-cycle"
-          aria-label="Endre status"
-          onClick={(e) => {
-            e.stopPropagation()
-            updateProject(project.id, { status: nextStatus(project.status) })
-          }}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M21 12a9 9 0 11-2.6-6.4" />
-            <path d="M21 4v4h-4" />
-          </svg>
-        </button>
-      </div>
-
-      <div className="project-expand">
-        <textarea
-          ref={noteRef}
-          className="note-ta"
-          rows="2"
-          placeholder="Notater, neste steg, lenker…"
-          value={note}
-          onClick={(e) => e.stopPropagation()}
-          onChange={onNote}
-        />
-        <div className="exfoot">
-          <button type="button" className="btn btn-danger" onClick={handleDelete}>
-            Slett prosjekt
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+function touchedText(ts) {
+  if (!ts) return ''
+  const days = Math.floor((Date.now() - ts) / 86400000)
+  if (days <= 0) return 'Rørt sist i dag'
+  if (days === 1) return 'Rørt sist i går'
+  return `Rørt sist for ${days} dager siden`
 }
 
-export default function Projects() {
+/* ===================== PROSJEKTLISTE ===================== */
+function ProjectsList({ onOpen }) {
   const projects = useLiveQuery(() => listProjects(), [], [])
+  const nowItems = useLiveQuery(
+    () => db.projectItems.where('stage').equals('now').sortBy('sortOrder'),
+    [],
+    [],
+  )
   const [val, setVal] = useState('')
-  const [openId, setOpenId] = useState(null)
 
-  const active = projects.filter((p) => p.status !== 'ferdig')
-  const done = projects.filter((p) => p.status === 'ferdig')
+  const nextByProject = {}
+  for (const it of nowItems) if (!nextByProject[it.projectId]) nextByProject[it.projectId] = it
+
+  const active = projects.filter((p) => p.status === 'active')
+  const onice = projects.filter((p) => p.status === 'onice')
+  const done = projects.filter((p) => p.status === 'done')
 
   async function add() {
     const v = val.trim()
     if (!v) return
-    await addProject(v)
+    const count = await countActiveProjects()
+    const status = count >= MAX_ACTIVE_PROJECTS ? 'onice' : 'active'
+    await addProject({ name: v, status })
     setVal('')
     vibrate(8)
+    if (status === 'onice') {
+      window.alert(
+        `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. «${v}» ble lagt «på is». Sett ett aktivt prosjekt på is for å gjøre plass.`,
+      )
+    }
   }
-  const onOpen = (id) => setOpenId((cur) => (cur === id ? null : id))
+
+  function Card({ p }) {
+    const next = nextByProject[p.id]
+    return (
+      <button type="button" className="plist-card" onClick={() => onOpen(p.id)}>
+        <div className="plist-top">
+          <span className="plist-name">{p.name}</span>
+          <span className={'pstatus st-' + p.status}>{STATUS_LABEL[p.status]}</span>
+        </div>
+        <div className="plist-next">
+          {next ? (
+            <>
+              <span className="plist-dot" />
+              {next.text}
+            </>
+          ) : (
+            <span className="plist-empty">Ingen «neste steg» satt</span>
+          )}
+        </div>
+      </button>
+    )
+  }
 
   return (
     <div className="screen">
       <div className="screen-scroll">
         <h1 className="scr-title">Prosjekter</h1>
         <p className="scr-sub">
-          {projects.length === 0 ? 'De større tingene.' : `${active.length} i gang · ${done.length} ferdig`}
+          {active.length} av {MAX_ACTIVE_PROJECTS} aktive
+          {onice.length ? ` · ${onice.length} på is` : ''}
         </p>
 
-        <div style={{ marginTop: 20 }}>
-          {projects.length === 0 ? (
-            <div className="empty">
-              <div className="glyph">📁</div>
-              <p className="em-ttl">Ingen prosjekter enda</p>
-              <p>Større ting du jobber mot — en app, en søknad, en reise. Legg til ett nederst.</p>
+        {projects.length === 0 && (
+          <div className="empty">
+            <div className="glyph">🗺️</div>
+            <p className="em-ttl">Ingen prosjekter enda</p>
+            <p>De større tingene du jobber mot. Legg til ett nederst — eller forfremm en idé fra idébanken.</p>
+          </div>
+        )}
+
+        {active.length > 0 && (
+          <div className="sec">
+            <div className="sec-label">
+              Aktive<span className="ln" />
+              <span className="ct">
+                {active.length}/{MAX_ACTIVE_PROJECTS}
+              </span>
             </div>
-          ) : (
-            <>
-              {active.map((p) => (
-                <ProjectCard key={p.id} project={p} open={openId === p.id} onOpen={onOpen} />
-              ))}
-              {done.length > 0 && (
-                <div className="sec">
-                  <div className="sec-label">
-                    Ferdig
-                    <span className="ln" />
-                    <span className="ct">{done.length}</span>
-                  </div>
-                  {done.map((p) => (
-                    <ProjectCard key={p.id} project={p} open={openId === p.id} onOpen={onOpen} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            {active.map((p) => (
+              <Card key={p.id} p={p} />
+            ))}
+          </div>
+        )}
+
+        {onice.length > 0 && (
+          <div className="sec">
+            <div className="sec-label">
+              På is<span className="ln" />
+              <span className="ct">{onice.length}</span>
+            </div>
+            {onice.map((p) => (
+              <Card key={p.id} p={p} />
+            ))}
+          </div>
+        )}
+
+        {done.length > 0 && (
+          <div className="sec">
+            <div className="sec-label">
+              Ferdig<span className="ln" />
+              <span className="ct">{done.length}</span>
+            </div>
+            {done.map((p) => (
+              <Card key={p.id} p={p} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="screen-bar">
@@ -154,4 +175,224 @@ export default function Projects() {
       </div>
     </div>
   )
+}
+
+/* ===================== ROADMAP (én prosjektside) ===================== */
+function SpineCard({ item, later }) {
+  const [leaving, setLeaving] = useState(false)
+  const ref = useRef(null)
+
+  function handleAdvance() {
+    if (item.stage === 'now') {
+      setLeaving(true)
+      vibrate([12, 30, 12])
+      burst(ref.current)
+      setTimeout(() => setItemStage(item, 'done'), reduceMotion() ? 0 : 340)
+    } else {
+      advanceItem(item)
+    }
+  }
+
+  return (
+    <div ref={ref} className={'rm-card' + (leaving ? ' leaving' : '')}>
+      <button
+        type="button"
+        className={'energy ' + (item.energy || 'none')}
+        aria-label="Energinivå"
+        onClick={() => setItemEnergy(item, ENERGY_NEXT[item.energy || ''])}
+      />
+      <span className="ctxt">{item.text}</span>
+      <button
+        type="button"
+        className="adv"
+        aria-label="Flytt fremover"
+        onClick={handleAdvance}
+        onDoubleClick={(e) => e.preventDefault()}
+      >
+        {ADV}
+      </button>
+      {!later && (
+        <button
+          type="button"
+          className="rm-del"
+          aria-label="Slett"
+          onClick={() => deleteProjectItem(item)}
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function StageBlock({ stage, label, note, items }) {
+  const cls = stage === 'now' ? 'now' : stage === 'later' ? 'later' : 'next'
+  return (
+    <div className={'stage ' + cls}>
+      <span className="node" />
+      <div className="stage-head">
+        <span className="nm">{label}</span>
+        <span className="ct">{items.length}</span>
+        {note && <span className="note">{note}</span>}
+      </div>
+      {items.length === 0 ? (
+        <div className="rm-card empty-card">
+          <span className="ctxt muted">— tomt —</span>
+        </div>
+      ) : (
+        items.map((i) => <SpineCard key={i.id} item={i} later={stage === 'later'} />)
+      )}
+    </div>
+  )
+}
+
+function Roadmap({ projectId, onBack }) {
+  const project = useLiveQuery(() => getProject(projectId), [projectId])
+  const items = useLiveQuery(() => listProjectItems(projectId), [projectId], [])
+  const [addVal, setAddVal] = useState('')
+  const [doneCollapsed, setDoneCollapsed] = useState(true)
+  const heroCheckRef = useRef(null)
+
+  if (!project) return <div className="screen" />
+
+  const nowItems = items.filter((i) => i.stage === 'now')
+  const nextItems = items.filter((i) => i.stage === 'next')
+  const laterItems = items.filter((i) => i.stage === 'later')
+  const doneItems = items.filter((i) => i.stage === 'done')
+  const hero = nowItems[0] || null
+  const nowRest = nowItems.slice(1)
+
+  const total = items.length
+  const pct = total ? Math.round((doneItems.length / total) * 100) : 0
+
+  function completeHero() {
+    if (!hero) return
+    heroCheckRef.current?.classList.add('pop')
+    vibrate([12, 30, 12])
+    burst(heroCheckRef.current)
+    setTimeout(() => setItemStage(hero, 'done'), reduceMotion() ? 0 : 260)
+  }
+
+  async function add() {
+    const v = addVal.trim()
+    if (!v) return
+    await addProjectItem(projectId, v, 'next')
+    setAddVal('')
+    vibrate(8)
+  }
+
+  async function cycleStatus() {
+    const target = NEXT_STATUS[project.status]
+    const ok = await setProjectStatus(project.id, target)
+    if (!ok) {
+      window.alert(
+        `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. Sett ett av dem «på is» først for å aktivere dette.`,
+      )
+    }
+  }
+
+  return (
+    <div className="screen roadmap">
+      <div className="screen-scroll">
+        <button type="button" className="back" onClick={onBack}>
+          ‹ Prosjekter
+        </button>
+
+        <div className="phead">
+          <h1 className="pname">{project.name}</h1>
+          <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>
+            {STATUS_LABEL[project.status]}
+          </button>
+        </div>
+        {project.why && <p className="pwhy">{project.why}</p>}
+        <p className="ptouch">{touchedText(project.lastTouched)}</p>
+
+        <div className="prog">
+          <span className="bar">
+            <i style={{ width: pct + '%' }} />
+          </span>
+          <span className="lbl">
+            {doneItems.length} av {total}
+          </span>
+        </div>
+
+        <div className="hero">
+          <p className="tag">Neste steg</p>
+          {hero ? (
+            <div className="hero-row">
+              <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" aria-label="Fullfør neste steg">
+                {CHECK}
+              </div>
+              <div className="htxt">{hero.text}</div>
+            </div>
+          ) : (
+            <div className="hero-empty">
+              Ingenting i «Nå» akkurat nå. Flytt én ting fra Neste hit (pilen) — bare én. Det er nok.
+            </div>
+          )}
+        </div>
+
+        <div className="road">
+          <StageBlock stage="now" label="Nå" note="det du jobber med" items={nowRest} />
+          <StageBlock stage="next" label="Neste" items={nextItems} />
+          <div className="addrow">
+            <input
+              placeholder="Legg til i Neste…"
+              value={addVal}
+              onChange={(e) => setAddVal(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && add()}
+            />
+            <button type="button" disabled={addVal.trim() === ''} onClick={add} aria-label="Legg til">
+              +
+            </button>
+          </div>
+          <StageBlock stage="later" label="Senere" note="ingen press" items={laterItems} />
+        </div>
+
+        {doneItems.length > 0 && (
+          <>
+            <div
+              className={'done-head' + (doneCollapsed ? ' collapsed' : '')}
+              onClick={() => setDoneCollapsed((c) => !c)}
+            >
+              <span className="nm">Ferdig</span>
+              <span className="ct">{doneItems.length}</span>
+              <span className="chev">▼</span>
+            </div>
+            {!doneCollapsed && (
+              <div className="done-wrap">
+                {doneItems.map((i) => (
+                  <div key={i.id} className="donecard">
+                    <span className="dot">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    <span className="t">{i.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ===================== TOPP ===================== */
+export default function Projects() {
+  const [selectedId, setSelectedId] = useState(null)
+  const exists = useLiveQuery(
+    () => (selectedId ? getProject(selectedId) : null),
+    [selectedId],
+    undefined,
+  )
+
+  if (selectedId && exists) {
+    return <Roadmap projectId={selectedId} onBack={() => setSelectedId(null)} />
+  }
+  return <ProjectsList onOpen={setSelectedId} />
 }

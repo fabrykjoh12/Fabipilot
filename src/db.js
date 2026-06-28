@@ -17,6 +17,31 @@ db.version(2).stores({
   projects: 'id, status, sortOrder, createdAt',
 })
 
+// v3: prosjekter blir roadmaps (projects + projectItems).
+db.version(3)
+  .stores({
+    ideas: 'id, category, createdAt',
+    tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+    habits: 'id, sortOrder, createdAt',
+    subscriptions: 'id, createdAt',
+    projects: 'id, status, lastTouched, createdAt',
+    projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  })
+  .upgrade(async (tx) => {
+    // Migrer gamle prosjekter (status aktiv/pause/ferdig, note) til nytt skjema.
+    const map = { aktiv: 'active', pause: 'onice', ferdig: 'done' }
+    await tx
+      .table('projects')
+      .toCollection()
+      .modify((p) => {
+        p.status = map[p.status] || (['active', 'onice', 'done'].includes(p.status) ? p.status : 'active')
+        if (p.why === undefined) p.why = p.note || ''
+        if (p.lastTouched === undefined) p.lastTouched = p.createdAt || Date.now()
+        delete p.note
+        delete p.sortOrder
+      })
+  })
+
 const uid = () => crypto.randomUUID()
 const now = () => Date.now()
 
@@ -25,6 +50,8 @@ export function todayKey(d = new Date()) {
   const x = new Date(d)
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
 }
+
+export const MAX_ACTIVE_PROJECTS = 3
 
 /* =========================================================
    IDÉBANK
@@ -49,7 +76,6 @@ export const deleteIdea = (id) => db.ideas.delete(id)
 
 /* =========================================================
    I DAG (oppgaver)
-   - dueDate = YYYY-MM-DD. «Henger igjen» = dueDate før i dag og ikke gjort.
    ========================================================= */
 export async function listTasks() {
   return db.tasks.orderBy('createdAt').reverse().toArray()
@@ -75,7 +101,6 @@ export async function setTaskDone(id, done) {
     isDone: done,
     isFocus: done ? false : undefined,
     completedAt: done ? now() : null,
-    // når man angrer fullføring havner den tilbake på i dag
     dueDate: done ? undefined : todayKey(),
   })
 }
@@ -84,7 +109,6 @@ export const carryTaskToToday = (id) => db.tasks.update(id, { dueDate: todayKey(
 
 /* =========================================================
    VANER
-   - history = liste av YYYY-MM-DD der vanen ble gjort. Ingen skam-streaks.
    ========================================================= */
 export async function listHabits() {
   return db.habits.orderBy('sortOrder').toArray()
@@ -107,7 +131,6 @@ export async function toggleHabitDay(id, dayKey = todayKey()) {
 
 /* =========================================================
    PENGER (abonnement)
-   - cycle: 'monthly' | 'yearly'. amount i kr.
    ========================================================= */
 export async function listSubscriptions() {
   return db.subscriptions.orderBy('createdAt').reverse().toArray()
@@ -119,38 +142,105 @@ export async function addSubscription({ name, amount, cycle = 'monthly' }) {
 }
 export const updateSubscription = (id, patch) => db.subscriptions.update(id, patch)
 export const deleteSubscription = (id) => db.subscriptions.delete(id)
-/** Månedlig kostnad for ett abonnement (årlig deles på 12). */
 export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 : s.amount || 0)
 
 /* =========================================================
-   PROSJEKTER
-   - status: 'aktiv' | 'pause' | 'ferdig'
+   PROSJEKTER (roadmaps)
+   - projects: id, name, why, status('active'|'onice'|'done'), createdAt, lastTouched
+   - projectItems: id, projectId, text, stage('now'|'next'|'later'|'done'), energy('lav'|'hoy'|null), sortOrder, createdAt
+   - «Neste steg» = første item med stage='now' (etter sortOrder).
    ========================================================= */
 export async function listProjects() {
-  return db.projects.orderBy('sortOrder').reverse().toArray()
+  return db.projects.orderBy('lastTouched').reverse().toArray()
 }
-export async function addProject(name) {
+export const getProject = (id) => db.projects.get(id)
+export const countActiveProjects = () => db.projects.where('status').equals('active').count()
+
+export async function addProject({ name, why = '', status = 'active' }) {
   const p = {
     id: uid(),
     name: name.trim(),
-    status: 'aktiv',
-    note: '',
-    sortOrder: now(),
+    why: why.trim ? why.trim() : why,
+    status,
     createdAt: now(),
+    lastTouched: now(),
   }
   await db.projects.add(p)
   return p
 }
-export const updateProject = (id, patch) => db.projects.update(id, patch)
-export const deleteProject = (id) => db.projects.delete(id)
+export const updateProject = (id, patch) => db.projects.update(id, { ...patch, lastTouched: now() })
+export async function deleteProject(id) {
+  await db.projectItems.where('projectId').equals(id).delete()
+  await db.projects.delete(id)
+}
+
+/** Returnerer true hvis status ble satt, false hvis WIP-taket blokkerte. */
+export async function setProjectStatus(id, status) {
+  if (status === 'active') {
+    const current = await db.projects.get(id)
+    if (current?.status !== 'active') {
+      const active = await countActiveProjects()
+      if (active >= MAX_ACTIVE_PROJECTS) return false
+    }
+  }
+  await db.projects.update(id, { status, lastTouched: now() })
+  return true
+}
+
+/* ---- items ---- */
+export async function listProjectItems(projectId) {
+  return db.projectItems.where('projectId').equals(projectId).sortBy('sortOrder')
+}
+const touch = (projectId) => db.projects.update(projectId, { lastTouched: now() })
+
+export async function addProjectItem(projectId, text, stage = 'next') {
+  const item = {
+    id: uid(),
+    projectId,
+    text: text.trim(),
+    stage,
+    energy: null,
+    sortOrder: now(),
+    createdAt: now(),
+  }
+  await db.projectItems.add(item)
+  await touch(projectId)
+  return item
+}
+export async function setItemStage(item, stage) {
+  await db.projectItems.update(item.id, { stage })
+  await touch(item.projectId)
+}
+const FORWARD = { later: 'next', next: 'now', now: 'done', done: 'done' }
+export async function advanceItem(item) {
+  await db.projectItems.update(item.id, { stage: FORWARD[item.stage] || item.stage })
+  await touch(item.projectId)
+}
+export async function setItemEnergy(item, energy) {
+  await db.projectItems.update(item.id, { energy })
+  await touch(item.projectId)
+}
+export async function deleteProjectItem(item) {
+  await db.projectItems.delete(item.id)
+  await touch(item.projectId)
+}
+
+/** Forfremm en idé til et nytt prosjekt. Respekterer WIP-taket. */
+export async function promoteIdeaToProject(idea) {
+  const active = await countActiveProjects()
+  const status = active >= MAX_ACTIVE_PROJECTS ? 'onice' : 'active'
+  const project = await addProject({ name: idea.text, why: '', status })
+  await db.ideas.delete(idea.id)
+  return { project, status, capReached: status === 'onice' }
+}
 
 /* =========================================================
    BACKUP — eksport/import av HELE dashboardet
    ========================================================= */
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects']
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems']
 
 export async function exportAll() {
-  const out = { type: 'dashboard-backup', version: 2, exportedAt: new Date().toISOString() }
+  const out = { type: 'dashboard-backup', version: 3, exportedAt: new Date().toISOString() }
   for (const t of TABLES) out[t] = await db.table(t).toArray()
   return out
 }

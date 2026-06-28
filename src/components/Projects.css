@@ -1,0 +1,498 @@
+/* ===== Prosjektliste ===== */
+.plist-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 15px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  font-family: inherit;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.plist-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.plist-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+.plist-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.plist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+.plist-empty {
+  color: #9aa394;
+  font-style: italic;
+}
+
+/* status-merker (delt liste + roadmap) */
+.pstatus {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 5px 10px;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+.st-active {
+  color: var(--forest);
+  background: #e5ebe4;
+}
+.st-onice {
+  color: var(--muted);
+  background: #eef0ea;
+}
+.st-done {
+  color: #fff;
+  background: var(--accent);
+}
+
+/* ===== Roadmap (prosjektside) — portet 1:1 ===== */
+.roadmap .back {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.roadmap .phead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.roadmap .pname {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.05;
+}
+.roadmap .pstatus {
+  margin-top: 4px;
+}
+.roadmap .pwhy {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 9px 0 0;
+  line-height: 1.45;
+}
+.roadmap .ptouch {
+  font-size: 12.5px;
+  color: #9aa394;
+  margin: 6px 0 0;
+  font-weight: 500;
+}
+
+.roadmap .prog {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 4px;
+}
+.roadmap .prog .bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.roadmap .prog .bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--forest), var(--accent));
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.roadmap .prog .lbl {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* next step hero */
+.roadmap .hero {
+  margin-top: 22px;
+  background: #faf4e8;
+  border: 1px solid rgba(204, 136, 43, 0.32);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.roadmap .hero .tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 9px;
+}
+.roadmap .hero-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.roadmap .hcheck {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.14s, background 0.2s;
+}
+.roadmap .hcheck:active {
+  transform: scale(0.86);
+}
+.roadmap .hcheck svg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px;
+  height: 16px;
+  stroke: #fff;
+  stroke-width: 3.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.roadmap .hcheck.pop {
+  animation: pop 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.roadmap .htxt {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.roadmap .hero-empty {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* roadmap spine */
+.roadmap .road {
+  margin-top: 30px;
+}
+.roadmap .stage {
+  position: relative;
+  padding-left: 30px;
+  padding-bottom: 8px;
+}
+.roadmap .stage::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 6px;
+  bottom: -8px;
+  width: 2px;
+  background: var(--forest);
+  opacity: 0.55;
+}
+.roadmap .stage.later::before {
+  background: none;
+  border-left: 2px dashed #b9c2b2;
+  opacity: 0.8;
+}
+.roadmap .stage:last-child::before {
+  bottom: auto;
+  height: 34px;
+}
+.roadmap .node {
+  position: absolute;
+  left: 2px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--forest);
+  z-index: 2;
+}
+.roadmap .stage.now .node {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.roadmap .stage.later .node {
+  border-color: #b9c2b2;
+  border-style: dashed;
+  width: 15px;
+  height: 15px;
+}
+.roadmap .stage-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+.roadmap .stage-head .nm {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.roadmap .stage.later .stage-head .nm {
+  color: var(--muted);
+}
+.roadmap .stage-head .ct {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.roadmap .stage-head .note {
+  font-size: 12px;
+  color: #a0a895;
+  font-style: italic;
+  margin-left: auto;
+}
+
+.roadmap .rm-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 13px;
+  margin-bottom: 9px;
+  box-shadow: var(--shadow);
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.roadmap .stage.later .rm-card {
+  background: rgba(251, 252, 249, 0.6);
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+.roadmap .rm-card.leaving {
+  animation: leave 0.36s ease forwards;
+}
+.roadmap .rm-card.empty-card {
+  opacity: 0.6;
+}
+.roadmap .energy {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.roadmap .energy.lav {
+  background: #7ba07c;
+  box-shadow: none;
+}
+.roadmap .energy.hoy {
+  background: var(--accent-bright);
+  box-shadow: none;
+}
+.roadmap .ctxt {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 500;
+  word-break: break-word;
+}
+.roadmap .ctxt.muted {
+  color: #9aa394;
+  font-weight: 400;
+}
+.roadmap .stage.later .ctxt {
+  color: #6a7265;
+  font-weight: 400;
+}
+.roadmap .adv {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--forest);
+}
+.roadmap .adv:active {
+  transform: scale(0.9);
+}
+.roadmap .adv svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.roadmap .rm-del {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: none;
+  color: #c3caba;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+.roadmap .rm-del svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+}
+.roadmap .rm-del:hover {
+  color: var(--danger);
+}
+
+.roadmap .addrow {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  padding-left: 30px;
+}
+.roadmap .addrow input {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  outline: 0;
+}
+.roadmap .addrow input::placeholder {
+  color: #9aa394;
+}
+.roadmap .addrow input:focus {
+  border-color: var(--forest);
+}
+.roadmap .addrow button {
+  flex: 0 0 auto;
+  width: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--forest);
+  color: #fff;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+.roadmap .addrow button:disabled {
+  background: #cdd2c7;
+}
+
+/* done */
+.roadmap .done-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 22px 0 10px;
+  cursor: pointer;
+  padding-left: 2px;
+}
+.roadmap .done-head .nm {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.roadmap .done-head .ct {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.roadmap .done-head .chev {
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform 0.25s;
+  font-size: 11px;
+}
+.roadmap .done-head.collapsed .chev {
+  transform: rotate(-90deg);
+}
+.roadmap .donecard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+}
+.roadmap .donecard .dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+}
+.roadmap .donecard .dot svg {
+  width: 11px;
+  height: 11px;
+  stroke: #fff;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.roadmap .donecard .t {
+  font-size: 14px;
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: #c2c9ba;
+}
