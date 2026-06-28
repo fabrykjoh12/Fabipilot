@@ -404,7 +404,7 @@ function Roadmap({ projectId, onBack }) {
           <p className="tag">Neste steg</p>
           {hero ? (
             <div className="hero-row">
-              <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" aria-label="Fullfør neste steg">
+              <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" tabIndex={0} aria-label="Fullfør neste steg" onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && completeHero()}>
                 {CHECK}
               </div>
               <div className="htxt">{hero.text}</div>

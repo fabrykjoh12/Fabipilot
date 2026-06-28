@@ -9,21 +9,45 @@ import {
 } from '../db.js'
 import { kr, vibrate } from '../lib/fx.js'
 
+const CATS = [
+  { k: 'annet',     label: 'Annet',      color: '#9aa394' },
+  { k: 'strømming', label: 'Strømming',  color: '#6b8cba' },
+  { k: 'musikk',    label: 'Musikk',     color: '#7ba07c' },
+  { k: 'software',  label: 'Software',   color: '#a07b9c' },
+  { k: 'helse',     label: 'Helse',      color: '#ba8c6b' },
+  { k: 'mat',       label: 'Mat',        color: '#b09a4a' },
+  { k: 'transport', label: 'Transport',  color: '#6b9aba' },
+]
+const catMeta = (k) => CATS.find((c) => c.k === k) || CATS[0]
+const nextCat = (k) => { const i = CATS.findIndex((c) => c.k === k); return CATS[(i + 1) % CATS.length].k }
+
 function SubCard({ sub }) {
   const perMonth = monthlyCost(sub)
+  const cat = catMeta(sub.category || 'annet')
   return (
     <div className="card sub">
       <div className="sub-main">
         <div className="sub-name">{sub.name}</div>
-        <button
-          type="button"
-          className="sub-cycle"
-          onClick={() =>
-            updateSubscription(sub.id, { cycle: sub.cycle === 'yearly' ? 'monthly' : 'yearly' })
-          }
-        >
-          {sub.cycle === 'yearly' ? 'per år' : 'per måned'}
-        </button>
+        <div className="sub-badges">
+          <button
+            type="button"
+            className="sub-cycle"
+            onClick={() =>
+              updateSubscription(sub.id, { cycle: sub.cycle === 'yearly' ? 'monthly' : 'yearly' })
+            }
+          >
+            {sub.cycle === 'yearly' ? 'per år' : 'per måned'}
+          </button>
+          <button
+            type="button"
+            className="sub-cat"
+            style={{ color: cat.color, borderColor: cat.color + '55', background: cat.color + '18' }}
+            onClick={() => updateSubscription(sub.id, { category: nextCat(sub.category || 'annet') })}
+            title="Trykk for å endre kategori"
+          >
+            {cat.label}
+          </button>
+        </div>
       </div>
       <div className="sub-right">
         <button
@@ -65,6 +89,12 @@ export default function Money() {
 
   const totalMonth = subs.reduce((sum, s) => sum + monthlyCost(s), 0)
 
+  const byCategory = CATS.map((c) => {
+    const items = subs.filter((s) => (s.category || 'annet') === c.k)
+    const total = items.reduce((sum, s) => sum + monthlyCost(s), 0)
+    return { ...c, total, count: items.length }
+  }).filter((c) => c.count > 0).sort((a, b) => b.total - a.total)
+
   async function add() {
     const n = name.trim()
     if (!n) return
@@ -86,6 +116,22 @@ export default function Money() {
           <span className="total-sub">
             {subs.length} abonnement · {kr(totalMonth * 12)} per år
           </span>
+          {byCategory.length > 1 && (
+            <div className="cat-breakdown">
+              {byCategory.map((c) => (
+                <div key={c.k} className="cat-row">
+                  <span className="cat-bar-wrap">
+                    <span
+                      className="cat-bar"
+                      style={{ width: totalMonth ? (c.total / totalMonth * 100) + '%' : '0%', background: c.color }}
+                    />
+                  </span>
+                  <span className="cat-name" style={{ color: c.color }}>{c.label}</span>
+                  <span className="cat-amt">{kr(c.total)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: 8 }}>

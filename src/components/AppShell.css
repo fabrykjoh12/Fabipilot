@@ -708,8 +708,14 @@
   font-weight: 500;
   word-break: break-word;
 }
+.sub-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
 .sub-cycle {
-  margin-top: 4px;
   border: 0;
   background: #eef0ea;
   color: var(--muted);
@@ -720,6 +726,56 @@
   padding: 3px 9px;
   border-radius: 7px;
   cursor: pointer;
+}
+.sub-cat {
+  border: 1px solid;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.cat-breakdown {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cat-bar-wrap {
+  flex: 1;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--line);
+  overflow: hidden;
+}
+.cat-bar {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cat-name {
+  font-size: 12px;
+  font-weight: 600;
+  width: 72px;
+  flex: 0 0 auto;
+}
+.cat-amt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: right;
+  min-width: 60px;
+  font-variant-numeric: tabular-nums;
 }
 .sub-right {
   display: flex;
