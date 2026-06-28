@@ -61,7 +61,8 @@ db.version(4)
 
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
-  requireAuth: true,
+  requireAuth: false,
+  customLoginGui: true,
 })
 
 const uid = () => crypto.randomUUID()
