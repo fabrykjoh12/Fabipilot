@@ -242,7 +242,7 @@ function SpineCard({ item, later }) {
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
         />
       ) : (
-        <span className="ctxt" onDoubleClick={startEdit} title="Dobbeltklikk for å redigere">{item.text}</span>
+        <span className="ctxt" onClick={startEdit} title="Trykk for å redigere">{item.text}</span>
       )}
       <button
         type="button"
@@ -297,8 +297,10 @@ function Roadmap({ projectId, onBack }) {
   const [doneCollapsed, setDoneCollapsed] = useState(true)
   const [editingName, setEditingName] = useState(false)
   const [editingWhy, setEditingWhy] = useState(false)
+  const [editingHero, setEditingHero] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const [whyVal, setWhyVal] = useState('')
+  const [heroVal, setHeroVal] = useState('')
   const heroCheckRef = useRef(null)
 
   if (!project) return <div className="screen" />
@@ -334,6 +336,17 @@ function Roadmap({ projectId, onBack }) {
   const doneItems = items.filter((i) => i.stage === 'done')
   const hero = nowItems[0] || null
   const nowRest = nowItems.slice(1)
+
+  function startEditHero() {
+    if (!hero) return
+    setHeroVal(hero.text)
+    setEditingHero(true)
+  }
+  function saveHero() {
+    const v = heroVal.trim()
+    if (hero && v && v !== hero.text) updateProjectItem(hero, { text: v })
+    setEditingHero(false)
+  }
 
   const total = items.length
   const pct = total ? Math.round((doneItems.length / total) * 100) : 0
@@ -428,7 +441,18 @@ function Roadmap({ projectId, onBack }) {
               <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" tabIndex={0} aria-label="Fullfør neste steg" onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && completeHero()}>
                 {CHECK}
               </div>
-              <div className="htxt">{hero.text}</div>
+              {editingHero ? (
+                <input
+                  className="htxt-input"
+                  value={heroVal}
+                  autoFocus
+                  onChange={(e) => setHeroVal(e.target.value)}
+                  onBlur={saveHero}
+                  onKeyDown={(e) => { if (e.key === 'Enter') saveHero(); if (e.key === 'Escape') setEditingHero(false) }}
+                />
+              ) : (
+                <div className="htxt" onClick={startEditHero} title="Trykk for å redigere">{hero.text}</div>
+              )}
             </div>
           ) : (
             <div className="hero-empty">
