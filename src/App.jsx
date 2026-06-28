@@ -81,18 +81,43 @@ function NavIcon({ name }) {
 }
 
 function LoginScreen() {
+  const [busy, setBusy] = useState(false)
+
+  async function login() {
+    setBusy(true)
+    try {
+      await db.cloud.login()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="login-overlay">
       <div className="login-card">
+        <div className="login-glyph" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        </div>
+
         <h1 className="login-title">Dashboard</h1>
-        <p className="login-text">Logg inn for å synke data på tvers av enhetene dine.</p>
-        <button
-          type="button"
-          className="btn login-btn"
-          onClick={() => db.cloud.login()}
-        >
-          Logg inn med e-post
+        <p className="login-text">
+          Logg inn én gang, så følger oppgavene, vanene og prosjektene dine med —
+          på mobil og laptop.
+        </p>
+
+        <button type="button" className="login-btn" onClick={login} disabled={busy}>
+          {busy ? 'Åpner innlogging…' : 'Logg inn med e-post'}
         </button>
+
+        <p className="login-foot">
+          Ingen passord — du får en engangskode på e-post. Dataene dine ligger
+          fortsatt lokalt og fungerer offline.
+        </p>
       </div>
     </div>
   )
@@ -105,6 +130,16 @@ export default function App() {
   const isLoggedIn = currentUser && !currentUser.isAnonymous
 
   const ActiveComp = MODULES.find((m) => m.k === active).Comp
+
+  if (currentUser === undefined) {
+    return (
+      <div className="login-overlay">
+        <div className="login-loading" aria-label="Laster">
+          <span className="login-spinner" />
+        </div>
+      </div>
+    )
+  }
 
   if (!isLoggedIn) return <LoginScreen />
 

@@ -1008,7 +1008,9 @@ label.backup-action {
 .login-overlay {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--canvas);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(204, 136, 43, 0.1), transparent 60%),
+    var(--canvas);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1016,25 +1018,46 @@ label.backup-action {
 }
 .login-card {
   background: var(--surface);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: 24px;
   box-shadow: var(--shadow);
-  padding: 40px 32px;
-  max-width: 360px;
+  padding: 40px 30px 30px;
+  max-width: 380px;
   width: 100%;
   text-align: center;
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.login-glyph {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 22px;
+  border-radius: 18px;
+  background: var(--surface-focus);
+  border: 1px solid rgba(204, 136, 43, 0.3);
+  display: grid;
+  place-items: center;
+}
+.login-glyph svg {
+  width: 28px;
+  height: 28px;
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .login-title {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700;
-  font-size: 32px;
+  font-size: 30px;
   letter-spacing: -0.02em;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 }
 .login-text {
   font-size: 15px;
   color: var(--muted);
-  line-height: 1.5;
-  margin: 0 0 28px;
+  line-height: 1.55;
+  margin: 0 0 26px;
 }
 .login-btn {
   width: 100%;
@@ -1047,9 +1070,40 @@ label.backup-action {
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  transition: background 0.18s, transform 0.12s;
 }
-.login-btn:hover {
+.login-btn:hover:not(:disabled) {
   background: var(--accent-bright);
+}
+.login-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.login-foot {
+  font-size: 12.5px;
+  color: #9aa394;
+  line-height: 1.5;
+  margin: 18px 0 0;
+}
+.login-loading {
+  display: grid;
+  place-items: center;
+}
+.login-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  animation: login-spin 0.8s linear infinite;
+}
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== Hva nå? ===== */
