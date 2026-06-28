@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   listSubscriptions,
@@ -24,10 +24,36 @@ const nextCat = (k) => { const i = CATS.findIndex((c) => c.k === k); return CATS
 function SubCard({ sub }) {
   const perMonth = monthlyCost(sub)
   const cat = catMeta(sub.category || 'annet')
+  const [editingName, setEditingName] = useState(false)
+  const [nameVal, setNameVal] = useState('')
+  const inputRef = useRef(null)
+
+  function startEdit() {
+    setNameVal(sub.name)
+    setEditingName(true)
+    setTimeout(() => inputRef.current?.select(), 0)
+  }
+  async function saveName() {
+    const v = nameVal.trim()
+    if (v && v !== sub.name) await updateSubscription(sub.id, { name: v })
+    setEditingName(false)
+  }
+
   return (
     <div className="card sub">
       <div className="sub-main">
-        <div className="sub-name">{sub.name}</div>
+        {editingName ? (
+          <input
+            ref={inputRef}
+            className="sub-name-input"
+            value={nameVal}
+            onChange={(e) => setNameVal(e.target.value)}
+            onBlur={saveName}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
+          />
+        ) : (
+          <div className="sub-name" onClick={startEdit} title="Trykk for å redigere">{sub.name}</div>
+        )}
         <div className="sub-badges">
           <button
             type="button"

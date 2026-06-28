@@ -708,6 +708,25 @@
   font-weight: 500;
   word-break: break-word;
 }
+.sub-name {
+  cursor: pointer;
+}
+.sub-name:hover {
+  text-decoration: underline dotted var(--muted);
+  text-underline-offset: 3px;
+}
+.sub-name-input {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+  color: var(--ink);
+  outline: 0;
+  width: 100%;
+  padding: 1px 0;
+}
 .sub-badges {
   display: flex;
   align-items: center;
@@ -1019,6 +1038,41 @@ label.backup-action {
   font-size: 13px;
   color: #9aa394;
   font-weight: 500;
+}
+.wn-energy-filter {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.wn-ef-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.wn-ef-btn.active {
+  border-color: var(--forest);
+  color: var(--forest);
+  background: #eef2ec;
+}
+.wn-quickadd {
+  margin-top: 36px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.wn-qa-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
 }
 .wn-empty {
   text-align: center;
