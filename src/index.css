@@ -17,16 +17,12 @@ body {
 }
 
 body {
-  /* salvie-grå utenfor «telefonen», som i prototypen */
-  background: #cfd4ca;
+  background: #e9ece5;
   min-height: 100vh;
   min-height: 100dvh;
 }
 
 #root {
-  display: flex;
-  justify-content: center;
-  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
 }
