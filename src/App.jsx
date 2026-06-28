@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useObservable } from 'dexie-react-hooks'
+import { useObservable, useLiveQuery } from 'dexie-react-hooks'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Today from './components/Today.jsx'
@@ -306,7 +306,15 @@ export default function App() {
   const syncState = useObservable(db.cloud.syncState)
   const isLoggedIn = !!currentUser?.isLoggedIn
   const [pushing, setPushing] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const navRef = useRef(null)
+
+  const itemCount = useLiveQuery(async () => {
+    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events']
+    let n = 0
+    for (const t of tabs) n += await db.table(t).count()
+    return n
+  }, [], null)
 
   useEffect(() => {
     const el = navRef.current?.querySelector('.nav-item.active')
@@ -377,6 +385,17 @@ export default function App() {
     }
   }
 
+  async function handleSyncNow() {
+    setSyncing(true)
+    try {
+      await db.cloud.sync({ purpose: 'pull', wait: true })
+    } catch (err) {
+      window.alert('Sync feilet: ' + (err?.message || err))
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   return (
     <div className="app">
       <LoginInteraction />
@@ -424,9 +443,13 @@ export default function App() {
                 <span className={'sync-led ' + syncLed(syncState)} />
                 <span className="sync-status">{syncLabel(syncState)}</span>
               </div>
-              {currentUser?.email && (
-                <p className="sync-user">Innlogget som {currentUser.email}</p>
-              )}
+
+              <dl className="sync-diag">
+                <div><dt>Ting her nå</dt><dd>{itemCount ?? '…'}</dd></div>
+                <div><dt>E-post</dt><dd>{currentUser?.email || '—'}</dd></div>
+                <div><dt>Bruker-ID</dt><dd className="mono">{currentUser?.userId || '—'}</dd></div>
+              </dl>
+
               <button
                 type="button"
                 className="btn backup-action sync-push"
@@ -435,9 +458,17 @@ export default function App() {
               >
                 {pushing ? 'Laster opp…' : 'Last opp alt til skyen'}
               </button>
+              <button
+                type="button"
+                className="btn backup-action sync-now"
+                disabled={syncing}
+                onClick={handleSyncNow}
+              >
+                {syncing ? 'Synker…' : 'Synk nå (hent fra skyen)'}
+              </button>
               <p className="sync-hint">
-                Kjør denne på enheten som har dataen din. Den dytter alt opp i skyen, så
-                kommer det ned på de andre enhetene når du logger inn med samme e-post.
+                Last opp på enheten som har dataen. På de andre enhetene: logg inn med samme
+                e-post og trykk «Synk nå». Bruker-ID må være lik på alle enhetene.
               </p>
               <button
                 type="button"

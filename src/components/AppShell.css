@@ -1028,10 +1028,39 @@ label.backup-action {
   font-weight: 600;
   color: var(--ink);
 }
-.sync-user {
-  font-size: 12.5px;
+.sync-diag {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sync-diag > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sync-diag dt {
+  font-size: 12px;
   color: var(--muted);
-  margin: 6px 0 0;
+  font-weight: 600;
+}
+.sync-diag dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: right;
+  word-break: break-all;
+}
+.sync-diag dd.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 500;
 }
 .sync-push {
   margin-top: 12px;
@@ -1042,6 +1071,17 @@ label.backup-action {
   font-weight: 600;
 }
 .sync-push:disabled {
+  opacity: 0.6;
+}
+.sync-now {
+  margin-top: 8px;
+  background: var(--surface);
+  color: var(--forest);
+  border: 1px solid var(--forest);
+  border-radius: 11px;
+  font-weight: 600;
+}
+.sync-now:disabled {
   opacity: 0.6;
 }
 .sync-hint {
