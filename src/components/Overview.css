@@ -1,0 +1,224 @@
+.ov-screen .screen-scroll {
+  padding-bottom: 80px;
+}
+
+.ov-date {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  margin: 0 0 4px;
+  text-transform: lowercase;
+}
+
+.ov-greeting {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  letter-spacing: -0.02em;
+  margin: 0 0 24px;
+  line-height: 1.1;
+}
+
+.ov-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* I dag tar full bredde */
+.ov-grid .ov-card:first-child {
+  grid-column: 1 / -1;
+}
+
+/* På veldig smal skjerm: én kolonne */
+@media (max-width: 400px) {
+  .ov-grid {
+    grid-template-columns: 1fr;
+  }
+  .ov-grid .ov-card:first-child {
+    grid-column: 1;
+  }
+}
+
+.ov-card {
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.ov-card:active {
+  transform: scale(0.98);
+}
+
+.ov-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ov-icon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+}
+
+.ov-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ov-card-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ov-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.ov-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ov-arrow {
+  flex: 0 0 auto;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.ov-arrow svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ov-card-body {
+  margin-top: 14px;
+}
+
+/* I dag */
+.ov-today-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ov-prog-circle {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+}
+
+.ov-prog-bg {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 4;
+}
+
+.ov-prog-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dasharray 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ov-prog-pct {
+  fill: var(--ink);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.ov-prog-lbl {
+  fill: var(--muted);
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-anchor: middle;
+}
+
+.ov-today-msg {
+  flex: 1;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Vaner */
+.ov-habit-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ov-hdot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+  flex: 0 0 auto;
+}
+
+.ov-hdot.on {
+  background: var(--forest);
+}
+
+.ov-hdot.today {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Penger */
+.ov-total {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+/* Tekst-beskrivelse */
+.ov-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}

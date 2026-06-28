@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './components/AppShell.css'
+import Overview from './components/Overview.jsx'
 import Today from './components/Today.jsx'
 import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
@@ -38,6 +39,14 @@ const ICONS = {
       <path d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
     </>
   ),
+  overview: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </>
+  ),
   whatnow: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -53,6 +62,7 @@ const ICONS = {
 }
 
 const MODULES = [
+  { k: 'overview', label: 'Oversikt', Comp: Overview },
   { k: 'today', label: 'I dag', Comp: Today },
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
@@ -70,7 +80,7 @@ function NavIcon({ name }) {
 }
 
 export default function App() {
-  const [active, setActive] = useState('today')
+  const [active, setActive] = useState('overview')
   const [backupOpen, setBackupOpen] = useState(false)
 
   const ActiveComp = MODULES.find((m) => m.k === active).Comp
@@ -137,7 +147,7 @@ export default function App() {
       </nav>
 
       <main className="content">
-        <ActiveComp />
+        <ActiveComp onNav={setActive} />
       </main>
 
       {backupOpen && (
