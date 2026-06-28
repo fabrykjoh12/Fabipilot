@@ -1,17 +1,23 @@
 /* ===== Delte design-tokens ===== */
 :root {
   --canvas: #e9ece5;
+  --canvas-warm: #eef0e6;
   --surface: #fbfcf9;
   --surface-focus: #faf4e8;
+  --surface-sunken: #f1f3ec;
   --ink: #22281f;
   --muted: #737b6e;
   --line: #dce0d5;
   --accent: #cc882b;
   --accent-bright: #e8a53d;
+  --accent-soft: #f6ead6;
   --forest: #42634a;
+  --forest-soft: #e3ebe2;
   --danger: #b4574a;
+  --danger-soft: #f4e2de;
   --radius: 18px;
   --shadow: 0 1px 2px rgba(34, 40, 31, 0.04), 0 6px 20px rgba(34, 40, 31, 0.06);
+  --shadow-lift: 0 2px 4px rgba(34, 40, 31, 0.05), 0 14px 34px rgba(34, 40, 31, 0.12);
 }
 
 * {
@@ -26,7 +32,10 @@
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--canvas);
+  background:
+    radial-gradient(1100px 560px at 100% -5%, rgba(232, 165, 61, 0.07), transparent 60%),
+    radial-gradient(900px 500px at 0% 105%, rgba(66, 99, 74, 0.06), transparent 55%),
+    var(--canvas);
   color: var(--ink);
   font-family: 'Inter', system-ui, sans-serif;
 }
@@ -884,6 +893,292 @@
 }
 label.backup-action {
   cursor: pointer;
+}
+
+/* ===== Oversikt (dashboard) ===== */
+.screen.wide {
+  max-width: 1000px;
+}
+.ov-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.ov-greet .scr-title {
+  font-size: 34px;
+}
+.ov-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 720px) {
+  .ov-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ov-card.span2 {
+    grid-column: span 2;
+  }
+}
+@media (min-width: 1080px) {
+  .ov-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .ov-card.span2 {
+    grid-column: span 2;
+  }
+  .ov-card.span3 {
+    grid-column: span 3;
+  }
+}
+
+.ov-card {
+  position: relative;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s,
+    border-color 0.18s;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ov-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+  border-color: #cfd5c7;
+}
+.ov-card:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+.ov-card-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.ov-badge {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ov-badge.forest {
+  background: var(--forest-soft);
+  color: var(--forest);
+}
+.ov-badge svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ov-card-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.ov-card-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: 1px;
+}
+.ov-go {
+  margin-left: auto;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  transition: transform 0.18s, color 0.18s;
+}
+.ov-go svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ov-card:hover .ov-go {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
+.ov-big {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.ov-big .unit {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+/* Dagens fremgang: ring + fokusliste */
+.ov-today-body {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ring {
+  flex: 0 0 auto;
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+.ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ring .track {
+  fill: none;
+  stroke: var(--surface-sunken);
+  stroke-width: 9;
+}
+.ring .bar {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ring-pct {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.ring-cap {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 3px;
+}
+.ov-focus {
+  flex: 1 1 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ov-focus-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14.5px;
+  font-weight: 500;
+  min-width: 0;
+}
+.ov-focus-row .star {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+.ov-focus-row .star svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.ov-focus-row .txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ov-empty-line {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Mini-uke for vaner */
+.ov-week {
+  display: flex;
+  gap: 6px;
+}
+.ov-week .d {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--surface-sunken);
+}
+.ov-week .d.on {
+  background: var(--forest);
+}
+
+/* Liste-rader (prosjekter / ideer) */
+.ov-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.ov-li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 0;
+}
+.ov-li .ov-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--accent);
+}
+.ov-li .ov-dot.forest {
+  background: var(--forest);
+}
+.ov-li .ov-dot.muted {
+  background: #c3caba;
+}
+.ov-li .txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 859px) {
+  .screen.wide .screen-scroll {
+    padding-bottom: 40px;
+  }
 }
 
 :focus-visible {
