@@ -12,7 +12,10 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 
 ## 3. Stack
 - React 19 + Vite
-- Dexie (IndexedDB) — lokal-først, ingen backend, ingen innlogging
+- Dexie (IndexedDB) — lokal-først, fungerer offline
+- Dexie Cloud (`dexie-cloud-addon`) — sync på tvers av enheter. Innlogging med e-post + engangskode.
+  DB-URL er hardkodet i `db.js`. `dexie-cloud.key` er hemmelig og er i `.gitignore` (committes aldri).
+  Nye web-origins (f.eks. Vercel-URL) må whitelistes: `npx dexie-cloud whitelist <url>`.
 - vite-plugin-pwa
 - Deploy: Vercel (auto fra `main`), ingen env-variabler
 
@@ -32,7 +35,8 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **3**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **5**. Én store per modul. `id = crypto.randomUUID()`.
+Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
   (indekser: `category`, `createdAt`)
@@ -40,13 +44,16 @@ Dexie-database `dashboard`, gjeldende schema-versjon **3**. Én store per modul.
   `dueDate` = `YYYY-MM-DD`. «Henger igjen» = `dueDate` før i dag og ikke gjort.
 - **habits** (Vaner) — `id, name, history[], sortOrder, createdAt`
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
-- **subscriptions** (Penger) — `id, name, amount, cycle, createdAt`
-  `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12.
-- **projects** (Prosjekter) — `id, name, why, status, createdAt, lastTouched`
+- **subscriptions** (Penger) — `id, name, amount, cycle, category, createdAt`
+  `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = løs kategori-nøkkel.
+- **projects** (Prosjekter) — `id, name, why, status, sortOrder, createdAt, lastTouched`
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
 - **projectItems** — `id, projectId, text, stage, energy, sortOrder, createdAt`
   `stage` = `'now' | 'next' | 'later' | 'done'`. `energy` = `'lav' | 'hoy' | null`.
   «Neste steg» = første item med `stage='now'` (etter `sortOrder`). Ingen egen flagg-kolonne.
+- **events** (Kalender) — `id, title, date, time, note, color, createdAt`
+  `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).
+  Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
 
 Alle stores er med i JSON-eksport/import (se §8).
 
@@ -54,16 +61,20 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `index.html`, `vite.config.js` (PWA-manifest + ikoner), `eslint.config.js`
 - `public/` — `favicon.svg`, `pwa-192x192.png`, `pwa-512x512.png`, `maskable-512x512.png`, `apple-touch-icon.png`
 - `src/main.jsx` — entry
-- `src/App.jsx` — app-skall: navigasjon (sidemeny på PC / bunnfaner på mobil) + backup-modal (eksport/import av alt)
+- `src/App.jsx` — app-skall: navigasjon (sidemeny på PC / bunnfaner på mobil) + backup-modal + innloggings-gate
+  og egendefinert Dexie Cloud auth-dialog (e-post + engangskode)
 - `src/index.css` — global reset/bakgrunn
-- `src/db.js` — Dexie: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
+- `src/db.js` — Dexie + Dexie Cloud-config: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/components/`
-  - `AppShell.css` — design-tokens + skall + delte komponentstiler (kort, felt, knapper, oppgaver, vaner, penger)
+  - `AppShell.css` — design-tokens + skall + delte komponentstiler + innloggingsskjerm + auth-dialog
+  - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
   - `Today.jsx` — «I dag»
+  - `Calendar.jsx` / `Calendar.css` — «Kalender»: månedsvisning + dag-agenda + hendelse-sheet
+  - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
-  - `Habits.jsx` — «Vaner»
-  - `Money.jsx` — «Penger»
+  - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
+  - `Money.jsx` — «Penger» (+ kategorier)
   - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt + roadmap-side
 - `prototypes/` — visuell fasit: `idebank.html`, `idag-prototype.html`, `roadmap-prototype.html`
 

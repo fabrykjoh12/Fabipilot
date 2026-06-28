@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useObservable } from 'dexie-react-hooks'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Today from './components/Today.jsx'
+import Calendar from './components/Calendar.jsx'
 import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
@@ -48,6 +49,12 @@ const ICONS = {
       <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </>
   ),
+  calendar: (
+    <>
+      <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
+      <path d="M3 9.5h18M8 3v3M16 3v3" />
+    </>
+  ),
   whatnow: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -65,6 +72,7 @@ const ICONS = {
 const MODULES = [
   { k: 'overview', label: 'Oversikt', Comp: Overview },
   { k: 'today', label: 'I dag', Comp: Today },
+  { k: 'calendar', label: 'Kalender', Comp: Calendar },
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
   { k: 'habits', label: 'Vaner', Comp: Habits },
@@ -116,18 +124,19 @@ const NO_ALERT = {
 const NO_PLACEHOLDER = { email: 'din@epost.no', otp: 'Engangskode' }
 
 /* Egendefinert innloggings-dialog (e-post + engangskode) — matcher designet
-   i stedet for Dexies grå standard-GUI. Drives av db.cloud.userInteraction. */
+   i stedet for Dexies grå standard-GUI. Drives av db.cloud.userInteraction.
+   Indre skjema remountes (via key) hver gang interaksjonen endres, så feltene
+   nullstilles uten en setState-i-effect. */
 function LoginInteraction() {
   const ui = useObservable(db.cloud.userInteraction)
+  if (!ui) return null
+  const key = `${ui.type}|${ui.title || ''}|${ui.alerts?.length || 0}`
+  return <InteractionForm key={key} ui={ui} />
+}
+
+function InteractionForm({ ui }) {
   const [values, setValues] = useState({})
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    setValues({})
-    setSubmitting(false)
-  }, [ui])
-
-  if (!ui) return null
 
   const fields = Object.entries(ui.fields || {})
   const onlyAlert = ui.type === 'message-alert'
@@ -138,7 +147,7 @@ function LoginInteraction() {
     e?.preventDefault()
     setSubmitting(true)
     const payload = {}
-    for (const [name, f] of fields) payload[name] = values[name] ?? ''
+    for (const [name] of fields) payload[name] = values[name] ?? ''
     ui.onSubmit(payload)
   }
 
@@ -275,6 +284,12 @@ export default function App() {
   const [backupOpen, setBackupOpen] = useState(false)
   const currentUser = useObservable(db.cloud.currentUser)
   const isLoggedIn = !!currentUser?.isLoggedIn
+  const navRef = useRef(null)
+
+  useEffect(() => {
+    const el = navRef.current?.querySelector('.nav-item.active')
+    if (el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [active])
 
   const ActiveComp = MODULES.find((m) => m.k === active).Comp
 
@@ -313,7 +328,7 @@ export default function App() {
         total > 0
           ? `Importerte ${total} ting:\n` +
               `${added.tasks} oppgaver, ${added.ideas} ideer, ${added.habits} vaner, ` +
-              `${added.subscriptions} abonnement, ${added.projects} prosjekter.`
+              `${added.subscriptions} abonnement, ${added.projects} prosjekter, ${added.events} hendelser.`
           : 'Ingenting nytt å importere (alt fantes fra før).',
       )
     } catch (err) {
@@ -327,7 +342,7 @@ export default function App() {
   return (
     <div className="app">
       <LoginInteraction />
-      <nav className="nav">
+      <nav className="nav" ref={navRef}>
         <div className="nav-brand">Dashboard</div>
         {MODULES.map((m) => (
           <button

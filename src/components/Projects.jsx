@@ -141,7 +141,7 @@ function ProjectsList({ onOpen }) {
                 {active.length}/{MAX_ACTIVE_PROJECTS}
               </span>
             </div>
-            {active.map((p, i) => (
+            {active.map((p) => (
               <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
             ))}
           </div>

@@ -59,6 +59,17 @@ db.version(4)
     }
   })
 
+// v5: kalender — events-store.
+db.version(5).stores({
+  ideas: 'id, category, createdAt',
+  tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+  habits: 'id, sortOrder, createdAt',
+  subscriptions: 'id, createdAt',
+  projects: 'id, status, sortOrder, lastTouched, createdAt',
+  projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  events: 'id, date, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -276,12 +287,32 @@ export async function promoteIdeaToProject(idea) {
 }
 
 /* =========================================================
+   KALENDER (hendelser)
+   - events: id, title, date('YYYY-MM-DD'), time('HH:MM'|''), note, color, createdAt
+   ========================================================= */
+export async function addEvent({ title, date, time = '', note = '', color = 'amber' }) {
+  const ev = {
+    id: uid(),
+    title: title.trim(),
+    date,
+    time: time || '',
+    note: note || '',
+    color,
+    createdAt: now(),
+  }
+  await db.events.add(ev)
+  return ev
+}
+export const updateEvent = (id, patch) => db.events.update(id, patch)
+export const deleteEvent = (id) => db.events.delete(id)
+
+/* =========================================================
    BACKUP — eksport/import av HELE dashboardet
    ========================================================= */
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems']
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events']
 
 export async function exportAll() {
-  const out = { type: 'dashboard-backup', version: 3, exportedAt: new Date().toISOString() }
+  const out = { type: 'dashboard-backup', version: 5, exportedAt: new Date().toISOString() }
   for (const t of TABLES) out[t] = await db.table(t).toArray()
   return out
 }
