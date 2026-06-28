@@ -4,6 +4,7 @@ import {
   listTasks,
   addTask,
   deleteTask,
+  updateTask,
   setTaskDone,
   setTaskFocus,
   carryTaskToToday,
@@ -33,9 +34,22 @@ function greeting() {
 
 function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop }) {
   const [leaving, setLeaving] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editVal, setEditVal] = useState('')
   const checkRef = useRef(null)
   const done = task.isDone
   const carry = task.status === 'carry'
+
+  function startEdit(e) {
+    e.stopPropagation()
+    setEditVal(task.title)
+    setEditing(true)
+  }
+  function saveEdit() {
+    const v = editVal.trim()
+    if (v && v !== task.title) updateTask(task.id, { title: v })
+    setEditing(false)
+  }
 
   function handleCheck() {
     if (done) {
@@ -74,7 +88,18 @@ function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop }) {
       >
         {CHECK}
       </div>
-      <div className="ttl">{task.title}</div>
+      {editing ? (
+        <input
+          className="ttl-input"
+          value={editVal}
+          autoFocus
+          onChange={(e) => setEditVal(e.target.value)}
+          onBlur={saveEdit}
+          onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
+        />
+      ) : (
+        <div className="ttl" onDoubleClick={!done ? startEdit : undefined} title={!done ? 'Dobbeltklikk for å redigere' : undefined}>{task.title}</div>
+      )}
 
       {carry ? (
         <div className="carry-acts">

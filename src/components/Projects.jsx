@@ -15,6 +15,7 @@ import {
   advanceItem,
   setItemStage,
   setItemEnergy,
+  updateProjectItem,
   deleteProjectItem,
   MAX_ACTIVE_PROJECTS,
 } from '../db.js'
@@ -201,7 +202,16 @@ function ProjectsList({ onOpen }) {
 /* ===================== ROADMAP (én prosjektside) ===================== */
 function SpineCard({ item, later }) {
   const [leaving, setLeaving] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editVal, setEditVal] = useState('')
   const ref = useRef(null)
+
+  function startEdit(e) { e.stopPropagation(); setEditVal(item.text); setEditing(true) }
+  function saveEdit() {
+    const v = editVal.trim()
+    if (v && v !== item.text) updateProjectItem(item, { text: v })
+    setEditing(false)
+  }
 
   function handleAdvance() {
     if (item.stage === 'now') {
@@ -222,7 +232,18 @@ function SpineCard({ item, later }) {
         aria-label="Energinivå"
         onClick={() => setItemEnergy(item, ENERGY_NEXT[item.energy || ''])}
       />
-      <span className="ctxt">{item.text}</span>
+      {editing ? (
+        <input
+          className="ctxt-input"
+          value={editVal}
+          autoFocus
+          onChange={(e) => setEditVal(e.target.value)}
+          onBlur={saveEdit}
+          onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
+        />
+      ) : (
+        <span className="ctxt" onDoubleClick={startEdit} title="Dobbeltklikk for å redigere">{item.text}</span>
+      )}
       <button
         type="button"
         className="adv"

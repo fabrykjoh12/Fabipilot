@@ -250,6 +250,10 @@ export async function setItemEnergy(item, energy) {
   await db.projectItems.update(item.id, { energy })
   await touch(item.projectId)
 }
+export async function updateProjectItem(item, patch) {
+  await db.projectItems.update(item.id, patch)
+  await touch(item.projectId)
+}
 export async function deleteProjectItem(item) {
   await db.projectItems.delete(item.id)
   await touch(item.projectId)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listHabits, addHabit, deleteHabit, toggleHabitDay, todayKey } from '../db.js'
+import { listHabits, addHabit, updateHabit, deleteHabit, toggleHabitDay, todayKey, db } from '../db.js'
 import { vibrate } from '../lib/fx.js'
 
 const CHECK = (
@@ -20,9 +20,27 @@ function lastNDays(n) {
   })
 }
 
-function HabitCard({ habit, days, today, view }) {
+async function moveHabit(id, direction, habits) {
+  const idx = habits.findIndex((h) => h.id === id)
+  const swapIdx = idx + direction
+  if (swapIdx < 0 || swapIdx >= habits.length) return
+  const a = habits[idx], b = habits[swapIdx]
+  await db.habits.update(a.id, { sortOrder: b.sortOrder })
+  await db.habits.update(b.id, { sortOrder: a.sortOrder })
+}
+
+function HabitCard({ habit, habits, idx, days, today, view }) {
   const history = new Set(habit.history || [])
   const doneToday = history.has(today)
+  const [editing, setEditing] = useState(false)
+  const [editVal, setEditVal] = useState('')
+
+  function startEdit() { setEditVal(habit.name); setEditing(true) }
+  function saveEdit() {
+    const v = editVal.trim()
+    if (v && v !== habit.name) updateHabit(habit.id, { name: v })
+    setEditing(false)
+  }
 
   return (
     <div className="habit card">
@@ -39,19 +57,34 @@ function HabitCard({ habit, days, today, view }) {
         >
           {CHECK}
         </button>
-        <div className="habit-name">{habit.name}</div>
-        <button
-          type="button"
-          className="icon-x"
-          aria-label="Slett vane"
-          onClick={() => {
-            if (window.confirm(`Slette vanen «${habit.name}»?`)) deleteHabit(habit.id)
-          }}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+        {editing ? (
+          <input
+            className="habit-name-input"
+            value={editVal}
+            autoFocus
+            onChange={(e) => setEditVal(e.target.value)}
+            onBlur={saveEdit}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
+          />
+        ) : (
+          <div className="habit-name" onDoubleClick={startEdit} title="Dobbeltklikk for å redigere">{habit.name}</div>
+        )}
+        <div className="habit-actions">
+          <button type="button" className="sort-btn" aria-label="Flytt opp" disabled={idx === 0} onClick={() => moveHabit(habit.id, -1, habits)}>▲</button>
+          <button type="button" className="sort-btn" aria-label="Flytt ned" disabled={idx === habits.length - 1} onClick={() => moveHabit(habit.id, 1, habits)}>▼</button>
+          <button
+            type="button"
+            className="icon-x"
+            aria-label="Slett vane"
+            onClick={() => {
+              if (window.confirm(`Slette vanen «${habit.name}»?`)) deleteHabit(habit.id)
+            }}
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
       </div>
       {view === 'week' ? (
         <div className="dots">
@@ -122,7 +155,7 @@ export default function Habits() {
               <p>Legg til én liten ting du vil gjøre ofte — drikke vann, lese, gå en tur. Ingen streaks, ingen skam.</p>
             </div>
           ) : (
-            habits.map((h) => <HabitCard key={h.id} habit={h} days={days} today={today} view={view} />)
+            habits.map((h, i) => <HabitCard key={h.id} habit={h} habits={habits} idx={i} days={days} today={today} view={view} />)
           )}
         </div>
       </div>

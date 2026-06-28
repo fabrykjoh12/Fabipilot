@@ -708,6 +708,38 @@
   font-weight: 500;
   word-break: break-word;
 }
+.ttl-input {
+  flex: 1;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  outline: 0;
+  padding: 1px 0;
+  min-width: 0;
+}
+.habit-name-input {
+  flex: 1;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  outline: 0;
+  padding: 1px 0;
+  min-width: 0;
+}
+.habit-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
 .sub-name {
   cursor: pointer;
 }
