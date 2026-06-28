@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useObservable } from 'dexie-react-hooks'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Today from './components/Today.jsx'
@@ -7,7 +8,7 @@ import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
 import Money from './components/Money.jsx'
 import Projects from './components/Projects.jsx'
-import { exportAll, importAll } from './db.js'
+import { db, exportAll, importAll } from './db.js'
 
 const ICONS = {
   today: (
@@ -79,11 +80,33 @@ function NavIcon({ name }) {
   )
 }
 
+function LoginScreen() {
+  return (
+    <div className="login-overlay">
+      <div className="login-card">
+        <h1 className="login-title">Dashboard</h1>
+        <p className="login-text">Logg inn for å synke data på tvers av enhetene dine.</p>
+        <button
+          type="button"
+          className="btn login-btn"
+          onClick={() => db.cloud.login()}
+        >
+          Logg inn med e-post
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [active, setActive] = useState('overview')
   const [backupOpen, setBackupOpen] = useState(false)
+  const currentUser = useObservable(db.cloud.currentUser)
+  const isLoggedIn = currentUser && !currentUser.isAnonymous
 
   const ActiveComp = MODULES.find((m) => m.k === active).Comp
+
+  if (!isLoggedIn) return <LoginScreen />
 
   async function handleExport() {
     const data = await exportAll()

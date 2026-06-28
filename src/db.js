@@ -1,7 +1,8 @@
 import Dexie from 'dexie'
+import dexieCloud from 'dexie-cloud-addon'
 
-// Lokal-først: all data ligger på enheten i IndexedDB. Ingen backend.
-export const db = new Dexie('dashboard')
+// Lokal-først med sky-sync via Dexie Cloud.
+export const db = new Dexie('dashboard', { addons: [dexieCloud] })
 
 // v1: bare idébanken.
 db.version(1).stores({
@@ -57,6 +58,11 @@ db.version(4)
       await tx.table('projects').update(all[i].id, { sortOrder: i * 1000 })
     }
   })
+
+db.cloud.configure({
+  databaseUrl: 'https://zl78q9yu3.dexie.cloud',
+  requireAuth: true,
+})
 
 const uid = () => crypto.randomUUID()
 const now = () => Date.now()
