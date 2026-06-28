@@ -167,7 +167,12 @@ function InteractionForm({ ui }) {
     e?.preventDefault()
     setSubmitting(true)
     const payload = {}
-    for (const [name] of fields) payload[name] = values[name] ?? ''
+    for (const [name] of fields) {
+      let v = values[name] ?? ''
+      // E-post må normaliseres — ellers blir «Fabrik…» og «fabrik…» to ulike kontoer.
+      if (name === 'email') v = v.trim().toLowerCase()
+      payload[name] = v
+    }
     ui.onSubmit(payload)
   }
 
@@ -185,8 +190,11 @@ function InteractionForm({ ui }) {
             {f.label && <span className="lia-label">{f.label}</span>}
             <input
               type={f.type === 'password' ? 'password' : 'text'}
-              inputMode={f.type === 'otp' || name === 'otp' ? 'numeric' : undefined}
+              inputMode={f.type === 'otp' || name === 'otp' ? 'numeric' : name === 'email' ? 'email' : undefined}
               autoComplete={name === 'email' ? 'email' : name === 'otp' ? 'one-time-code' : 'off'}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               enterKeyHint="go"
               placeholder={NO_PLACEHOLDER[name] || f.placeholder || ''}
               value={values[name] ?? ''}
