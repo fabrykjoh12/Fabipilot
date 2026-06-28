@@ -278,7 +278,7 @@ export default function IdeaBank() {
               <p className="em-ttl">{ideas.length === 0 ? 'Ingen ideer enda' : 'Ingenting her'}</p>
               <p>
                 {ideas.length === 0
-                  ? 'Neste gang noe kult slår deg — en app, et spill, en greie — dump det i feltet nederst. Sorter senere.'
+                  ? 'Neste gang noe kult slår deg — bare dump det her. Ingen vurdering, sorter aldri. Det er poenget.'
                   : 'Ingen ideer i dette filteret. Prøv «Alle».'}
               </p>
             </div>

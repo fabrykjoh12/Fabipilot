@@ -896,3 +896,126 @@ label.backup-action {
     transition: none !important;
   }
 }
+
+/* ===== Hva nå? ===== */
+.wn-wrap {
+  margin-top: 32px;
+}
+.wn-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.wn-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.wn-type-icon {
+  font-style: normal;
+  font-size: 14px;
+}
+.wn-text {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--ink);
+}
+.wn-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.wn-next svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wn-next:hover {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+.wn-count {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #9aa394;
+  font-weight: 500;
+}
+.wn-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.wn-glyph {
+  font-size: 36px;
+  margin-bottom: 16px;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+/* ===== Vaner: månedsoversikt ===== */
+.habits-view-toggle {
+  display: inline-flex;
+  background: var(--line);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+.habits-view-toggle button {
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  padding: 5px 13px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.habits-view-toggle button.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.month-dots {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 10px;
+}
+.month-dot {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--line);
+}
+.month-dot.on {
+  background: var(--forest);
+}
+.month-dot.today {
+  box-shadow: 0 0 0 2px var(--accent);
+}

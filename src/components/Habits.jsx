@@ -9,11 +9,10 @@ const CHECK = (
   </svg>
 )
 
-// Siste 7 dager (eldst → i dag) som datonøkler + korte ukedagsbokstaver.
-function last7() {
-  return [...Array(7)].map((_, i) => {
+function lastNDays(n) {
+  return [...Array(n)].map((_, i) => {
     const d = new Date()
-    d.setDate(d.getDate() - (6 - i))
+    d.setDate(d.getDate() - (n - 1 - i))
     return {
       key: todayKey(d),
       label: new Intl.DateTimeFormat('nb-NO', { weekday: 'short' }).format(d).slice(0, 2),
@@ -21,7 +20,7 @@ function last7() {
   })
 }
 
-function HabitCard({ habit, days, today }) {
+function HabitCard({ habit, days, today, view }) {
   const history = new Set(habit.history || [])
   const doneToday = history.has(today)
 
@@ -54,14 +53,26 @@ function HabitCard({ habit, days, today }) {
           </svg>
         </button>
       </div>
-      <div className="dots">
-        {days.map((d) => (
-          <div key={d.key} className="dot-col">
-            <span className={'dot' + (history.has(d.key) ? ' on' : '') + (d.key === today ? ' today' : '')} />
-            <span className="dot-lbl">{d.label}</span>
-          </div>
-        ))}
-      </div>
+      {view === 'week' ? (
+        <div className="dots">
+          {days.map((d) => (
+            <div key={d.key} className="dot-col">
+              <span className={'dot' + (history.has(d.key) ? ' on' : '') + (d.key === today ? ' today' : '')} />
+              <span className="dot-lbl">{d.label}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="month-dots">
+          {days.map((d) => (
+            <span
+              key={d.key}
+              className={'month-dot' + (history.has(d.key) ? ' on' : '') + (d.key === today ? ' today' : '')}
+              title={d.key}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -69,8 +80,9 @@ function HabitCard({ habit, days, today }) {
 export default function Habits() {
   const habits = useLiveQuery(() => listHabits(), [], [])
   const [val, setVal] = useState('')
+  const [view, setView] = useState('week')
   const today = todayKey()
-  const days = last7()
+  const days = view === 'week' ? lastNDays(7) : lastNDays(28)
 
   const doneCount = habits.filter((h) => (h.history || []).includes(today)).length
 
@@ -94,6 +106,12 @@ export default function Habits() {
                 : `${doneCount} av ${habits.length} gjort i dag`}
             </p>
           </div>
+          {habits.length > 0 && (
+            <div className="habits-view-toggle">
+              <button className={view === 'week' ? 'active' : ''} onClick={() => setView('week')}>7d</button>
+              <button className={view === 'month' ? 'active' : ''} onClick={() => setView('month')}>28d</button>
+            </div>
+          )}
         </div>
 
         <div style={{ marginTop: 20 }}>
@@ -104,7 +122,7 @@ export default function Habits() {
               <p>Legg til én liten ting du vil gjøre ofte — drikke vann, lese, gå en tur. Ingen streaks, ingen skam.</p>
             </div>
           ) : (
-            habits.map((h) => <HabitCard key={h.id} habit={h} days={days} today={today} />)
+            habits.map((h) => <HabitCard key={h.id} habit={h} days={days} today={today} view={view} />)
           )}
         </div>
       </div>

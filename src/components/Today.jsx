@@ -184,8 +184,8 @@ export default function Today() {
 
         {openCount === 0 && doneToday.length > 0 && (
           <div className="empty">
-            <p className="em-ttl">Ferdig for i dag 🌿</p>
-            <p>Resten kan vente. Legg gjerne til noe nytt, eller lukk appen med god samvittighet.</p>
+            <p className="em-ttl">Ferdig for i dag</p>
+            <p>Alt gjort. Det er faktisk nok — lukk appen med god samvittighet.</p>
           </div>
         )}
 
@@ -244,7 +244,7 @@ export default function Today() {
           <div className="empty">
             <div className="glyph">🌱</div>
             <p className="em-ttl">Blank dag</p>
-            <p>Skriv det første du vil få gjort i dag i feltet nederst.</p>
+            <p>Hva er det ene du vil ha gjort i dag? Skriv det i feltet nederst.</p>
           </div>
         )}
       </div>

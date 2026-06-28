@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './components/AppShell.css'
 import Today from './components/Today.jsx'
+import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
 import Money from './components/Money.jsx'
@@ -37,6 +38,12 @@ const ICONS = {
       <path d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
     </>
   ),
+  whatnow: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v4M12 16h.01" />
+    </>
+  ),
   backup: (
     <>
       <path d="M12 3v12M7 10l5 5 5-5" />
@@ -47,6 +54,7 @@ const ICONS = {
 
 const MODULES = [
   { k: 'today', label: 'I dag', Comp: Today },
+  { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
   { k: 'habits', label: 'Vaner', Comp: Habits },
   { k: 'money', label: 'Penger', Comp: Money },
