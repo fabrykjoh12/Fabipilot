@@ -24,8 +24,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
   background: var(--canvas);
   color: var(--ink);
   font-family: 'Inter', system-ui, sans-serif;
@@ -1169,6 +1168,8 @@ label.backup-action {
 .login-overlay {
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100%;
+  overflow-y: auto;
   background:
     radial-gradient(90% 60% at 85% 0%, rgba(204, 136, 43, 0.12), transparent 55%),
     radial-gradient(80% 60% at 0% 100%, rgba(66, 99, 74, 0.1), transparent 55%),

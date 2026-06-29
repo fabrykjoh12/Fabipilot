@@ -14,15 +14,17 @@ html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
+  /* Lås siden til skjermen — bare innholdet (.screen-scroll) scroller,
+     så bunnmenyen blir liggende fast nederst på mobil. */
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
   background: #e9ece5;
-  min-height: 100vh;
-  min-height: 100dvh;
 }
 
 #root {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
 }
