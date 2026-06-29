@@ -89,6 +89,7 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
   - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget) / Faste (abonnement)
   - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt + roadmap-side
+  - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
 - `prototypes/` — visuell fasit: `idebank.html`, `idag-prototype.html`, `roadmap-prototype.html`
 
 ## 8. Arbeidsflyt

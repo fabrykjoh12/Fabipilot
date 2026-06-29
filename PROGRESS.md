@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Bolk 3 (del 2): søk på tvers av moduler. Ny «Søk»-modul (`Search.jsx`) med ett søkefelt som matcher oppgaver, gjøremål, idéer (+ tagger), prosjekter, prosjektsteg, hendelser, vaner, forbruk og abonnement. Treff vises med emoji + uthevet (`<mark>`) tekst + type-tagg, og lenker rett til modulen via `onNav`. Rent lese-søk over eksisterende stores — ingen ny data eller schema. Ligger i «Mer»/sidemeny.
 - 2026-06-29 — Bolk 3 (del 1): forbruks-trend på Penger/Oversikt. Søylediagram «Forbruk siste 6 måneder» (forbruk + faste per måned, regnet fra eksisterende `expenses` + `subscriptions` — ingen ny data eller schema). Valgt måned uthevet i rav; trykk på en søyle hopper til den måneden. Skjules når alt er null.
 - 2026-06-29 — Bolk 2 (del 4, siste): ukemål for vaner (uindeksert `weeklyGoal`-felt på `habits`, «Ukemål»-velger Av/2x–6x i customize-panel, fremdriftslinje «N/M denne uka» i vanefarge) og delsteg i prosjektsteg (uindeksert `subtasks`-array på `projectItems` + `addItemSubtask`/`toggleItemSubtask`/`deleteItemSubtask`, ☑ N/M-chip som utvider en mini-sjekkliste under steget).
 - 2026-06-29 — Bolk 2 (del 3): gjentakende oppgaver (uindeksert `repeat`-felt none/daily/weekly; `setTaskDone` lager neste forekomst når en gjentakende oppgave hukes av; kompakt ↻-chip i I dag) og gjentakende hendelser (uindeksert `repeat` none/daily/weekly/monthly; kalenderen ekspanderer forekomster via `occursOn`, ↻-merke i agendaen, «Gjentar»-velger i hendelse-sheet).

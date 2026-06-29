@@ -10,6 +10,7 @@ import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
 import Money from './components/Money.jsx'
 import Projects from './components/Projects.jsx'
+import Search from './components/Search.jsx'
 import { db, exportAll, importAll, pushAllToCloud } from './db.js'
 
 const ICONS = {
@@ -74,6 +75,12 @@ const ICONS = {
       <path d="M5 21h14" />
     </>
   ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </>
+  ),
   more: (
     <>
       <circle cx="5" cy="12" r="2" />
@@ -96,6 +103,7 @@ const MODULES = [
   { k: 'habits', label: 'Vaner', Comp: Habits },
   { k: 'money', label: 'Penger', Comp: Money },
   { k: 'projects', label: 'Prosjekter', Comp: Projects },
+  { k: 'search', label: 'Søk', Comp: Search },
 ]
 
 /* Sky-sync-status → norsk etikett + farge-LED. */
