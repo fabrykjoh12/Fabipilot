@@ -12,6 +12,9 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 
 ## 3. Stack
 - React 19 + Vite
+- UI-bibliotek: `motion` (bevegelse/sideoverganger), `lucide-react` (ikoner), `sonner` (toast),
+  `recharts` (diagram, lazy-lastet med Penger). Delte primitiver i `src/lib/ui.jsx`.
+- Designsystem-tokens (radius/spacing/skygge/bevegelse/typografi) i `:root` i `AppShell.css`.
 - Dexie (IndexedDB) — lokal-først, fungerer offline
 - Dexie Cloud (`dexie-cloud-addon`) — sync på tvers av enheter. Innlogging med e-post + engangskode.
   DB-URL er hardkodet i `db.js`. `dexie-cloud.key` er hemmelig og er i `.gitignore` (committes aldri).
@@ -83,8 +86,10 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/index.css` — global reset/bakgrunn
 - `src/db.js` — Dexie + Dexie Cloud-config: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
+- `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`, `PageTransition`,
+  `Reveal`, `toast` (sonner-wrapper). Bygd på `motion`; respekterer `prefers-reduced-motion`.
 - `src/components/`
-  - `AppShell.css` — design-tokens + skall + delte komponentstiler + innloggingsskjerm + auth-dialog
+  - `AppShell.css` — design-tokens (`:root`-skalaer) + skall + delte komponentstiler + skeleton/toast + innloggingsskjerm + auth-dialog
   - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
   - `Today.jsx` — «I dag»
   - `TodoList.jsx` — «Liste»: gjøremål uten dato (hak av, rediger, sorter)

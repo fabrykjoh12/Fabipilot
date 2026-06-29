@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Star } from 'lucide-react'
 import { listIdeas, addIdea, updateIdea, deleteIdea, promoteIdeaToProject } from '../db.js'
 import { burst, vibrate, reduceMotion, autoGrow, fmtDate } from '../lib/fx.js'
 import './IdeaBank.css'
@@ -260,7 +261,7 @@ export default function IdeaBank() {
   const used = new Set(ideas.map((i) => i.category))
   const chips = [
     { k: 'all', label: 'Alle' },
-    { k: 'fav', label: '★ Favoritter', star: true },
+    { k: 'fav', label: 'Favoritter', star: true },
     ...CATS.filter((c) => used.has(c.k)),
   ]
 
@@ -304,6 +305,7 @@ export default function IdeaBank() {
               className={'chip' + (filter === f.k ? ' active' : '') + (f.star ? ' star' : '')}
               onClick={() => setFilter(f.k)}
             >
+              {f.star && <Star className="chip-star" />}
               {f.label}
             </button>
           ))}

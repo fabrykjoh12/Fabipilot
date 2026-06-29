@@ -1,5 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useObservable, useLiveQuery } from 'dexie-react-hooks'
+import { Toaster } from 'sonner'
+import { motion } from 'motion/react'
+import {
+  LayoutGrid,
+  Sun,
+  ListChecks,
+  CalendarDays,
+  Compass,
+  Lightbulb,
+  Repeat,
+  Wallet,
+  FolderKanban,
+  Search as SearchIcon,
+  Users,
+  CloudUpload,
+  MoreHorizontal,
+} from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Today from './components/Today.jsx'
@@ -8,94 +25,42 @@ import Calendar from './components/Calendar.jsx'
 import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
-import Money from './components/Money.jsx'
 import Projects from './components/Projects.jsx'
 import Search from './components/Search.jsx'
 import SharedList from './components/SharedList.jsx'
+import { PageTransition, toast, SkeletonCard } from './lib/ui.jsx'
 import { db, exportAll, importAll, pushAllToCloud } from './db.js'
 
+/* Penger drar inn recharts — last den modulen først når den åpnes. */
+const Money = lazy(() => import('./components/Money.jsx'))
+
+function ScreenFallback() {
+  return (
+    <div className="screen">
+      <div className="screen-scroll">
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={2} />
+      </div>
+    </div>
+  )
+}
+
+/* Lucide-ikoner per modul (konsistent, premium ikonsett). */
 const ICONS = {
-  today: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" />
-    </>
-  ),
-  ideas: (
-    <>
-      <path d="M9.5 18h5M10.5 21h3" />
-      <path d="M12 3a6 6 0 00-3.8 10.6c.6.5.8 1.2.8 1.9h6c0-.7.2-1.4.8-1.9A6 6 0 0012 3z" />
-    </>
-  ),
-  habits: (
-    <>
-      <path d="M21 12a9 9 0 11-2.6-6.4" />
-      <path d="M21 4v4h-4" />
-    </>
-  ),
-  money: (
-    <>
-      <rect x="3" y="6" width="18" height="13" rx="2.5" />
-      <path d="M3 10h18M16.5 14.5h.5" />
-    </>
-  ),
-  projects: (
-    <>
-      <path d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-    </>
-  ),
-  overview: (
-    <>
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
-    </>
-  ),
-  calendar: (
-    <>
-      <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
-      <path d="M3 9.5h18M8 3v3M16 3v3" />
-    </>
-  ),
-  todo: (
-    <>
-      <path d="M9 6h11M9 12h11M9 18h11" />
-      <path d="M4 6l1 1 1.5-1.5M4 12l1 1 1.5-1.5M4 18l1 1 1.5-1.5" />
-    </>
-  ),
-  whatnow: (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v4M12 16h.01" />
-    </>
-  ),
-  backup: (
-    <>
-      <path d="M12 3v12M7 10l5 5 5-5" />
-      <path d="M5 21h14" />
-    </>
-  ),
-  search: (
-    <>
-      <circle cx="11" cy="11" r="7" />
-      <path d="M21 21l-4.3-4.3" />
-    </>
-  ),
-  shared: (
-    <>
-      <circle cx="9" cy="8" r="3" />
-      <circle cx="17" cy="9" r="2.4" />
-      <path d="M3.5 19a5.5 5.5 0 0111 0M15 19a4.5 4.5 0 016-4.2" />
-    </>
-  ),
-  more: (
-    <>
-      <circle cx="5" cy="12" r="2" />
-      <circle cx="12" cy="12" r="2" />
-      <circle cx="19" cy="12" r="2" />
-    </>
-  ),
+  overview: LayoutGrid,
+  today: Sun,
+  todo: ListChecks,
+  calendar: CalendarDays,
+  whatnow: Compass,
+  ideas: Lightbulb,
+  habits: Repeat,
+  money: Wallet,
+  projects: FolderKanban,
+  search: SearchIcon,
+  shared: Users,
+  backup: CloudUpload,
+  more: MoreHorizontal,
 }
 
 /* Faste faner nederst på mobil. Resten ligger i «Mer» (og i sidemenyen på PC). */
@@ -136,11 +101,8 @@ function syncLed(s) {
 }
 
 function NavIcon({ name }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      {ICONS[name]}
-    </svg>
-  )
+  const Ic = ICONS[name] || ICONS.more
+  return <Ic aria-hidden="true" strokeWidth={2} />
 }
 
 const GridMark = () => (
@@ -299,7 +261,7 @@ function LoginScreen() {
             {LOGIN_FEATURES.map((f) => (
               <li key={f.k} className="login-feature">
                 <span className="lf-icon">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[f.k]}</svg>
+                  <NavIcon name={f.k} />
                 </span>
                 <span className="lf-text">
                   <b>{f.label}</b>
@@ -399,6 +361,7 @@ export default function App() {
     a.click()
     URL.revokeObjectURL(url)
     setBackupOpen(false)
+    toast.success('Backup lastet ned', { description: 'JSON-fila ligger i Nedlastinger.' })
   }
 
   async function handleImport(e) {
@@ -408,15 +371,15 @@ export default function App() {
       const data = JSON.parse(await file.text())
       const added = await importAll(data)
       const total = Object.values(added).reduce((a, b) => a + b, 0)
-      window.alert(
-        total > 0
-          ? `Importerte ${total} ting:\n` +
-              `${added.tasks} oppgaver, ${added.ideas} ideer, ${added.habits} vaner, ` +
-              `${added.subscriptions} abonnement, ${added.projects} prosjekter, ${added.events} hendelser, ${added.todos} gjøremål, ${added.expenses} forbruk.`
-          : 'Ingenting nytt å importere (alt fantes fra før).',
-      )
+      if (total > 0) {
+        toast.success(`Importerte ${total} ting`, {
+          description: `${added.tasks} oppgaver · ${added.ideas} ideer · ${added.habits} vaner · ${added.subscriptions} abonnement · ${added.projects} prosjekter · ${added.events} hendelser · ${added.todos} gjøremål · ${added.expenses} forbruk.`,
+        })
+      } else {
+        toast.info('Ingenting nytt å importere', { description: 'Alt fantes fra før.' })
+      }
     } catch (err) {
-      window.alert('Kunne ikke importere: ' + err.message)
+      toast.error('Kunne ikke importere', { description: err.message })
     } finally {
       e.target.value = ''
       setBackupOpen(false)
@@ -427,13 +390,13 @@ export default function App() {
     setPushing(true)
     try {
       const { total } = await pushAllToCloud()
-      window.alert(
-        `Lastet opp ${total} ting til skyen ✓\n\n` +
-          'La appen være åpen og på nett noen sekunder til så den blir ferdig. ' +
-          'Logg deretter inn på de andre enhetene dine med samme e-post — da kommer alt ned dit automatisk.',
-      )
+      toast.success(`Lastet opp ${total} ting til skyen`, {
+        description:
+          'La appen være åpen på nett noen sekunder til. Logg så inn med samme e-post på de andre enhetene dine.',
+        duration: 6000,
+      })
     } catch (err) {
-      window.alert('Kunne ikke laste opp: ' + (err?.message || err))
+      toast.error('Kunne ikke laste opp', { description: err?.message || String(err) })
     } finally {
       setPushing(false)
     }
@@ -443,8 +406,9 @@ export default function App() {
     setSyncing(true)
     try {
       await db.cloud.sync({ purpose: 'pull', wait: true })
+      toast.success('Synket fra skyen')
     } catch (err) {
-      window.alert('Sync feilet: ' + (err?.message || err))
+      toast.error('Sync feilet', { description: err?.message || String(err) })
     } finally {
       setSyncing(false)
     }
@@ -455,18 +419,28 @@ export default function App() {
       <LoginInteraction />
       <nav className="nav" ref={navRef}>
         <div className="nav-brand">Dashboard</div>
-        {MODULES.map((m) => (
-          <button
-            key={m.k}
-            type="button"
-            className={'nav-item' + (active === m.k ? ' active' : '') + (PRIMARY.includes(m.k) ? '' : ' nav-secondary')}
-            aria-current={active === m.k ? 'page' : undefined}
-            onClick={() => setActive(m.k)}
-          >
-            <NavIcon name={m.k} />
-            {m.label}
-          </button>
-        ))}
+        {MODULES.map((m) => {
+          const on = active === m.k
+          return (
+            <button
+              key={m.k}
+              type="button"
+              className={'nav-item' + (on ? ' active' : '') + (PRIMARY.includes(m.k) ? '' : ' nav-secondary')}
+              aria-current={on ? 'page' : undefined}
+              onClick={() => setActive(m.k)}
+            >
+              {on && (
+                <motion.span
+                  className="nav-pill"
+                  layoutId="nav-pill"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                />
+              )}
+              <NavIcon name={m.k} />
+              <span className="nav-lbl">{m.label}</span>
+            </button>
+          )
+        })}
         <button
           type="button"
           className="nav-item nav-secondary"
@@ -488,8 +462,20 @@ export default function App() {
       </nav>
 
       <main className="content">
-        <ActiveComp onNav={setActive} />
+        <PageTransition id={active}>
+          <Suspense fallback={<ScreenFallback />}>
+            <ActiveComp onNav={setActive} />
+          </Suspense>
+        </PageTransition>
       </main>
+
+      <Toaster
+        position="bottom-center"
+        offset={88}
+        gap={8}
+        toastOptions={{ duration: 2600 }}
+        visibleToasts={3}
+      />
 
       {moreOpen && (
         <div className="more-overlay" role="dialog" aria-modal="true" onClick={() => setMoreOpen(false)}>

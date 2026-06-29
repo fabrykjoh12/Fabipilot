@@ -1,5 +1,8 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { motion } from 'motion/react'
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
+import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import {
   listSubscriptions, addSubscription, updateSubscription, deleteSubscription, monthlyCost,
   listExpenses, addExpense, updateExpense, deleteExpense, listBudgets, setBudget, todayKey,
@@ -7,6 +10,7 @@ import {
   listGoals, addGoal, updateGoal, deleteGoal, addToGoal,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
+import { AnimatedNumber } from '../lib/ui.jsx'
 import './Money.css'
 
 const CATEGORIES = [
@@ -85,6 +89,55 @@ function MonthTrend({ expenses, subTotal, cursor, onPick }) {
             </button>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+/* ============ kakediagram: fordeling per kategori ============ */
+function CategoryDonut({ rows, total }) {
+  const data = rows.filter((r) => r.spent > 0)
+  if (data.length < 2) return null
+  return (
+    <div className="card donut-card">
+      <span className="trend-lbl">Fordeling denne måneden</span>
+      <div className="donut-wrap">
+        <div className="donut-chart">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="spent"
+                nameKey="label"
+                innerRadius="68%"
+                outerRadius="100%"
+                paddingAngle={data.length > 1 ? 2 : 0}
+                stroke="none"
+                startAngle={90}
+                endAngle={-270}
+                isAnimationActive={!reduceMotion()}
+                animationDuration={650}
+              >
+                {data.map((d) => (
+                  <Cell key={d.k} fill={d.color} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="donut-center">
+            <AnimatedNumber className="donut-total" value={total} format={kr} />
+            <span className="donut-sub">totalt</span>
+          </div>
+        </div>
+        <ul className="donut-legend">
+          {data.slice(0, 6).map((d) => (
+            <li key={d.k}>
+              <span className="dl-dot" style={{ background: d.color }} />
+              <span className="dl-name">{d.emoji} {d.label}</span>
+              <span className="dl-amt">{kr(d.spent)}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
@@ -327,7 +380,7 @@ function SubCard({ sub }) {
           aria-label="Slett"
           onClick={() => { if (window.confirm(`Slette «${sub.name}»?`)) deleteSubscription(sub.id) }}
         >
-          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          <X />
         </button>
       </div>
     </div>
@@ -419,7 +472,14 @@ export default function Money() {
         <div className="money-tabs">
           {TABS.map((t) => (
             <button key={t.k} type="button" className={tab === t.k ? 'active' : ''} onClick={() => setTab(t.k)}>
-              {t.label}
+              {tab === t.k && (
+                <motion.span
+                  className="seg-pill"
+                  layoutId="money-tab-pill"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                />
+              )}
+              <span className="seg-lbl">{t.label}</span>
             </button>
           ))}
         </div>
@@ -429,17 +489,17 @@ export default function Money() {
           <>
             <div className="month-nav">
               <button type="button" className="cal-arrow" aria-label="Forrige måned" onClick={() => shiftMonth(-1)}>
-                <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" /></svg>
+                <ChevronLeft />
               </button>
               <span className="month-nav-lbl">{monthLabel}</span>
               <button type="button" className="cal-arrow" aria-label="Neste måned" disabled={isCurrentMonth} onClick={() => shiftMonth(1)}>
-                <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+                <ChevronRight />
               </button>
             </div>
 
             <div className="budget-summary">
               <span className="bs-label">brukt denne måneden</span>
-              <span className="bs-amount">{kr(totalSpent)}</span>
+              <AnimatedNumber className="bs-amount" value={totalSpent} format={kr} />
               {totalBudget > 0 ? (
                 <>
                   <div className="bs-bar">
@@ -461,6 +521,8 @@ export default function Money() {
                 </span>
               )}
             </div>
+
+            <CategoryDonut rows={catRows} total={totalSpent} />
 
             <MonthTrend
               expenses={expenses}
@@ -594,7 +656,7 @@ export default function Money() {
           <>
             <div className="budget-summary slim">
               <span className="bs-label">logget denne måneden</span>
-              <span className="bs-amount">{kr(expTotal)}</span>
+              <AnimatedNumber className="bs-amount" value={expTotal} format={kr} />
               <span className="bs-sub">{monthExpenses.length} kjøp</span>
             </div>
 
@@ -629,7 +691,7 @@ export default function Money() {
           <>
             <div className="budget-summary slim">
               <span className="bs-label">faste utgifter per måned</span>
-              <span className="bs-amount">{kr(subTotal)}</span>
+              <AnimatedNumber className="bs-amount" value={subTotal} format={kr} />
               <span className="bs-sub">{subs.length} abonnement · {kr(subTotal * 12)} per år</span>
             </div>
 
@@ -663,7 +725,7 @@ export default function Money() {
       {tab === 'forbruk' && (
         <div className="screen-bar">
           <button type="button" className="money-fab" onClick={() => setSheet({ type: 'expense' })}>
-            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+            <Plus />
             Legg til forbruk
           </button>
         </div>

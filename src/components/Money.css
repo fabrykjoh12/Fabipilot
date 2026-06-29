@@ -1,28 +1,43 @@
 /* ===== Penger: faner + budsjett + forbruk ===== */
 .money-tabs {
   display: flex;
-  background: var(--line);
-  border-radius: 12px;
-  padding: 3px;
+  background: var(--canvas-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 4px;
   gap: 2px;
   margin: 16px 0 18px;
 }
 .money-tabs button {
+  position: relative;
+  isolation: isolate;
   flex: 1;
   border: 0;
   background: none;
-  border-radius: 9px;
-  padding: 8px 6px;
+  border-radius: var(--r-xs);
+  padding: 9px 6px;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
+  transition: color var(--t-mid) var(--ease);
 }
 .money-tabs button.active {
-  background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+/* glidende segment-indikator (motion layoutId) */
+.seg-pill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--surface);
+  border-radius: var(--r-xs);
+  box-shadow: var(--sh-2);
+}
+.seg-lbl {
+  position: relative;
+  z-index: 1;
 }
 
 /* kommende betalinger */
@@ -124,11 +139,101 @@
   stroke-linecap: round; stroke-linejoin: round;
 }
 
+/* ===== kakediagram (donut) ===== */
+.donut-card {
+  margin-top: 14px;
+  padding: 16px 16px 14px;
+}
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.donut-chart {
+  position: relative;
+  flex: 0 0 auto;
+  width: 132px;
+  height: 132px;
+}
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.donut-total {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.donut-sub {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.donut-legend {
+  flex: 1;
+  min-width: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.donut-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.dl-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.dl-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dl-amt {
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 420px) {
+  .donut-wrap {
+    gap: 14px;
+  }
+  .donut-chart {
+    width: 110px;
+    height: 110px;
+  }
+}
+
 /* sammendrags-kort */
 .budget-summary {
   background: var(--surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-2);
   padding: 20px;
   display: flex;
   flex-direction: column;

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight } from 'lucide-react'
 import { db, todayKey, monthlyCost } from '../db.js'
 import { kr } from '../lib/fx.js'
+import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
 import './Overview.css'
 
 /* Standard rekkefølge på Oversikt-kortene. Lagres tilpasset i localStorage. */
@@ -49,24 +51,12 @@ function peptalk() {
 }
 
 const ICONS = {
-  today: (
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" /></svg>
-  ),
-  habits: (
-    <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-2.6-6.4" /><path d="M21 4v4h-4" /></svg>
-  ),
-  money: (
-    <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5" /><path d="M3 10h18M16.5 14.5h.5" /></svg>
-  ),
-  projects: (
-    <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
-  ),
-  ideas: (
-    <svg viewBox="0 0 24 24"><path d="M9.5 18h5M10.5 21h3" /><path d="M12 3a6 6 0 00-3.8 10.6c.6.5.8 1.2.8 1.9h6c0-.7.2-1.4.8-1.9A6 6 0 0012 3z" /></svg>
-  ),
-  arrow: (
-    <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-  ),
+  today: <Sun />,
+  habits: <Repeat />,
+  money: <Wallet />,
+  projects: <FolderKanban />,
+  ideas: <Lightbulb />,
+  arrow: <ArrowRight />,
 }
 
 function OvCard({ icon, color, title, sub, onClick, children }) {
@@ -200,7 +190,7 @@ export default function Overview({ onNav }) {
         sub={`${subs.length} abonnement · per måned`}
         onClick={editing ? undefined : () => onNav('money')}
       >
-        <span className="ov-total">{kr(totalMonth)}</span>
+        <AnimatedNumber className="ov-total" value={totalMonth} format={kr} />
       </OvCard>
     ),
     projects: (
@@ -268,7 +258,7 @@ export default function Overview({ onNav }) {
 
         <div className="ov-grid">
           {visible.map((key, i) => (
-            <div key={key} className={'ov-cell' + (editing ? ' editing' : '')}>
+            <Reveal key={key} i={i} className={'ov-cell' + (editing ? ' editing' : '')}>
               {editing && (
                 <div className="ov-edit-bar">
                   <button type="button" className="ov-eb" aria-label="Flytt opp" disabled={i === 0} onClick={() => move(key, -1)}>▲</button>
@@ -277,7 +267,7 @@ export default function Overview({ onNav }) {
                 </div>
               )}
               {CARDS[key]}
-            </div>
+            </Reveal>
           ))}
         </div>
 

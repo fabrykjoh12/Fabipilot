@@ -1,32 +1,108 @@
-/* ===== Delte design-tokens ===== */
+/* ============================================================
+   DESIGN SYSTEM — premium tokens
+   Brand stays warm/calm/organic (ADHD-vennlig). One accent: rav.
+   ============================================================ */
 :root {
+  /* ---- Farger: flater ---- */
   --canvas: #e9ece5;
+  --canvas-2: #eef0ea; /* litt lysere flate (hover/innfelt) */
   --surface: #fbfcf9;
+  --surface-2: #f4f6f0; /* sekundær kort-flate */
   --surface-focus: #faf4e8;
   --ink: #22281f;
+  --ink-soft: #3c4438;
   --muted: #737b6e;
+  --faint: #9aa394; /* placeholder / hint */
   --line: #dce0d5;
+  --line-strong: #ccd2c4;
+
+  /* ---- Merkefarger ---- */
   --accent: #cc882b;
   --accent-bright: #e8a53d;
+  --accent-deep: #a96e1f;
+  --accent-soft: rgba(204, 136, 43, 0.14);
+  --accent-ring: rgba(204, 136, 43, 0.22);
   --forest: #42634a;
+  --forest-soft: rgba(66, 99, 74, 0.12);
   --danger: #b4574a;
-  --radius: 18px;
-  --shadow: 0 1px 2px rgba(34, 40, 31, 0.04), 0 6px 20px rgba(34, 40, 31, 0.06);
+  --danger-soft: rgba(180, 87, 74, 0.12);
+  --success: #4f9d5b;
+
+  /* ---- Radius-skala ---- */
+  --r-xs: 8px;
+  --r-sm: 11px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-2xl: 30px;
+  --r-full: 999px;
+  --radius: var(--r-lg); /* bakoverkompat */
+
+  /* ---- Mellomrom-skala ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+
+  /* ---- Elevasjon (lagvise, myke skygger) ---- */
+  --sh-1: 0 1px 2px rgba(34, 40, 31, 0.05), 0 1px 1px rgba(34, 40, 31, 0.03);
+  --sh-2: 0 1px 2px rgba(34, 40, 31, 0.05), 0 4px 12px rgba(34, 40, 31, 0.06);
+  --sh-3: 0 2px 4px rgba(34, 40, 31, 0.05), 0 10px 26px rgba(34, 40, 31, 0.09);
+  --sh-4: 0 6px 14px rgba(34, 40, 31, 0.08), 0 22px 48px rgba(34, 40, 31, 0.14);
+  --sh-5: 0 12px 28px rgba(34, 40, 31, 0.12), 0 36px 70px rgba(34, 40, 31, 0.2);
+  --sh-accent: 0 6px 18px rgba(204, 136, 43, 0.28);
+  --sh-accent-lg: 0 10px 26px rgba(204, 136, 43, 0.34);
+  --shadow: var(--sh-2); /* bakoverkompat */
+
+  /* ---- Bevegelse ---- */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 0.14s;
+  --t-mid: 0.24s;
+  --t-slow: 0.4s;
+
+  /* ---- Typografi ---- */
+  --font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
 }
 
 /* ===== Mørk modus ===== */
 [data-theme='dark'] {
-  --canvas: #171c15;
-  --surface: #222a1f;
-  --surface-focus: #2f2c1d;
-  --ink: #e7ebe0;
-  --muted: #9aa394;
-  --line: #333b2d;
-  --accent: #d8943a;
-  --accent-bright: #e8a53d;
-  --forest: #79a081;
-  --danger: #d27063;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
+  --canvas: #14180f;
+  --canvas-2: #1b2017;
+  --surface: #1f261b;
+  --surface-2: #262e21;
+  --surface-focus: #2c2a1a;
+  --ink: #eaeee3;
+  --ink-soft: #cfd6c6;
+  --muted: #99a291;
+  --faint: #79826f;
+  --line: #313a2b;
+  --line-strong: #3d4836;
+
+  --accent: #e0a049;
+  --accent-bright: #ecb45f;
+  --accent-deep: #c98a32;
+  --accent-soft: rgba(224, 160, 73, 0.16);
+  --accent-ring: rgba(224, 160, 73, 0.26);
+  --forest: #7ba883;
+  --forest-soft: rgba(123, 168, 131, 0.16);
+  --danger: #db7a6c;
+  --danger-soft: rgba(219, 122, 108, 0.16);
+  --success: #6bbd77;
+
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --sh-2: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --sh-3: 0 2px 4px rgba(0, 0, 0, 0.35), 0 10px 26px rgba(0, 0, 0, 0.45);
+  --sh-4: 0 6px 14px rgba(0, 0, 0, 0.4), 0 22px 48px rgba(0, 0, 0, 0.55);
+  --sh-5: 0 12px 28px rgba(0, 0, 0, 0.5), 0 36px 70px rgba(0, 0, 0, 0.6);
+  --sh-accent: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --sh-accent-lg: 0 10px 26px rgba(0, 0, 0, 0.5);
 }
 [data-theme='dark'] .search-text mark,
 [data-theme='dark'] .search-meta mark { color: #171c15; }
@@ -42,9 +118,15 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background: var(--canvas);
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(204, 136, 43, 0.05), transparent 60%),
+    radial-gradient(100% 70% at 0% 100%, rgba(66, 99, 74, 0.04), transparent 60%),
+    var(--canvas);
   color: var(--ink);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
 }
 
 /* Innholdsområdet sentrerer en kolonne */
@@ -95,12 +177,13 @@
   display: none;
 }
 .nav-item {
+  position: relative;
   flex: 1 0 auto;
   min-width: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   border: 0;
   background: none;
   cursor: pointer;
@@ -108,8 +191,10 @@
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  padding: 6px 2px;
-  border-radius: 12px;
+  padding: 8px 2px 6px;
+  border-radius: var(--r-md);
+  transition: color var(--t-mid) var(--ease);
+  isolation: isolate;
 }
 .nav-item svg {
   width: 23px;
@@ -119,9 +204,28 @@
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.nav-item:active svg {
+  transform: scale(0.82);
 }
 .nav-item.active {
   color: var(--accent);
+}
+.nav-item.active svg {
+  transform: translateY(-1px) scale(1.06);
+}
+.nav-lbl {
+  position: relative;
+  z-index: 1;
+}
+/* glidende aktiv-indikator (motion layoutId) */
+.nav-pill {
+  position: absolute;
+  inset: 4px 8px;
+  z-index: -1;
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
 }
 .nav-more svg {
   fill: currentColor;
@@ -249,10 +353,23 @@
     gap: 12px;
     font-size: 15px;
     padding: 11px 13px;
+    border-radius: var(--r-md);
+  }
+  .nav-item:not(.active):hover {
+    color: var(--ink);
+    background: var(--canvas-2);
   }
   .nav-item.active {
-    background: var(--surface-focus);
     color: var(--accent);
+  }
+  .nav-item.active svg {
+    transform: none;
+  }
+  /* sidemeny: pillen fyller hele raden */
+  .nav-pill {
+    inset: 0;
+    background: var(--surface-focus);
+    box-shadow: inset 0 0 0 1px var(--accent-soft);
   }
   .screen-scroll {
     padding: 40px 28px 130px;
@@ -327,9 +444,17 @@
   border-radius: var(--radius);
   padding: 15px 16px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow);
-  border: 1px solid transparent;
-  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  box-shadow: var(--sh-2);
+  border: 1px solid var(--line);
+  transition: box-shadow var(--t-mid) var(--ease), transform var(--t-mid) var(--ease),
+    border-color var(--t-mid) var(--ease);
+  animation: rise 0.4s var(--ease) both;
+}
+@media (hover: hover) {
+  .card:hover {
+    box-shadow: var(--sh-3);
+    border-color: var(--line-strong);
+  }
 }
 .card.leaving {
   animation: leave 0.36s ease forwards;
@@ -358,13 +483,23 @@
 .icon-btn {
   width: 42px;
   height: 42px;
-  border-radius: 13px;
+  border-radius: var(--r-md);
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--muted);
   display: grid;
   place-items: center;
   cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast),
+    transform var(--t-fast);
+}
+.icon-btn:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: var(--canvas-2);
+}
+.icon-btn:active {
+  transform: scale(0.92);
 }
 .icon-btn svg {
   width: 20px;
@@ -381,19 +516,45 @@
   font-size: 13.5px;
   font-weight: 600;
   padding: 9px 14px;
-  border-radius: 11px;
+  border-radius: var(--r-sm);
   cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast),
+    box-shadow var(--t-fast);
+}
+.btn:hover {
+  border-color: var(--line-strong);
+  background: var(--canvas-2);
 }
 .btn:active {
   transform: scale(0.96);
 }
+/* Primær-knapp: rav, med myk glød */
+.btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--sh-accent);
+}
+.btn-primary:hover {
+  background: var(--accent-bright);
+  border-color: transparent;
+  box-shadow: var(--sh-accent-lg);
+}
 .btn-danger {
   color: var(--danger);
+}
+.btn-danger:hover {
+  border-color: rgba(180, 87, 74, 0.4);
+  background: var(--danger-soft);
 }
 .btn-ghost {
   border-color: transparent;
   background: none;
   color: var(--muted);
+}
+.btn-ghost:hover {
+  background: var(--canvas-2);
+  color: var(--ink);
 }
 
 /* ===== Legg-til-felt (delt nederst) ===== */
@@ -402,10 +563,15 @@
   align-items: flex-end;
   gap: 10px;
   background: var(--surface);
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   padding: 8px 8px 8px 16px;
-  box-shadow: 0 4px 24px rgba(34, 40, 31, 0.15);
+  box-shadow: var(--sh-4);
   border: 1px solid var(--line);
+  transition: border-color var(--t-mid) var(--ease), box-shadow var(--t-mid) var(--ease);
+}
+.field:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--sh-4), 0 0 0 4px var(--accent-ring);
 }
 .field input,
 .field textarea {
@@ -429,19 +595,26 @@
   width: 44px;
   height: 44px;
   border: 0;
-  border-radius: 13px;
+  border-radius: var(--r-md);
   cursor: pointer;
   background: var(--accent);
   color: #fff;
   display: grid;
   place-items: center;
-  transition: transform 0.12s, background 0.2s;
+  box-shadow: var(--sh-accent);
+  transition: transform var(--t-fast), background var(--t-mid), box-shadow var(--t-mid);
+}
+.field-btn:hover:not(:disabled) {
+  background: var(--accent-bright);
+  box-shadow: var(--sh-accent-lg);
 }
 .field-btn:active {
   transform: scale(0.9);
 }
 .field-btn:disabled {
-  background: #cdd2c7;
+  background: var(--line-strong);
+  box-shadow: none;
+  cursor: default;
 }
 .field-btn svg {
   width: 23px;
@@ -1705,14 +1878,104 @@ label.backup-action {
 }
 
 :focus-visible {
-  outline: 2.5px solid var(--forest);
+  outline: 2.5px solid var(--accent);
   outline-offset: 2px;
+  border-radius: 6px;
 }
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* ============================================================
+   PREMIUM-TILLEGG — skeletons, sideovergang, toast, scrollbar
+   ============================================================ */
+
+/* page-motion fyller .content-kolonnen så .screen beholder høyden */
+.page-motion {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---- Skeleton (skimmer) ---- */
+.sk {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: var(--canvas-2);
+}
+.sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
+  animation: sk-shimmer 1.3s ease-in-out infinite;
+}
+[data-theme='dark'] .sk::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+}
+@keyframes sk-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.sk-card {
+  animation: none;
+}
+
+/* ---- Sonner toast-tema (matcher merkevaren) ---- */
+[data-sonner-toaster] {
+  font-family: var(--font-body);
+}
+[data-sonner-toast] {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: var(--sh-4) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+[data-sonner-toast] [data-icon] {
+  color: var(--accent) !important;
+}
+[data-sonner-toast][data-type='success'] [data-icon] {
+  color: var(--success) !important;
+}
+[data-sonner-toast][data-type='error'] [data-icon] {
+  color: var(--danger) !important;
+}
+[data-sonner-toast] [data-description] {
+  color: var(--muted) !important;
+}
+
+/* ---- Diskré scrollbar ---- */
+.screen-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.screen-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.screen-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.screen-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background-clip: padding-box;
 }
 
 /* ===== Innlogging ===== */
