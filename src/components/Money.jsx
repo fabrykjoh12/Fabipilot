@@ -31,6 +31,15 @@ function barColor(ratio) {
   return '#4f9d5b'
 }
 
+/** Dager til neste trekk på en gitt dag i måneden (1–31). */
+function daysUntilDay(day) {
+  const now = new Date()
+  const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  let target = new Date(now.getFullYear(), now.getMonth(), day)
+  if (target < t0) target = new Date(now.getFullYear(), now.getMonth() + 1, day)
+  return Math.round((target - t0) / 86400000)
+}
+
 const TABS = [
   { k: 'oversikt', label: 'Oversikt' },
   { k: 'forbruk', label: 'Forbruk' },
@@ -197,6 +206,14 @@ function SubCard({ sub }) {
     const i = keys.indexOf(catKey(sub.category || 'annet'))
     updateSubscription(sub.id, { category: keys[(i + 1) % keys.length] })
   }
+  function setDay() {
+    const v = window.prompt('Hvilken dag i måneden trekkes det? (1–31, tomt for å fjerne)', sub.renewDay || '')
+    if (v === null) return
+    if (v.trim() === '') { updateSubscription(sub.id, { renewDay: null }); return }
+    const n = Math.round(Number(v))
+    if (!Number.isNaN(n) && n >= 1 && n <= 31) updateSubscription(sub.id, { renewDay: n })
+  }
+  const days = sub.renewDay ? daysUntilDay(sub.renewDay) : null
 
   return (
     <div className="card sub">
@@ -229,6 +246,14 @@ function SubCard({ sub }) {
             title="Trykk for å endre kategori"
           >
             {cat.emoji} {cat.label}
+          </button>
+          <button
+            type="button"
+            className={'sub-day' + (sub.renewDay ? '' : ' unset')}
+            onClick={setDay}
+            title={sub.renewDay ? `Neste trekk om ${days} ${days === 1 ? 'dag' : 'dager'}` : 'Sett trekkdag'}
+          >
+            🗓 {sub.renewDay ? `den ${sub.renewDay}.${days <= 7 ? ` · om ${days}d` : ''}` : 'sett dato'}
           </button>
         </div>
       </div>

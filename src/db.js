@@ -195,8 +195,8 @@ export async function toggleHabitDay(id, dayKey = todayKey()) {
 export async function listSubscriptions() {
   return db.subscriptions.orderBy('createdAt').reverse().toArray()
 }
-export async function addSubscription({ name, amount, cycle = 'monthly' }) {
-  const sub = { id: uid(), name: name.trim(), amount: Number(amount) || 0, cycle, createdAt: now() }
+export async function addSubscription({ name, amount, cycle = 'monthly', renewDay = null }) {
+  const sub = { id: uid(), name: name.trim(), amount: Number(amount) || 0, cycle, renewDay, createdAt: now() }
   await db.subscriptions.add(sub)
   return sub
 }

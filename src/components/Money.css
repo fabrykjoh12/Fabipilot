@@ -25,6 +25,24 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+/* trekkdag-merkelapp på abonnement */
+.sub-day {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.sub-day.unset {
+  border-style: dashed;
+  color: #a8b09e;
+}
+
 /* måned-nav */
 .month-nav {
   display: flex;

@@ -44,8 +44,9 @@ Synces via Dexie Cloud (se §3).
   `dueDate` = `YYYY-MM-DD`. «Henger igjen» = `dueDate` før i dag og ikke gjort.
 - **habits** (Vaner) — `id, name, history[], sortOrder, createdAt`
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
-- **subscriptions** (Penger) — `id, name, amount, cycle, category, createdAt`
+- **subscriptions** (Penger) — `id, name, amount, cycle, category, renewDay, createdAt`
   `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = nøkkel i `CATEGORIES` (Money.jsx).
+  `renewDay` = dag i måneden (1–31) abonnementet trekkes, eller `null` (uindeksert).
 - **expenses** (Penger/Forbruk) — `id, amount, category, note, date, createdAt`
   `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES`.
 - **budgets** (Penger/Budsjett) — `id, category, amount, createdAt`
