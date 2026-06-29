@@ -106,6 +106,93 @@
 .nav-item.active {
   color: var(--accent);
 }
+.nav-more svg {
+  fill: currentColor;
+  stroke: none;
+}
+/* Mobil: skjul sekundære moduler (de ligger i «Mer»), vis «Mer»-knappen */
+.nav-secondary {
+  display: none;
+}
+
+/* «Mer»-sheet */
+.more-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(34, 40, 31, 0.45);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.more-sheet {
+  width: 100%;
+  max-width: 560px;
+  background: var(--canvas);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 40px rgba(34, 40, 31, 0.22);
+  animation: sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.more-grip {
+  width: 38px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--line);
+  margin: 0 auto 12px;
+}
+.more-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  margin: 0 0 14px;
+}
+.more-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.more-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.more-item svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--muted);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.more-item.active {
+  border-color: var(--accent);
+  background: var(--surface-focus);
+  color: var(--accent);
+}
+.more-item.active svg {
+  stroke: var(--accent);
+}
+.more-item:active {
+  transform: scale(0.97);
+}
 
 /* ===== Desktop: sidemeny ===== */
 @media (min-width: 860px) {
@@ -122,6 +209,13 @@
     border-right: 1px solid var(--line);
     padding: 22px 14px;
     gap: 4px;
+  }
+  /* PC: vis alt i sidemenyen, skjul «Mer»-knappen */
+  .nav-secondary {
+    display: flex;
+  }
+  .nav-more {
+    display: none;
   }
   .nav-brand {
     font-family: 'Bricolage Grotesque', sans-serif;

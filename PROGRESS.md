@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Ryddet bunnmenyen på mobil: 4 faste faner (Oversikt, I dag, Kalender, Prosjekter) + «Mer»-knapp som åpner en sheet med resten (Liste, Hva nå?, Idébank, Vaner, Penger, Backup). PC-sidemenyen viser alt som før (nav-secondary vises, nav-more skjules via media query).
 - 2026-06-29 — Bedre roadmap: steg kan nå flyttes fritt mellom faser (Nå/Neste/Senere), omrokeres opp/ned, fullføres eller slettes via en handlings-sheet (⋯ på hvert kort). Per-fase «Legg til» (legg direkte i Nå/Neste/Senere). Ferdig-kort er trykkbare for å angre/flytte tilbake. Nye db-funksjoner `moveItemToStage` + `reorderItem`; den gamle ett-veis `advanceItem`/pilen er fjernet.
 - 2026-06-29 — Penger ble et budsjettsystem: nye stores `expenses` (logget forbruk) + `budgets` (månedsbudsjett per kategori), schema v7. Tre faner: Oversikt (måned-nav, total brukt vs budsjett, fargede stolper per kategori der spent = forbruk + abonnement), Forbruk (logg kjøp via bunn-sheet med kategori-rutenett), Faste (eksisterende abonnement). Unified `CATEGORIES` med emoji + farge på tvers av forbruk/budsjett/abonnement.
 - 2026-06-29 — Prosjekter fikk «profil»: emoji + farge som identitet (uindekserte felt på `projects`, ingen schema-bump), fargevelger + emoji-rutenett i kustomiseringspanel. Profilsiden viser nå fremdrift i prosjektfarge + %, og statistikk-rad (Nå/Neste/Senere/Ferdig). Liste-kortene viser emoji-merke + fremdriftslinje.

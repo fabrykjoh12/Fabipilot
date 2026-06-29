@@ -74,7 +74,17 @@ const ICONS = {
       <path d="M5 21h14" />
     </>
   ),
+  more: (
+    <>
+      <circle cx="5" cy="12" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="19" cy="12" r="2" />
+    </>
+  ),
 }
+
+/* Faste faner nederst på mobil. Resten ligger i «Mer» (og i sidemenyen på PC). */
+const PRIMARY = ['overview', 'today', 'calendar', 'projects']
 
 const MODULES = [
   { k: 'overview', label: 'Oversikt', Comp: Overview },
@@ -318,6 +328,7 @@ function LoginScreen() {
 export default function App() {
   const [active, setActive] = useState('overview')
   const [backupOpen, setBackupOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
   const currentUser = useObservable(db.cloud.currentUser)
   const syncState = useObservable(db.cloud.syncState)
   const isLoggedIn = !!currentUser?.isLoggedIn
@@ -421,7 +432,7 @@ export default function App() {
           <button
             key={m.k}
             type="button"
-            className={'nav-item' + (active === m.k ? ' active' : '')}
+            className={'nav-item' + (active === m.k ? ' active' : '') + (PRIMARY.includes(m.k) ? '' : ' nav-secondary')}
             aria-current={active === m.k ? 'page' : undefined}
             onClick={() => setActive(m.k)}
           >
@@ -431,18 +442,57 @@ export default function App() {
         ))}
         <button
           type="button"
-          className="nav-item"
+          className="nav-item nav-secondary"
           aria-label="Sikkerhetskopi"
           onClick={() => setBackupOpen(true)}
         >
           <NavIcon name="backup" />
           Backup
         </button>
+        <button
+          type="button"
+          className={'nav-item nav-more' + (PRIMARY.includes(active) ? '' : ' active')}
+          aria-label="Mer"
+          onClick={() => setMoreOpen(true)}
+        >
+          <NavIcon name="more" />
+          Mer
+        </button>
       </nav>
 
       <main className="content">
         <ActiveComp onNav={setActive} />
       </main>
+
+      {moreOpen && (
+        <div className="more-overlay" role="dialog" aria-modal="true" onClick={() => setMoreOpen(false)}>
+          <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="more-grip" />
+            <h2 className="more-title">Mer</h2>
+            <div className="more-grid">
+              {MODULES.filter((m) => !PRIMARY.includes(m.k)).map((m) => (
+                <button
+                  key={m.k}
+                  type="button"
+                  className={'more-item' + (active === m.k ? ' active' : '')}
+                  onClick={() => { setActive(m.k); setMoreOpen(false) }}
+                >
+                  <NavIcon name={m.k} />
+                  <span>{m.label}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="more-item"
+                onClick={() => { setMoreOpen(false); setBackupOpen(true) }}
+              >
+                <NavIcon name="backup" />
+                <span>Backup</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {backupOpen && (
         <div
