@@ -132,6 +132,7 @@ export async function addIdea(text) {
     category: 'ny',
     isFavorite: false,
     note: '',
+    tags: [],
     createdAt: now(),
   }
   await db.ideas.add(idea)
@@ -426,6 +427,7 @@ export async function addTodo(text) {
     text: text.trim(),
     isDone: false,
     completedAt: null,
+    subtasks: [],
     sortOrder: now(),
     createdAt: now(),
   }
@@ -434,6 +436,23 @@ export async function addTodo(text) {
 }
 export const updateTodo = (id, patch) => db.todos.update(id, patch)
 export const deleteTodo = (id) => db.todos.delete(id)
+export async function addSubtask(todoId, text) {
+  const t = await db.todos.get(todoId)
+  if (!t) return
+  const subtasks = [...(t.subtasks || []), { id: uid(), text: text.trim(), done: false }]
+  await db.todos.update(todoId, { subtasks })
+}
+export async function toggleSubtask(todoId, subId) {
+  const t = await db.todos.get(todoId)
+  if (!t) return
+  const subtasks = (t.subtasks || []).map((s) => (s.id === subId ? { ...s, done: !s.done } : s))
+  await db.todos.update(todoId, { subtasks })
+}
+export async function deleteSubtask(todoId, subId) {
+  const t = await db.todos.get(todoId)
+  if (!t) return
+  await db.todos.update(todoId, { subtasks: (t.subtasks || []).filter((s) => s.id !== subId) })
+}
 export async function setTodoDone(id, done) {
   await db.todos.update(id, { isDone: done, completedAt: done ? now() : null })
 }

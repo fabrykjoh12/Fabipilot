@@ -1311,6 +1311,125 @@ label.backup-action {
 .todo-toToday:hover {
   border-color: var(--forest);
 }
+.todo-subchip {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.todo-subchip.empty {
+  border-style: dashed;
+  color: #a8b09e;
+}
+/* todo-kort som kolonne (rad + sjekkliste under) */
+.task.todo-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+.task.todo-card .todo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.todo-subs {
+  margin: 12px 0 2px;
+  padding-left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.subrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.subcheck {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #c3caba;
+  background: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.subcheck.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.subcheck svg {
+  width: 11px;
+  height: 11px;
+  stroke: #fff;
+  stroke-width: 3.2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.subtxt {
+  flex: 1;
+  font-size: 14px;
+  color: var(--ink);
+  word-break: break-word;
+}
+.subtxt.done {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: #c2c9ba;
+}
+.subdel {
+  border: 0;
+  background: none;
+  color: #c3caba;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.subdel:hover {
+  color: var(--danger);
+}
+.subadd {
+  display: flex;
+  gap: 7px;
+  margin-top: 2px;
+}
+.subadd input {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: rgba(251, 252, 249, 0.6);
+  border-radius: 9px;
+  padding: 7px 11px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  outline: 0;
+}
+.subadd input:focus {
+  border-color: var(--accent);
+}
+.subadd button {
+  flex: 0 0 auto;
+  width: 32px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--forest);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+.subadd button:disabled {
+  opacity: 0.4;
+}
 .todo-mid {
   flex: 1;
   min-width: 0;

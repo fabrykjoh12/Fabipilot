@@ -15,10 +15,21 @@ const CATS = [
 const catLabel = (k) => (CATS.find((c) => c.k === k) || CATS[0]).label
 
 /* ---------- ett idé-kort ---------- */
-function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDelete, onEdit, onPromote }) {
+function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDelete, onEdit, onPromote, onTagClick }) {
   const [text, setText] = useState(idea.text)
   const [note, setNote] = useState(idea.note || '')
+  const [tagInput, setTagInput] = useState('')
   const [leaving, setLeaving] = useState(false)
+  const tags = idea.tags || []
+
+  function addTag() {
+    const v = tagInput.trim().toLowerCase().replace(/^#/, '')
+    if (v && !tags.includes(v)) onEdit(idea.id, { tags: [...tags, v] })
+    setTagInput('')
+  }
+  function removeTag(t) {
+    onEdit(idea.id, { tags: tags.filter((x) => x !== t) })
+  }
   const editRef = useRef(null)
   const noteRef = useRef(null)
   const timer = useRef(null)
@@ -71,6 +82,11 @@ function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDe
             >
               {catLabel(idea.category)}
             </button>
+            {tags.map((t) => (
+              <button key={t} type="button" className="tag-chip" onClick={(e) => { e.stopPropagation(); onTagClick(t) }}>
+                #{t}
+              </button>
+            ))}
             <span className="date">{fmtDate(idea.createdAt)}</span>
           </div>
         </div>
@@ -123,6 +139,23 @@ function IdeaCard({ idea, open, onOpen, onCycleCat, onPickCat, onToggleFav, onDe
             </button>
           ))}
         </div>
+        <div className="tag-editor" onClick={(e) => e.stopPropagation()}>
+          {tags.map((t) => (
+            <span key={t} className="tag-chip edit">
+              #{t}
+              <button type="button" aria-label={`Fjern ${t}`} onClick={() => removeTag(t)}>×</button>
+            </span>
+          ))}
+          <input
+            className="tag-input"
+            placeholder="+ tagg"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
+            onBlur={addTag}
+          />
+        </div>
+
         <div className="exfoot">
           <button
             type="button"
@@ -208,11 +241,16 @@ export default function IdeaBank() {
     })
   }
 
+  function onTagClick(tag) {
+    setQuery(tag)
+    setSearchOpen(true)
+  }
+
   const q = query.trim().toLowerCase()
   let view = ideas
   if (filter === 'fav') view = view.filter((i) => i.isFavorite)
   else if (filter !== 'all') view = view.filter((i) => i.category === filter)
-  if (q) view = view.filter((i) => (i.text + ' ' + (i.note || '')).toLowerCase().includes(q))
+  if (q) view = view.filter((i) => (i.text + ' ' + (i.note || '') + ' ' + (i.tags || []).join(' ')).toLowerCase().includes(q))
 
   const subText =
     ideas.length === 0
@@ -295,6 +333,7 @@ export default function IdeaBank() {
                 onDelete={onDelete}
                 onEdit={onEdit}
                 onPromote={onPromote}
+                onTagClick={onTagClick}
               />
             ))
           )}

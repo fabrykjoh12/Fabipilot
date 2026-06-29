@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listTodos, addTodo, updateTodo, deleteTodo, setTodoDone, moveTodo, addTask, todayKey } from '../db.js'
+import { listTodos, addTodo, updateTodo, deleteTodo, setTodoDone, moveTodo, addTask, addSubtask, toggleSubtask, deleteSubtask, todayKey } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
 
 const CHECK = (
@@ -22,9 +22,20 @@ function TodoItem({ todo, idx, openCount, manual }) {
   const [leaving, setLeaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const [subVal, setSubVal] = useState('')
   const checkRef = useRef(null)
   const done = todo.isDone
   const status = dueStatus(todo.dueDate, todayKey())
+  const subs = todo.subtasks || []
+  const subsDone = subs.filter((s) => s.done).length
+
+  function addSub() {
+    const v = subVal.trim()
+    if (!v) return
+    addSubtask(todo.id, v)
+    setSubVal('')
+  }
 
   function handleCheck() {
     if (done) {
@@ -48,7 +59,8 @@ function TodoItem({ todo, idx, openCount, manual }) {
   }
 
   return (
-    <div className={'task' + (done ? ' done' : '') + (leaving ? ' leaving' : '')}>
+    <div className={'task todo-card' + (done ? ' done' : '') + (leaving ? ' leaving' : '')}>
+      <div className="todo-row">
       <div
         ref={checkRef}
         className="check"
@@ -103,6 +115,13 @@ function TodoItem({ todo, idx, openCount, manual }) {
                 onClick={async () => { await addTask(todo.text); await deleteTodo(todo.id); vibrate(8) }}
               >→ I dag</button>
             )}
+            <button
+              type="button"
+              className={'todo-subchip' + (subs.length ? '' : ' empty')}
+              onClick={() => setExpanded((e) => !e)}
+            >
+              {subs.length ? `☑ ${subsDone}/${subs.length}` : '+ delpunkter'}
+            </button>
           </div>
         </div>
       )}
@@ -121,6 +140,37 @@ function TodoItem({ todo, idx, openCount, manual }) {
       >
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
+      </div>
+
+      {expanded && (
+        <div className="todo-subs">
+          {subs.map((s) => (
+            <div key={s.id} className="subrow">
+              <button
+                type="button"
+                className={'subcheck' + (s.done ? ' on' : '')}
+                aria-label={s.done ? 'Angre' : 'Fullfør'}
+                onClick={() => toggleSubtask(todo.id, s.id)}
+              >
+                {s.done && CHECK}
+              </button>
+              <span className={'subtxt' + (s.done ? ' done' : '')}>{s.text}</span>
+              <button type="button" className="subdel" aria-label="Slett delpunkt" onClick={() => deleteSubtask(todo.id, s.id)}>×</button>
+            </div>
+          ))}
+          {!done && (
+            <div className="subadd">
+              <input
+                placeholder="Nytt delpunkt…"
+                value={subVal}
+                onChange={(e) => setSubVal(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addSub()}
+              />
+              <button type="button" disabled={!subVal.trim()} onClick={addSub} aria-label="Legg til delpunkt">+</button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

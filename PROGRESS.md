@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Bolk 1 (del 3, ferdig): Idébank fikk frie tagger (#tag-chips på kortet, tag-editor i utvidet visning, klikk på tagg søker; søk matcher nå tagger). Liste-gjøremål fikk sjekkliste/delpunkter (`subtasks`-array + `addSubtask`/`toggleSubtask`/`deleteSubtask`, ☑ N/M-chip som utvider en mini-sjekkliste). Begge er uindekserte array-felter.
 - 2026-06-29 — Bolk 1 (del 2): Vaner fikk emoji + farge + arkiv (uindekserte felt på `habits`, customize-panel per kort, fargede prikker, arkivseksjon med «hent tilbake»). Prosjekter fikk frist (deadline-dato med forfall-farge) og eget notatfelt (uindekserte felt på `projects`).
 - 2026-06-29 — Bolk 1 (del 1) av funksjonsutrullingen: «Utsett til i morgen»-knapp (måne) på I dag-oppgaver (`snoozeTaskToTomorrow`), sort-toggle Manuelt/Dato + «→ I dag»-knapp på Liste-gjøremål, «Kommende betalinger»-liste på Penger/Faste (sortert på trekkdag), og en roterende dags-hilsen på Oversikt.
 - 2026-06-29 — Byttet ut prosjekt-roadmappen (tidslinje Nå→Neste→Senere) med en prioritetsliste: samme data (stage now/next/later beholdt), men relabelet til Høy/Medium/Lav prioritet med fargeprikker, «Viktigst nå»-hero og oppdatert statistikk. Lav-risiko relabel/restyle, ingen schema-endring eller migrering.
