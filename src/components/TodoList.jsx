@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listTodos, addTodo, updateTodo, deleteTodo, setTodoDone, moveTodo, todayKey } from '../db.js'
+import { listTodos, addTodo, updateTodo, deleteTodo, setTodoDone, moveTodo, addTask, todayKey } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
 
 const CHECK = (
@@ -18,7 +18,7 @@ function dueStatus(date, today) {
   return 'future'
 }
 
-function TodoItem({ todo, idx, openCount }) {
+function TodoItem({ todo, idx, openCount, manual }) {
   const [leaving, setLeaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
@@ -95,11 +95,19 @@ function TodoItem({ todo, idx, openCount }) {
                 onClick={() => updateTodo(todo.id, { dueDate: null })}
               >×</button>
             )}
+            {!done && (
+              <button
+                type="button"
+                className="todo-toToday"
+                title="Flytt til I dag"
+                onClick={async () => { await addTask(todo.text); await deleteTodo(todo.id); vibrate(8) }}
+              >→ I dag</button>
+            )}
           </div>
         </div>
       )}
 
-      {!done && !editing && (
+      {!done && !editing && manual && (
         <div className="todo-acts">
           <button type="button" className="sort-btn" aria-label="Flytt opp" disabled={idx === 0} onClick={() => moveTodo(todo.id, -1)}>▲</button>
           <button type="button" className="sort-btn" aria-label="Flytt ned" disabled={idx === openCount - 1} onClick={() => moveTodo(todo.id, 1)}>▼</button>
@@ -121,8 +129,17 @@ export default function TodoList() {
   const todos = useLiveQuery(() => listTodos(), [], [])
   const [val, setVal] = useState('')
   const [showDone, setShowDone] = useState(false)
+  const [sortByDate, setSortByDate] = useState(false)
 
-  const open = todos.filter((t) => !t.isDone)
+  let open = todos.filter((t) => !t.isDone)
+  if (sortByDate) {
+    open = [...open].sort((a, b) => {
+      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate)
+      if (a.dueDate) return -1
+      if (b.dueDate) return 1
+      return 0
+    })
+  }
   const done = todos.filter((t) => t.isDone)
 
   async function add() {
@@ -141,7 +158,14 @@ export default function TodoList() {
           {todos.length === 0 ? 'Ting å gjøre — når som helst.' : `${open.length} igjen å gjøre`}
         </p>
 
-        <div style={{ marginTop: 20 }}>
+        {open.length > 1 && (
+          <div className="todo-sort">
+            <button type="button" className={!sortByDate ? 'active' : ''} onClick={() => setSortByDate(false)}>Manuelt</button>
+            <button type="button" className={sortByDate ? 'active' : ''} onClick={() => setSortByDate(true)}>Dato</button>
+          </div>
+        )}
+
+        <div style={{ marginTop: 16 }}>
           {todos.length === 0 && (
             <div className="empty">
               <div className="glyph">🗒️</div>
@@ -151,7 +175,7 @@ export default function TodoList() {
           )}
 
           {open.map((t, i) => (
-            <TodoItem key={t.id} todo={t} idx={i} openCount={open.length} />
+            <TodoItem key={t.id} todo={t} idx={i} openCount={open.length} manual={!sortByDate} />
           ))}
 
           {done.length > 0 && (

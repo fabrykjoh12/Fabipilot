@@ -320,6 +320,12 @@ export default function Money() {
     .filter((c) => c.spent > 0 || c.budget > 0)
     .sort((a, b) => b.spent - a.spent)
 
+  const upcoming = subs
+    .filter((s) => s.renewDay)
+    .map((s) => ({ id: s.id, name: s.name, amount: s.amount, days: daysUntilDay(s.renewDay) }))
+    .sort((a, b) => a.days - b.days)
+    .slice(0, 4)
+
   const isCurrentMonth = monthPrefix === todayKey().slice(0, 7)
   const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
 
@@ -462,6 +468,19 @@ export default function Money() {
               <span className="bs-amount">{kr(subTotal)}</span>
               <span className="bs-sub">{subs.length} abonnement · {kr(subTotal * 12)} per år</span>
             </div>
+
+            {upcoming.length > 0 && (
+              <div className="upcoming">
+                <span className="upcoming-lbl">Kommende</span>
+                {upcoming.map((u) => (
+                  <div key={u.id} className="upcoming-row">
+                    <span className="upcoming-days">{u.days === 0 ? 'i dag' : u.days === 1 ? 'i morgen' : `om ${u.days} d`}</span>
+                    <span className="upcoming-name">{u.name}</span>
+                    <span className="upcoming-amt">{kr(u.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {subs.length === 0 ? (
               <div className="empty">

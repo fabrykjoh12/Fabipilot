@@ -110,6 +110,12 @@ export function todayKey(d = new Date()) {
   const x = new Date(d)
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
 }
+/** Datonøkkel for i morgen. */
+export function tomorrowKey() {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return todayKey(d)
+}
 
 export const MAX_ACTIVE_PROJECTS = 3
 
@@ -166,6 +172,7 @@ export async function setTaskDone(id, done) {
 }
 export const setTaskFocus = (id, focus) => db.tasks.update(id, { isFocus: focus })
 export const carryTaskToToday = (id) => db.tasks.update(id, { dueDate: todayKey() })
+export const snoozeTaskToTomorrow = (id) => db.tasks.update(id, { dueDate: tomorrowKey(), isFocus: false })
 
 /* =========================================================
    VANER

@@ -656,6 +656,33 @@
   width: 19px;
   height: 19px;
 }
+.snooze {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #c3caba;
+  border-radius: 50%;
+}
+.snooze:active {
+  transform: scale(0.85);
+}
+.snooze svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.snooze:hover {
+  color: var(--forest);
+}
 .carry-acts {
   display: flex;
   gap: 7px;
@@ -1126,6 +1153,44 @@ label.backup-action {
   flex-direction: column;
   gap: 4px;
   flex: 0 0 auto;
+}
+.todo-sort {
+  display: inline-flex;
+  background: var(--line);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 2px;
+  margin-top: 14px;
+}
+.todo-sort button {
+  border: 0;
+  background: none;
+  border-radius: 7px;
+  padding: 5px 13px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.todo-sort button.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.todo-toToday {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--forest);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.todo-toToday:hover {
+  border-color: var(--forest);
 }
 .todo-mid {
   flex: 1;

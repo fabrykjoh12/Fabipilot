@@ -8,6 +8,7 @@ import {
   setTaskDone,
   setTaskFocus,
   carryTaskToToday,
+  snoozeTaskToTomorrow,
   todayKey,
 } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
@@ -22,6 +23,11 @@ const STAR = (
     <path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.6L12 16.7 6.9 19.2l1-5.6-4.1-4 5.7-.8z" />
   </svg>
 )
+const MOON = (
+  <svg viewBox="0 0 24 24">
+    <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />
+  </svg>
+)
 
 function greeting() {
   const h = new Date().getHours()
@@ -32,7 +38,7 @@ function greeting() {
   return 'God natt'
 }
 
-function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop }) {
+function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop, onSnooze }) {
   const [leaving, setLeaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
@@ -111,15 +117,28 @@ function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop }) {
           </button>
         </div>
       ) : !done ? (
-        <button
-          type="button"
-          className={'star' + (task.isFocus ? ' on' : '')}
-          aria-label="Sett i fokus"
-          aria-pressed={task.isFocus}
-          onClick={() => onFocus(task)}
-        >
-          {STAR}
-        </button>
+        <>
+          {onSnooze && (
+            <button
+              type="button"
+              className="snooze"
+              aria-label="Utsett til i morgen"
+              title="Utsett til i morgen"
+              onClick={() => onSnooze(task)}
+            >
+              {MOON}
+            </button>
+          )}
+          <button
+            type="button"
+            className={'star' + (task.isFocus ? ' on' : '')}
+            aria-label="Sett i fokus"
+            aria-pressed={task.isFocus}
+            onClick={() => onFocus(task)}
+          >
+            {STAR}
+          </button>
+        </>
       ) : null}
     </div>
   )
@@ -223,6 +242,7 @@ export default function Today() {
                 onCheck={(x) => setTaskDone(x.id, true)}
                 onUndo={(x) => setTaskDone(x.id, false)}
                 onFocus={onFocus}
+                onSnooze={(x) => { snoozeTaskToTomorrow(x.id); showToast('Utsatt til i morgen 🌙') }}
               />
             ))}
           </Section>
@@ -237,6 +257,7 @@ export default function Today() {
                 onCheck={(x) => setTaskDone(x.id, true)}
                 onUndo={(x) => setTaskDone(x.id, false)}
                 onFocus={onFocus}
+                onSnooze={(x) => { snoozeTaskToTomorrow(x.id); showToast('Utsatt til i morgen 🌙') }}
               />
             ))}
           </Section>

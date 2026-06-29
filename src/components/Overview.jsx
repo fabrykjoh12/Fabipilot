@@ -16,6 +16,21 @@ function fmtDate() {
   return new Intl.DateTimeFormat('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
 }
 
+const PEPTALK = [
+  'Én ting av gangen er nok i dag.',
+  'Du trenger ikke gjøre alt — bare det neste.',
+  'Små steg teller. Virkelig.',
+  'Ferdig er bedre enn perfekt.',
+  'Pust. Du har dette.',
+  'Velg én ting. Start der.',
+  'Det er lov å gjøre lite i dag.',
+  'Fremgang, ikke press.',
+]
+function peptalk() {
+  const d = new Date()
+  return PEPTALK[d.getDate() % PEPTALK.length]
+}
+
 const ICONS = {
   today: (
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19" /></svg>
@@ -102,6 +117,7 @@ export default function Overview({ onNav }) {
       <div className="screen-scroll">
         <p className="ov-date">{fmtDate()}</p>
         <h1 className="ov-greeting">{greeting()}, Fabi</h1>
+        <p className="ov-peptalk">{peptalk()}</p>
 
         <div className="ov-grid">
           {/* I dag — stor */}
