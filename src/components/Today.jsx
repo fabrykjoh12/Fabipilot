@@ -33,6 +33,13 @@ function nextEst(e) {
   const i = EST_CYCLE.indexOf(e ?? null)
   return EST_CYCLE[(i + 1) % EST_CYCLE.length]
 }
+const REPEAT_CYCLE = ['none', 'daily', 'weekly']
+const REPEAT_LABEL = { none: '↻', daily: '↻d', weekly: '↻u' }
+const REPEAT_TITLE = { none: 'Gjentar ikke', daily: 'Gjentar daglig', weekly: 'Gjentar ukentlig' }
+function nextRepeat(r) {
+  const i = REPEAT_CYCLE.indexOf(r || 'none')
+  return REPEAT_CYCLE[(i + 1) % REPEAT_CYCLE.length]
+}
 
 function greeting() {
   const h = new Date().getHours()
@@ -131,6 +138,15 @@ function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop, onSnooze }) {
             onClick={() => updateTask(task.id, { estimate: nextEst(task.estimate) })}
           >
             {task.estimate ? `${task.estimate}m` : '⏱'}
+          </button>
+          <button
+            type="button"
+            className={'est' + (task.repeat && task.repeat !== 'none' ? ' on' : '')}
+            aria-label="Gjentakelse"
+            title={REPEAT_TITLE[task.repeat || 'none'] + ' — trykk for å endre'}
+            onClick={() => updateTask(task.id, { repeat: nextRepeat(task.repeat) })}
+          >
+            {REPEAT_LABEL[task.repeat || 'none']}
           </button>
           {onSnooze && (
             <button

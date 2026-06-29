@@ -132,6 +132,14 @@ export function tomorrowKey() {
   d.setDate(d.getDate() + 1)
   return todayKey(d)
 }
+/** Neste forekomst-dato for en gjentakelse ('daily'|'weekly'|'monthly'). */
+export function nextDate(key, repeat) {
+  const [y, m, d] = key.split('-').map(Number)
+  if (repeat === 'daily') return todayKey(new Date(y, m - 1, d + 1))
+  if (repeat === 'weekly') return todayKey(new Date(y, m - 1, d + 7))
+  if (repeat === 'monthly') return todayKey(new Date(y, m, d))
+  return key
+}
 
 export const MAX_ACTIVE_PROJECTS = 3
 
@@ -172,6 +180,7 @@ export async function addTask(title) {
     dueDate: todayKey(),
     completedAt: null,
     estimate: null,
+    repeat: 'none',
     sortOrder: now(),
     createdAt: now(),
   }
@@ -181,12 +190,28 @@ export async function addTask(title) {
 export const updateTask = (id, patch) => db.tasks.update(id, patch)
 export const deleteTask = (id) => db.tasks.delete(id)
 export async function setTaskDone(id, done) {
+  const t = await db.tasks.get(id)
   await db.tasks.update(id, {
     isDone: done,
     isFocus: done ? false : undefined,
     completedAt: done ? now() : null,
     dueDate: done ? undefined : todayKey(),
   })
+  // Gjentakende oppgave: lag neste forekomst når den hukes av.
+  if (done && t && t.repeat && t.repeat !== 'none') {
+    await db.tasks.add({
+      id: uid(),
+      title: t.title,
+      isDone: false,
+      isFocus: false,
+      dueDate: nextDate(t.dueDate || todayKey(), t.repeat),
+      completedAt: null,
+      estimate: t.estimate || null,
+      repeat: t.repeat,
+      sortOrder: now(),
+      createdAt: now(),
+    })
+  }
 }
 export const setTaskFocus = (id, focus) => db.tasks.update(id, { isFocus: focus })
 export const carryTaskToToday = (id) => db.tasks.update(id, { dueDate: todayKey() })
@@ -444,7 +469,7 @@ export async function promoteIdeaToProject(idea) {
    KALENDER (hendelser)
    - events: id, title, date('YYYY-MM-DD'), time('HH:MM'|''), note, color, createdAt
    ========================================================= */
-export async function addEvent({ title, date, time = '', note = '', color = 'amber' }) {
+export async function addEvent({ title, date, time = '', note = '', color = 'amber', repeat = 'none' }) {
   const ev = {
     id: uid(),
     title: title.trim(),
@@ -452,6 +477,7 @@ export async function addEvent({ title, date, time = '', note = '', color = 'amb
     time: time || '',
     note: note || '',
     color,
+    repeat,
     createdAt: now(),
   }
   await db.events.add(ev)

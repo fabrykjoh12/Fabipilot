@@ -20,9 +20,28 @@ const EVENT_COLORS = [
 ]
 const colorVal = (k) => (EVENT_COLORS.find((c) => c.k === k) || EVENT_COLORS[0]).val
 
+const REPEAT_OPTS = [
+  { k: 'none', label: 'Aldri' },
+  { k: 'daily', label: 'Daglig' },
+  { k: 'weekly', label: 'Ukentlig' },
+  { k: 'monthly', label: 'Månedlig' },
+]
+
 const pad = (n) => String(n).padStart(2, '0')
 const keyOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 const monthOfKey = (key) => Number(key.split('-')[1]) - 1
+
+/** Forekommer hendelsen på en gitt dag (med gjentakelse)? */
+function occursOn(ev, key) {
+  if (!ev.repeat || ev.repeat === 'none') return ev.date === key
+  if (key < ev.date) return false
+  const [y1, m1, d1] = ev.date.split('-').map(Number)
+  const [y2, m2, d2] = key.split('-').map(Number)
+  if (ev.repeat === 'daily') return true
+  if (ev.repeat === 'weekly') return new Date(y1, m1 - 1, d1).getDay() === new Date(y2, m2 - 1, d2).getDay()
+  if (ev.repeat === 'monthly') return d1 === d2
+  return false
+}
 const CHECK = (
   <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
 )
@@ -42,15 +61,16 @@ function EventSheet({ initial, defaultDate, onClose }) {
   const [time, setTime] = useState(initial?.time || '')
   const [color, setColor] = useState(initial?.color || 'amber')
   const [note, setNote] = useState(initial?.note || '')
+  const [repeat, setRepeat] = useState(initial?.repeat || 'none')
   const saveRef = useRef(null)
 
   async function save() {
     const t = title.trim()
     if (!t) return
     if (editing) {
-      await updateEvent(initial.id, { title: t, date, time, color, note: note.trim() })
+      await updateEvent(initial.id, { title: t, date, time, color, note: note.trim(), repeat })
     } else {
-      await addEvent({ title: t, date, time, color, note: note.trim() })
+      await addEvent({ title: t, date, time, color, note: note.trim(), repeat })
     }
     vibrate([12, 30, 12])
     burst(saveRef.current)
@@ -107,6 +127,20 @@ function EventSheet({ initial, defaultDate, onClose }) {
           </div>
         </div>
 
+        <div className="cal-field">
+          <span className="cal-field-lbl">Gjentar</span>
+          <div className="cal-repeat">
+            {REPEAT_OPTS.map((r) => (
+              <button
+                key={r.k}
+                type="button"
+                className={'cal-rep' + (repeat === r.k ? ' on' : '')}
+                onClick={() => setRepeat(r.k)}
+              >{r.label}</button>
+            ))}
+          </div>
+        </div>
+
         <textarea
           className="cal-in cal-note"
           placeholder="Notat (valgfritt)"
@@ -142,12 +176,10 @@ export default function Calendar() {
   const events = useLiveQuery(() => db.events.toArray(), [], [])
   const tasks = useLiveQuery(() => db.tasks.toArray(), [], [])
 
-  const eventsByDate = useMemo(() => {
-    const map = {}
-    for (const ev of events) (map[ev.date] ||= []).push(ev)
-    for (const k in map) map[k].sort((a, b) => (a.time || '99').localeCompare(b.time || '99'))
-    return map
-  }, [events])
+  const eventsOn = (key) =>
+    events
+      .filter((e) => occursOn(e, key))
+      .sort((a, b) => (a.time || '99').localeCompare(b.time || '99'))
 
   const tasksByDate = useMemo(() => {
     const map = {}
@@ -193,7 +225,7 @@ export default function Calendar() {
     touchX.current = null
   }
 
-  const selEvents = eventsByDate[selected] || []
+  const selEvents = eventsOn(selected)
   const selTasks = tasksByDate[selected] || []
   const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
 
@@ -226,7 +258,7 @@ export default function Calendar() {
           onTouchEnd={onTouchEnd}
         >
           {cells.map((c) => {
-            const evs = eventsByDate[c.key] || []
+            const evs = eventsOn(c.key)
             const tks = tasksByDate[c.key] || []
             const dots = [
               ...evs.map((e) => colorVal(e.color)),
@@ -299,6 +331,7 @@ export default function Calendar() {
               <span className="cal-ev-bar" style={{ background: colorVal(ev.color) }} />
               {ev.time && <span className="cal-time">{ev.time}</span>}
               <span className="cal-row-txt">{ev.title}</span>
+              {ev.repeat && ev.repeat !== 'none' && <span className="cal-note-mark" aria-label="Gjentar">↻</span>}
               {ev.note && <span className="cal-note-mark" aria-label="Har notat">≡</span>}
             </button>
           ))}

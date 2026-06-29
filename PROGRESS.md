@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Bolk 2 (del 3): gjentakende oppgaver (uindeksert `repeat`-felt none/daily/weekly; `setTaskDone` lager neste forekomst når en gjentakende oppgave hukes av; kompakt ↻-chip i I dag) og gjentakende hendelser (uindeksert `repeat` none/daily/weekly/monthly; kalenderen ekspanderer forekomster via `occursOn`, ↻-merke i agendaen, «Gjentar»-velger i hendelse-sheet).
 - 2026-06-29 — Bolk 2 (del 2): tidsestimat på oppgaver (uindeksert `estimate`-felt, chip i I dag som sykler 5/15/30/60/av), «Jeg har X minutter»-filter i Hva nå? (filtrerer oppgaver på estimat), og pomodoro/fokus-timer i Hva nå? (15/25/45 min, start/pause/nullstill, gnist + vibrasjon når ferdig).
 - 2026-06-29 — Bolk 2 (del 1): Penger fikk inntekt + sparemål (nye stores `incomes` + `goals`, schema v8). Inntekt-kort på Oversikt-fanen + «igjen å bruke» i sammendraget. Ny «Sparing»-fane med sparemål (fremdriftslinje, + Spar/− for å justere spart, rediger mål/slett). Med i sync + backup.
 - 2026-06-29 — Bolk 1 (del 3, ferdig): Idébank fikk frie tagger (#tag-chips på kortet, tag-editor i utvidet visning, klikk på tagg søker; søk matcher nå tagger). Liste-gjøremål fikk sjekkliste/delpunkter (`subtasks`-array + `addSubtask`/`toggleSubtask`/`deleteSubtask`, ☑ N/M-chip som utvider en mini-sjekkliste). Begge er uindekserte array-felter.
