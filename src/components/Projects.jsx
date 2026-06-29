@@ -230,11 +230,13 @@ const MORE = (
     <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
   </svg>
 )
+/* Prioritetsnivåer. Lagres fortsatt som stage-verdiene now/next/later i db-en. */
 const STAGE_OPTS = [
-  { k: 'now', label: 'Nå' },
-  { k: 'next', label: 'Neste' },
-  { k: 'later', label: 'Senere' },
+  { k: 'now', label: 'Høy' },
+  { k: 'next', label: 'Medium' },
+  { k: 'later', label: 'Lav' },
 ]
+const PRIO_LABEL = { now: 'Høy prioritet', next: 'Medium', later: 'Lav' }
 
 /* Handlingssheet for ett steg: flytt fritt mellom faser, omroker, fullfør, slett. */
 function StepSheet({ item, onClose }) {
@@ -259,13 +261,13 @@ function StepSheet({ item, onClose }) {
         <div className="step-grip" />
         <p className="step-sheet-txt">{item.text}</p>
 
-        <span className="step-lbl">Flytt til fase</span>
+        <span className="step-lbl">Prioritet</span>
         <div className="step-stages">
           {STAGE_OPTS.map((s) => (
             <button
               key={s.k}
               type="button"
-              className={'step-stage' + (item.stage === s.k ? ' on' : '')}
+              className={'step-stage prio-' + s.k + (item.stage === s.k ? ' on' : '')}
               onClick={() => move(s.k)}
             >
               {s.label}
@@ -274,8 +276,8 @@ function StepSheet({ item, onClose }) {
         </div>
 
         <div className="step-reorder">
-          <button type="button" onClick={() => reorderItem(item, -1)}>↑ Flytt opp</button>
-          <button type="button" onClick={() => reorderItem(item, 1)}>↓ Flytt ned</button>
+          <button type="button" onClick={() => reorderItem(item, -1)}>↑ Opp i lista</button>
+          <button type="button" onClick={() => reorderItem(item, 1)}>↓ Ned i lista</button>
         </div>
 
         <button type="button" className="step-done" onClick={done}>✓ Marker som ferdig</button>
@@ -334,8 +336,8 @@ function StageBlock({ stage, label, note, items, onAdd, onActions }) {
   }
   return (
     <div className={'stage ' + cls}>
-      <span className="node" />
       <div className="stage-head">
+        <span className="prio-dot" />
         <span className="nm">{label}</span>
         <span className="ct">{items.length}</span>
         {note && <span className="note">{note}</span>}
@@ -544,17 +546,17 @@ function Roadmap({ projectId, onBack }) {
         </div>
 
         <div className="pstats">
-          <div className="pstat"><b style={{ color: col }}>{nowItems.length}</b><span>Nå</span></div>
-          <div className="pstat"><b>{nextItems.length}</b><span>Neste</span></div>
-          <div className="pstat"><b>{laterItems.length}</b><span>Senere</span></div>
+          <div className="pstat"><b style={{ color: col }}>{nowItems.length}</b><span>Høy</span></div>
+          <div className="pstat"><b>{nextItems.length}</b><span>Medium</span></div>
+          <div className="pstat"><b>{laterItems.length}</b><span>Lav</span></div>
           <div className="pstat"><b>{doneItems.length}</b><span>Ferdig</span></div>
         </div>
 
         <div className="hero">
-          <p className="tag">Neste steg</p>
+          <p className="tag">Viktigst nå</p>
           {hero ? (
             <div className="hero-row">
-              <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" tabIndex={0} aria-label="Fullfør neste steg" onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && completeHero()}>
+              <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" tabIndex={0} aria-label="Fullfør viktigste oppgave" onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && completeHero()}>
                 {CHECK}
               </div>
               {editingHero ? (
@@ -572,15 +574,15 @@ function Roadmap({ projectId, onBack }) {
             </div>
           ) : (
             <div className="hero-empty">
-              Ingenting i «Nå» akkurat nå. Trykk ⋯ på en ting i Neste og flytt den hit — bare én. Det er nok.
+              Ingenting med høy prioritet ennå. Trykk ⋯ på en oppgave og sett den til «Høy» — bare én. Det er nok.
             </div>
           )}
         </div>
 
-        <div className="road">
-          <StageBlock stage="now" label="Nå" note="det du jobber med" items={nowRest} onAdd={addTo} onActions={setSheetItem} />
-          <StageBlock stage="next" label="Neste" items={nextItems} onAdd={addTo} onActions={setSheetItem} />
-          <StageBlock stage="later" label="Senere" note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} />
+        <div className="road prio-list">
+          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} />
+          <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} />
+          <StageBlock stage="later" label={PRIO_LABEL.later} note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} />
         </div>
 
         {doneItems.length > 0 && (

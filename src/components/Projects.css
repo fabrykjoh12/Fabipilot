@@ -915,3 +915,30 @@
   .step-sheet { border-radius: 24px; margin-bottom: 24px; align-self: center; }
   .step-sheet-overlay { align-items: center; }
 }
+
+/* ===== Prioritetsliste (erstatter tidslinje-roadmap) ===== */
+.roadmap .prio-list .stage {
+  padding-left: 0;
+  padding-bottom: 16px;
+}
+.roadmap .prio-list .stage::before {
+  display: none; /* fjern tidslinje-streken */
+}
+.roadmap .prio-list .stage-head {
+  margin-bottom: 12px;
+}
+.roadmap .prio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--muted);
+}
+.roadmap .stage.now .prio-dot { background: var(--accent); }
+.roadmap .stage.next .prio-dot { background: var(--forest); }
+.roadmap .stage.later .prio-dot { background: #b0b8a8; }
+
+/* prioritets-piller i handlingssheet */
+.step-stage.prio-now.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
+.step-stage.prio-next.on { border-color: var(--forest); background: #eef2ec; color: var(--forest); }
+.step-stage.prio-later.on { border-color: #aab09f; background: #eef0ea; color: var(--muted); }
