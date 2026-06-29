@@ -1033,6 +1033,67 @@ label.backup-action {
   gap: 4px;
   flex: 0 0 auto;
 }
+.todo-mid {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.todo-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.todo-date {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a8b09e;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 7px;
+  border: 1px dashed var(--line);
+}
+.todo-date input[type='date'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  cursor: pointer;
+}
+.todo-date[data-status='over'] {
+  color: var(--danger);
+  border-style: solid;
+  border-color: rgba(180, 87, 74, 0.3);
+  background: #f8ebe8;
+}
+.todo-date[data-status='today'] {
+  color: var(--accent);
+  border-style: solid;
+  border-color: rgba(204, 136, 43, 0.3);
+  background: var(--surface-focus);
+}
+.todo-date[data-status='future'] {
+  color: var(--muted);
+  border-style: solid;
+  border-color: var(--line);
+}
+.todo-date-clear {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.task.done .todo-date { opacity: 0.6; }
 .todo-done-head {
   cursor: pointer;
 }

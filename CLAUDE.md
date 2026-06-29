@@ -60,8 +60,8 @@ Synces via Dexie Cloud (se §3).
 - **events** (Kalender) — `id, title, date, time, note, color, createdAt`
   `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).
   Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
-- **todos** (Liste) — `id, text, isDone, completedAt, sortOrder, createdAt`
-  Gjøremål uten dato. Manuell sortering via `sortOrder`.
+- **todos** (Liste) — `id, text, isDone, completedAt, dueDate, sortOrder, createdAt`
+  Gjøremål med valgfri dato (`dueDate` = `YYYY-MM-DD` eller `null`, uindeksert). Manuell sortering via `sortOrder`.
 
 Alle stores er med i JSON-eksport/import (se §8).
 

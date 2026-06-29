@@ -1,11 +1,22 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listTodos, addTodo, updateTodo, deleteTodo, setTodoDone, moveTodo } from '../db.js'
+import { listTodos, addTodo, updateTodo, deleteTodo, setTodoDone, moveTodo, todayKey } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
 
 const CHECK = (
   <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
 )
+const MND = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des']
+function fmtDue(date) {
+  const [, m, d] = date.split('-').map(Number)
+  return `${d}. ${MND[m - 1]}`
+}
+function dueStatus(date, today) {
+  if (!date) return ''
+  if (date < today) return 'over'
+  if (date === today) return 'today'
+  return 'future'
+}
 
 function TodoItem({ todo, idx, openCount }) {
   const [leaving, setLeaving] = useState(false)
@@ -13,6 +24,7 @@ function TodoItem({ todo, idx, openCount }) {
   const [editVal, setEditVal] = useState('')
   const checkRef = useRef(null)
   const done = todo.isDone
+  const status = dueStatus(todo.dueDate, todayKey())
 
   function handleCheck() {
     if (done) {
@@ -62,8 +74,28 @@ function TodoItem({ todo, idx, openCount }) {
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
         />
       ) : (
-        <div className="ttl" onClick={!done ? startEdit : undefined} title={!done ? 'Trykk for å redigere' : undefined}>
-          {todo.text}
+        <div className="todo-mid">
+          <div className="ttl" onClick={!done ? startEdit : undefined} title={!done ? 'Trykk for å redigere' : undefined}>
+            {todo.text}
+          </div>
+          <div className="todo-meta">
+            <label className="todo-date" data-status={status}>
+              <input
+                type="date"
+                value={todo.dueDate || ''}
+                onChange={(e) => updateTodo(todo.id, { dueDate: e.target.value || null })}
+              />
+              🗓 {todo.dueDate ? fmtDue(todo.dueDate) : 'dato'}
+            </label>
+            {todo.dueDate && (
+              <button
+                type="button"
+                className="todo-date-clear"
+                aria-label="Fjern dato"
+                onClick={() => updateTodo(todo.id, { dueDate: null })}
+              >×</button>
+            )}
+          </div>
         </div>
       )}
 
