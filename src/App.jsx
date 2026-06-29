@@ -337,6 +337,11 @@ export default function App() {
   const [active, setActive] = useState('overview')
   const [backupOpen, setBackupOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme')
+    if (saved) return saved
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
   const currentUser = useObservable(db.cloud.currentUser)
   const syncState = useObservable(db.cloud.syncState)
   const isLoggedIn = !!currentUser?.isLoggedIn
@@ -355,6 +360,11 @@ export default function App() {
     const el = navRef.current?.querySelector('.nav-item.active')
     if (el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [active])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    localStorage.setItem('theme', theme)
+  }, [theme])
 
   const ActiveComp = MODULES.find((m) => m.k === active).Comp
 
@@ -497,6 +507,14 @@ export default function App() {
                 <NavIcon name="backup" />
                 <span>Backup</span>
               </button>
+              <button
+                type="button"
+                className="more-item"
+                onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+              >
+                <span className="more-theme-glyph">{theme === 'dark' ? '☀️' : '🌙'}</span>
+                <span>{theme === 'dark' ? 'Lys modus' : 'Mørk modus'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -511,6 +529,15 @@ export default function App() {
         >
           <div className="backup-card" onClick={(e) => e.stopPropagation()}>
             <h2 className="backup-title">Sky-sync & backup</h2>
+
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+            >
+              <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
+              {theme === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus'}
+            </button>
 
             <div className="sync-box">
               <div className="sync-row">

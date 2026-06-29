@@ -296,7 +296,7 @@
   height: 26px;
   border-radius: 50%;
   border: 2px solid var(--accent);
-  background: #fff;
+  background: var(--surface);
   cursor: pointer;
   display: grid;
   place-items: center;

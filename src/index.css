@@ -22,7 +22,7 @@ body {
 }
 
 body {
-  background: #e9ece5;
+  background: var(--canvas);
 }
 
 #root {

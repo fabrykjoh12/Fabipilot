@@ -14,6 +14,23 @@
   --shadow: 0 1px 2px rgba(34, 40, 31, 0.04), 0 6px 20px rgba(34, 40, 31, 0.06);
 }
 
+/* ===== Mørk modus ===== */
+[data-theme='dark'] {
+  --canvas: #171c15;
+  --surface: #222a1f;
+  --surface-focus: #2f2c1d;
+  --ink: #e7ebe0;
+  --muted: #9aa394;
+  --line: #333b2d;
+  --accent: #d8943a;
+  --accent-bright: #e8a53d;
+  --forest: #79a081;
+  --danger: #d27063;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+[data-theme='dark'] .search-text mark,
+[data-theme='dark'] .search-meta mark { color: #171c15; }
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -358,7 +375,7 @@
 }
 .btn {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   font-family: inherit;
   font-size: 13.5px;
@@ -384,7 +401,7 @@
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  background: #fff;
+  background: var(--surface);
   border-radius: 18px;
   padding: 8px 8px 8px 16px;
   box-shadow: 0 4px 24px rgba(34, 40, 31, 0.15);
@@ -546,7 +563,7 @@
   flex: 1;
   height: 5px;
   border-radius: 99px;
-  background: #fff;
+  background: var(--surface);
   overflow: hidden;
   box-shadow: inset 0 0 0 1px var(--line);
 }
@@ -589,7 +606,7 @@
   height: 30px;
   border-radius: 50%;
   border: 2px solid #c3caba;
-  background: #fff;
+  background: var(--surface);
   position: relative;
   cursor: pointer;
   transition: transform 0.14s ease, border-color 0.2s, background 0.2s;
@@ -708,7 +725,7 @@
 }
 .cbtn {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   border-radius: 11px;
   font-family: inherit;
   font-size: 13px;
@@ -968,7 +985,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   box-shadow: inset 0 0 0 1.5px var(--line);
 }
 .dot.on {
@@ -1254,7 +1271,7 @@
 .note-ta {
   width: 100%;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   font-family: inherit;
   font-size: 15px;
@@ -1432,7 +1449,7 @@ label.backup-action {
   height: 20px;
   border-radius: 50%;
   border: 2px solid #c3caba;
-  background: #fff;
+  background: var(--surface);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -2004,7 +2021,7 @@ label.backup-action {
 }
 .lia-field input {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   padding: 13px 14px;
   font-family: inherit;
@@ -2024,7 +2041,7 @@ label.backup-action {
 }
 .lia-opt {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   padding: 12px;
   font-family: inherit;
@@ -2441,3 +2458,24 @@ label.backup-action {
   border-radius: 7px;
   padding: 3px 7px;
 }
+
+/* ===== Tema-bryter ===== */
+.more-theme-glyph { font-size: 22px; line-height: 1; }
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 14px;
+}
+.theme-toggle span { font-size: 17px; }

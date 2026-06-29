@@ -161,7 +161,7 @@
 .ideabank .edit-ta {
   width: 100%;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   font-family: inherit;
   font-size: 15px;
@@ -183,7 +183,7 @@
 }
 .ideabank .catpick {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--muted);
   font-family: inherit;
   font-size: 13px;
@@ -199,7 +199,7 @@
 }
 .ideabank .del {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--danger);
   font-family: inherit;
   font-size: 13.5px;
@@ -217,7 +217,7 @@
 }
 .ideabank .promote {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--forest);
   font-family: inherit;
   font-size: 13.5px;
