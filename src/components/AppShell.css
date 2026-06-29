@@ -38,6 +38,7 @@
   display: flex;
   justify-content: center;
   overflow: hidden;
+  order: 1; /* mobil: innhold øverst, nav under */
 }
 
 .screen {
@@ -66,6 +67,7 @@
 .nav {
   flex: 0 0 auto;
   display: flex;
+  order: 2; /* mobil: nav nederst (under innholdet) */
   background: var(--surface);
   border-top: 1px solid var(--line);
   padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
@@ -116,6 +118,7 @@
   .nav {
     flex-direction: column;
     width: 224px;
+    order: 0; /* PC: sidemeny til venstre */
     border-top: 0;
     border-right: 1px solid var(--line);
     padding: 22px 14px;
