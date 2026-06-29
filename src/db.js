@@ -181,7 +181,16 @@ export async function listHabits() {
   return db.habits.orderBy('sortOrder').toArray()
 }
 export async function addHabit(name) {
-  const habit = { id: uid(), name: name.trim(), history: [], sortOrder: now(), createdAt: now() }
+  const habit = {
+    id: uid(),
+    name: name.trim(),
+    history: [],
+    color: 'forest',
+    emoji: '🌿',
+    archived: false,
+    sortOrder: now(),
+    createdAt: now(),
+  }
   await db.habits.add(habit)
   return habit
 }
@@ -270,6 +279,8 @@ export async function addProject({ name, why = '', status = 'active', color = 'f
     status,
     color,
     emoji,
+    deadline: null,
+    notes: '',
     sortOrder: maxOrder ? (maxOrder.sortOrder ?? 0) + 1000 : 0,
     createdAt: now(),
     lastTouched: now(),

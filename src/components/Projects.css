@@ -942,3 +942,92 @@
 .step-stage.prio-now.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
 .step-stage.prio-next.on { border-color: var(--forest); background: #eef2ec; color: var(--forest); }
 .step-stage.prio-later.on { border-color: #aab09f; background: #eef0ea; color: var(--muted); }
+
+/* ===== Prosjekt: frist + notat ===== */
+.roadmap .pmeta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 9px 0 0;
+  flex-wrap: wrap;
+}
+.roadmap .pdeadline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--forest);
+  cursor: pointer;
+  padding: 3px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(66, 99, 74, 0.3);
+  background: #eef2ec;
+}
+.roadmap .pdeadline input[type='date'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  cursor: pointer;
+}
+.roadmap .pdeadline.unset {
+  color: #a0a895;
+  border-style: dashed;
+  border-color: var(--line);
+  background: none;
+}
+.roadmap .pdeadline.over {
+  color: var(--danger);
+  border-color: rgba(180, 87, 74, 0.3);
+  background: #f8ebe8;
+}
+.roadmap .pdeadline-clear {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.roadmap .pmeta-row .ptouch {
+  margin: 0;
+  margin-left: auto;
+}
+.roadmap .pnotes {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 10px 0 0;
+  cursor: pointer;
+  white-space: pre-wrap;
+}
+.roadmap .pnotes:hover {
+  text-decoration: underline dotted var(--muted);
+  text-underline-offset: 3px;
+}
+.roadmap .pnotes-placeholder {
+  color: #a0a895;
+  font-style: italic;
+}
+.roadmap .pnotes-input {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: 0;
+  resize: vertical;
+  line-height: 1.45;
+}
+.roadmap .pnotes-input:focus {
+  border-color: var(--accent);
+}

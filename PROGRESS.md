@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Bolk 1 (del 2): Vaner fikk emoji + farge + arkiv (uindekserte felt på `habits`, customize-panel per kort, fargede prikker, arkivseksjon med «hent tilbake»). Prosjekter fikk frist (deadline-dato med forfall-farge) og eget notatfelt (uindekserte felt på `projects`).
 - 2026-06-29 — Bolk 1 (del 1) av funksjonsutrullingen: «Utsett til i morgen»-knapp (måne) på I dag-oppgaver (`snoozeTaskToTomorrow`), sort-toggle Manuelt/Dato + «→ I dag»-knapp på Liste-gjøremål, «Kommende betalinger»-liste på Penger/Faste (sortert på trekkdag), og en roterende dags-hilsen på Oversikt.
 - 2026-06-29 — Byttet ut prosjekt-roadmappen (tidslinje Nå→Neste→Senere) med en prioritetsliste: samme data (stage now/next/later beholdt), men relabelet til Høy/Medium/Lav prioritet med fargeprikker, «Viktigst nå»-hero og oppdatert statistikk. Lav-risiko relabel/restyle, ingen schema-endring eller migrering.
 - 2026-06-29 — Ryddet bunnmenyen på mobil: 4 faste faner (Oversikt, I dag, Kalender, Prosjekter) + «Mer»-knapp som åpner en sheet med resten (Liste, Hva nå?, Idébank, Vaner, Penger, Backup). PC-sidemenyen viser alt som før (nav-secondary vises, nav-more skjules via media query).

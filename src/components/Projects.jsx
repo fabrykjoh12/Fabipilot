@@ -18,6 +18,7 @@ import {
   deleteProjectItem,
   moveItemToStage,
   reorderItem,
+  todayKey,
   MAX_ACTIVE_PROJECTS,
 } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
@@ -42,6 +43,11 @@ const PROJECT_COLORS = [
 ]
 const colorVal = (k) => (PROJECT_COLORS.find((c) => c.k === k) || PROJECT_COLORS[0]).val
 const PROJECT_EMOJIS = ['🗂️', '🚀', '🏡', '💪', '🎨', '📚', '💻', '🎸', '🌱', '💰', '✈️', '🧩', '🎯', '🔧', '📷', '🍳', '🎬', '🏃']
+const MND_KORT = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des']
+function fmtDeadline(date) {
+  const [, m, d] = date.split('-').map(Number)
+  return `${d}. ${MND_KORT[m - 1]}`
+}
 
 function touchedText(ts) {
   if (!ts) return ''
@@ -370,9 +376,11 @@ function Roadmap({ projectId, onBack }) {
   const [editingWhy, setEditingWhy] = useState(false)
   const [editingHero, setEditingHero] = useState(false)
   const [customizing, setCustomizing] = useState(false)
+  const [editingNotes, setEditingNotes] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const [whyVal, setWhyVal] = useState('')
   const [heroVal, setHeroVal] = useState('')
+  const [notesVal, setNotesVal] = useState('')
   const heroCheckRef = useRef(null)
 
   if (!project) return <div className="screen" />
@@ -534,7 +542,36 @@ function Roadmap({ projectId, onBack }) {
             {project.why || <span className="pwhy-placeholder">+ Legg til hvorfor…</span>}
           </p>
         )}
-        <p className="ptouch">{touchedText(project.lastTouched)}</p>
+        <div className="pmeta-row">
+          <label className={'pdeadline' + (project.deadline ? '' : ' unset') + (project.deadline && project.deadline < todayKey() ? ' over' : '')}>
+            <input
+              type="date"
+              value={project.deadline || ''}
+              onChange={(e) => updateProject(project.id, { deadline: e.target.value || null })}
+            />
+            🗓 {project.deadline ? `Frist ${fmtDeadline(project.deadline)}` : 'Sett frist'}
+          </label>
+          {project.deadline && (
+            <button type="button" className="pdeadline-clear" aria-label="Fjern frist" onClick={() => updateProject(project.id, { deadline: null })}>×</button>
+          )}
+          <span className="ptouch">{touchedText(project.lastTouched)}</span>
+        </div>
+
+        {editingNotes ? (
+          <textarea
+            className="pnotes-input"
+            value={notesVal}
+            autoFocus
+            placeholder="Notater, lenker, tanker…"
+            rows={3}
+            onChange={(e) => setNotesVal(e.target.value)}
+            onBlur={() => { updateProject(project.id, { notes: notesVal.trim() }); setEditingNotes(false) }}
+          />
+        ) : (
+          <p className="pnotes" onClick={() => { setNotesVal(project.notes || ''); setEditingNotes(true) }}>
+            {project.notes || <span className="pnotes-placeholder">+ Legg til notat</span>}
+          </p>
+        )}
 
         <div className="prog">
           <span className="bar">
