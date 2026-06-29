@@ -35,7 +35,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **5**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **6**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -54,6 +54,8 @@ Synces via Dexie Cloud (se §3).
 - **events** (Kalender) — `id, title, date, time, note, color, createdAt`
   `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).
   Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
+- **todos** (Liste) — `id, text, isDone, completedAt, sortOrder, createdAt`
+  Gjøremål uten dato. Manuell sortering via `sortOrder`.
 
 Alle stores er med i JSON-eksport/import (se §8).
 
@@ -70,6 +72,7 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `AppShell.css` — design-tokens + skall + delte komponentstiler + innloggingsskjerm + auth-dialog
   - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
   - `Today.jsx` — «I dag»
+  - `TodoList.jsx` — «Liste»: gjøremål uten dato (hak av, rediger, sorter)
   - `Calendar.jsx` / `Calendar.css` — «Kalender»: månedsvisning + dag-agenda + hendelse-sheet
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)

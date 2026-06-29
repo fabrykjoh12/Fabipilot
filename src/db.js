@@ -70,6 +70,18 @@ db.version(5).stores({
   events: 'id, date, createdAt',
 })
 
+// v6: enkel gjøremålsliste uten dato — todos-store.
+db.version(6).stores({
+  ideas: 'id, category, createdAt',
+  tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+  habits: 'id, sortOrder, createdAt',
+  subscriptions: 'id, createdAt',
+  projects: 'id, status, sortOrder, lastTouched, createdAt',
+  projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  events: 'id, date, createdAt',
+  todos: 'id, isDone, sortOrder, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -307,12 +319,47 @@ export const updateEvent = (id, patch) => db.events.update(id, patch)
 export const deleteEvent = (id) => db.events.delete(id)
 
 /* =========================================================
+   LISTE (gjøremål uten dato)
+   - todos: id, text, isDone, completedAt, sortOrder, createdAt
+   ========================================================= */
+export async function listTodos() {
+  return db.todos.orderBy('sortOrder').toArray()
+}
+export async function addTodo(text) {
+  const t = {
+    id: uid(),
+    text: text.trim(),
+    isDone: false,
+    completedAt: null,
+    sortOrder: now(),
+    createdAt: now(),
+  }
+  await db.todos.add(t)
+  return t
+}
+export const updateTodo = (id, patch) => db.todos.update(id, patch)
+export const deleteTodo = (id) => db.todos.delete(id)
+export async function setTodoDone(id, done) {
+  await db.todos.update(id, { isDone: done, completedAt: done ? now() : null })
+}
+export async function moveTodo(id, direction) {
+  const all = await db.todos.orderBy('sortOrder').toArray()
+  const open = all.filter((t) => !t.isDone)
+  const idx = open.findIndex((t) => t.id === id)
+  const swap = idx + direction
+  if (idx < 0 || swap < 0 || swap >= open.length) return
+  const a = open[idx], b = open[swap]
+  await db.todos.update(a.id, { sortOrder: b.sortOrder })
+  await db.todos.update(b.id, { sortOrder: a.sortOrder })
+}
+
+/* =========================================================
    BACKUP — eksport/import av HELE dashboardet
    ========================================================= */
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events']
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos']
 
 export async function exportAll() {
-  const out = { type: 'dashboard-backup', version: 5, exportedAt: new Date().toISOString() }
+  const out = { type: 'dashboard-backup', version: 6, exportedAt: new Date().toISOString() }
   for (const t of TABLES) out[t] = await db.table(t).toArray()
   return out
 }

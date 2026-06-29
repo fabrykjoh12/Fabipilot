@@ -1003,6 +1003,50 @@ label.backup-action {
   cursor: pointer;
 }
 
+/* delte sorterings-piler (Prosjekter + Liste) */
+.sort-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  font-family: inherit;
+}
+.sort-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.sort-btn:not(:disabled):hover {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+
+/* Liste (gjøremål) */
+.todo-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.todo-done-head {
+  cursor: pointer;
+}
+.todo-chev {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 0.2s;
+}
+.todo-chev.open {
+  transform: rotate(180deg);
+}
+
 /* sky-sync-boks i backup-modalen */
 .sync-box {
   background: var(--canvas);

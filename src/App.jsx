@@ -3,6 +3,7 @@ import { useObservable, useLiveQuery } from 'dexie-react-hooks'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Today from './components/Today.jsx'
+import TodoList from './components/TodoList.jsx'
 import Calendar from './components/Calendar.jsx'
 import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
@@ -55,6 +56,12 @@ const ICONS = {
       <path d="M3 9.5h18M8 3v3M16 3v3" />
     </>
   ),
+  todo: (
+    <>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <path d="M4 6l1 1 1.5-1.5M4 12l1 1 1.5-1.5M4 18l1 1 1.5-1.5" />
+    </>
+  ),
   whatnow: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -72,6 +79,7 @@ const ICONS = {
 const MODULES = [
   { k: 'overview', label: 'Oversikt', Comp: Overview },
   { k: 'today', label: 'I dag', Comp: Today },
+  { k: 'todo', label: 'Liste', Comp: TodoList },
   { k: 'calendar', label: 'Kalender', Comp: Calendar },
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
@@ -318,7 +326,7 @@ export default function App() {
   const navRef = useRef(null)
 
   const itemCount = useLiveQuery(async () => {
-    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events']
+    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos']
     let n = 0
     for (const t of tabs) n += await db.table(t).count()
     return n
@@ -366,7 +374,7 @@ export default function App() {
         total > 0
           ? `Importerte ${total} ting:\n` +
               `${added.tasks} oppgaver, ${added.ideas} ideer, ${added.habits} vaner, ` +
-              `${added.subscriptions} abonnement, ${added.projects} prosjekter, ${added.events} hendelser.`
+              `${added.subscriptions} abonnement, ${added.projects} prosjekter, ${added.events} hendelser, ${added.todos} gjøremål.`
           : 'Ingenting nytt å importere (alt fantes fra før).',
       )
     } catch (err) {

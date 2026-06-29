@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Ny «Liste»-modul: enkel gjøremålsliste uten dato (ny `todos`-store, schema v6). Hak av (gnist), rediger med ett trykk, sorter, fullført-seksjon. Med i sync + backup. Flyttet `.sort-btn` til AppShell.css (delt med Prosjekter). Også: nav flyttet til bunnen på mobil, prosjektsteg redigerbare med ett trykk + redigerbart «Neste steg», e-post lowercases ved innlogging (fikset iPhone stor-forbokstav som lagde to kontoer).
 - 2026-06-28 — Ny «Kalender»-modul: månedsvisning (mandag-først), hendelser med tid/farge/notat (ny `events`-store, schema v5), oppgaver vises på forfallsdato og kan hukes av i dag-agendaen, bunn-sheet for å legge til/redigere, swipe mellom måneder. Bunn-nav gjort horisontalt scrollbar (8 moduler). Verifisert med skjermbilder.
 - 2026-06-28 — La til Dexie Cloud sync med e-post-innlogging. Egendefinert auth-GUI (todelt innloggingsskjerm + norsk e-post/kode-dialog) som matcher designet i stedet for Dexies standard-GUI. `requireAuth: false` + `customLoginGui: true`.
 - 2026-06-28 — La til «Oversikt» (startside med live modul-kort) og «Hva nå?» (ett forslag av gangen, energifilter, hurtiglegg-til). Penger fikk kategorier + oversikt. Rediger/slett/sorter på tvers av moduler.
