@@ -428,3 +428,65 @@
   cursor: pointer;
 }
 .goal-acts button:last-child { color: var(--muted); padding: 7px 13px; }
+
+/* ===== forbruks-trend (Oversikt) ===== */
+.trend { margin-top: 14px; padding: 16px 14px 12px; }
+.trend-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 124px;
+}
+.trend-col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.trend-val {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-height: 14px;
+}
+.trend-bar-wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.trend-bar-wrap i {
+  display: block;
+  width: 70%;
+  max-width: 34px;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--line);
+  transition: background 0.15s, height 0.2s;
+}
+.trend-col.on .trend-bar-wrap i { background: var(--accent); }
+.trend-col.on .trend-val { color: var(--ink); }
+.trend-mlbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+.trend-col.on .trend-mlbl { color: var(--ink); }

@@ -42,6 +42,54 @@ function daysUntilDay(day) {
   return Math.round((target - t0) / 86400000)
 }
 
+/** De siste n månedene (eldst→nyest) som {y, m, prefix, label}. */
+function lastNMonths(n, refY, refM) {
+  return [...Array(n)].map((_, i) => {
+    const dt = new Date(refY, refM - (n - 1 - i), 1)
+    const y = dt.getFullYear(), m = dt.getMonth()
+    return { y, m, prefix: `${y}-${pad(m + 1)}`, label: MONTHS[m].slice(0, 3) }
+  })
+}
+
+/* ============ trend: forbruk per måned ============ */
+function MonthTrend({ expenses, subTotal, cursor, onPick }) {
+  const months = lastNMonths(6, cursor.y, cursor.m)
+  const data = months.map((mo) => {
+    const exp = expenses
+      .filter((e) => (e.date || '').startsWith(mo.prefix))
+      .reduce((s, x) => s + (x.amount || 0), 0)
+    return { ...mo, total: exp + subTotal }
+  })
+  const max = Math.max(1, ...data.map((d) => d.total))
+  if (data.every((d) => d.total === 0)) return null
+
+  return (
+    <div className="trend card">
+      <span className="trend-lbl">Forbruk siste 6 måneder</span>
+      <div className="trend-bars">
+        {data.map((d) => {
+          const sel = d.y === cursor.y && d.m === cursor.m
+          return (
+            <button
+              key={d.prefix}
+              type="button"
+              className={'trend-col' + (sel ? ' on' : '')}
+              onClick={() => onPick(d.y, d.m)}
+              title={`${MONTHS[d.m]} ${d.y}: ${kr(d.total)}`}
+            >
+              <span className="trend-val">{d.total >= 1000 ? Math.round(d.total / 1000) + 'k' : d.total || ''}</span>
+              <span className="trend-bar-wrap">
+                <i style={{ height: Math.max(4, (d.total / max) * 100) + '%' }} />
+              </span>
+              <span className="trend-mlbl">{d.label}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const TABS = [
   { k: 'oversikt', label: 'Oversikt' },
   { k: 'forbruk', label: 'Forbruk' },
@@ -413,6 +461,13 @@ export default function Money() {
                 </span>
               )}
             </div>
+
+            <MonthTrend
+              expenses={expenses}
+              subTotal={subTotal}
+              cursor={cursor}
+              onPick={(y, m) => setCursor({ y, m })}
+            />
 
             {catRows.length === 0 ? (
               <div className="empty">
