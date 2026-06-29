@@ -16,6 +16,9 @@ import {
   setItemEnergy,
   updateProjectItem,
   deleteProjectItem,
+  addItemSubtask,
+  toggleItemSubtask,
+  deleteItemSubtask,
   moveItemToStage,
   reorderItem,
   todayKey,
@@ -296,6 +299,10 @@ function StepSheet({ item, onClose }) {
 function SpineCard({ item, onActions }) {
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const [subVal, setSubVal] = useState('')
+  const subs = item.subtasks || []
+  const subsDone = subs.filter((s) => s.done).length
 
   function startEdit(e) { e.stopPropagation(); setEditVal(item.text); setEditing(true) }
   function saveEdit() {
@@ -303,30 +310,63 @@ function SpineCard({ item, onActions }) {
     if (v && v !== item.text) updateProjectItem(item, { text: v })
     setEditing(false)
   }
+  function addSub() {
+    const v = subVal.trim()
+    if (!v) return
+    addItemSubtask(item, v)
+    setSubVal('')
+  }
 
   return (
-    <div className="rm-card">
-      <button
-        type="button"
-        className={'energy ' + (item.energy || 'none')}
-        aria-label="Energinivå"
-        onClick={() => setItemEnergy(item, ENERGY_NEXT[item.energy || ''])}
-      />
-      {editing ? (
-        <input
-          className="ctxt-input"
-          value={editVal}
-          autoFocus
-          onChange={(e) => setEditVal(e.target.value)}
-          onBlur={saveEdit}
-          onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
+    <div className="rm-card rm-card-col">
+      <div className="rm-row">
+        <button
+          type="button"
+          className={'energy ' + (item.energy || 'none')}
+          aria-label="Energinivå"
+          onClick={() => setItemEnergy(item, ENERGY_NEXT[item.energy || ''])}
         />
-      ) : (
-        <span className="ctxt" onClick={startEdit} title="Trykk for å redigere">{item.text}</span>
+        {editing ? (
+          <input
+            className="ctxt-input"
+            value={editVal}
+            autoFocus
+            onChange={(e) => setEditVal(e.target.value)}
+            onBlur={saveEdit}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }}
+          />
+        ) : (
+          <span className="ctxt" onClick={startEdit} title="Trykk for å redigere">{item.text}</span>
+        )}
+        <button
+          type="button"
+          className={'rm-subchip' + (subs.length ? '' : ' empty')}
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {subs.length ? `☑ ${subsDone}/${subs.length}` : '+'}
+        </button>
+        <button type="button" className="rm-more" aria-label="Handlinger" onClick={() => onActions(item)}>
+          {MORE}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="rm-subs">
+          {subs.map((s) => (
+            <div key={s.id} className="subrow">
+              <button type="button" className={'subcheck' + (s.done ? ' on' : '')} aria-label={s.done ? 'Angre' : 'Fullfør'} onClick={() => toggleItemSubtask(item, s.id)}>
+                {s.done && <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>}
+              </button>
+              <span className={'subtxt' + (s.done ? ' done' : '')}>{s.text}</span>
+              <button type="button" className="subdel" aria-label="Slett" onClick={() => deleteItemSubtask(item, s.id)}>×</button>
+            </div>
+          ))}
+          <div className="subadd">
+            <input placeholder="Nytt delpunkt…" value={subVal} onChange={(e) => setSubVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSub()} />
+            <button type="button" disabled={!subVal.trim()} onClick={addSub} aria-label="Legg til delpunkt">+</button>
+          </div>
+        </div>
       )}
-      <button type="button" className="rm-more" aria-label="Handlinger" onClick={() => onActions(item)}>
-        {MORE}
-      </button>
     </div>
   )
 }

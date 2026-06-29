@@ -809,6 +809,65 @@
   border-color: var(--ink);
   transform: scale(1.1);
 }
+.hc-weekly {
+  margin: 10px 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.hc-weekly-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.hc-weekly-opts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.hc-week-opt {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.hc-week-opt.on {
+  border-color: var(--forest);
+  background: #eef2ec;
+  color: var(--forest);
+}
+.hc-week-prog {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+}
+.hc-week-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--canvas);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.hc-week-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.hc-week-txt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
 .hc-acts {
   display: flex;
   gap: 8px;

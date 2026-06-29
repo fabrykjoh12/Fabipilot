@@ -231,6 +231,7 @@ export async function addHabit(name) {
     color: 'forest',
     emoji: '🌿',
     archived: false,
+    weeklyGoal: null,
     sortOrder: now(),
     createdAt: now(),
   }
@@ -430,6 +431,20 @@ export async function updateProjectItem(item, patch) {
 }
 export async function deleteProjectItem(item) {
   await db.projectItems.delete(item.id)
+  await touch(item.projectId)
+}
+export async function addItemSubtask(item, text) {
+  const subtasks = [...(item.subtasks || []), { id: uid(), text: text.trim(), done: false }]
+  await db.projectItems.update(item.id, { subtasks })
+  await touch(item.projectId)
+}
+export async function toggleItemSubtask(item, subId) {
+  const subtasks = (item.subtasks || []).map((s) => (s.id === subId ? { ...s, done: !s.done } : s))
+  await db.projectItems.update(item.id, { subtasks })
+  await touch(item.projectId)
+}
+export async function deleteItemSubtask(item, subId) {
+  await db.projectItems.update(item.id, { subtasks: (item.subtasks || []).filter((s) => s.id !== subId) })
   await touch(item.projectId)
 }
 

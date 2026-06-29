@@ -31,6 +31,16 @@ function lastNDays(n) {
   })
 }
 
+/** Datonøklene for inneværende kalenderuke (man–søn). */
+function weekKeys() {
+  const now = new Date()
+  const dow = (now.getDay() + 6) % 7
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow)
+  return [...Array(7)].map((_, i) => todayKey(new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i)))
+}
+const WEEK = weekKeys()
+const WEEKLY_OPTS = [null, 2, 3, 4, 5, 6]
+
 async function moveHabit(id, direction, habits) {
   const idx = habits.findIndex((h) => h.id === id)
   const swapIdx = idx + direction
@@ -44,6 +54,7 @@ function HabitCard({ habit, habits, idx, days, today, view }) {
   const history = new Set(habit.history || [])
   const doneToday = history.has(today)
   const col = habitColor(habit.color)
+  const weekDone = habit.weeklyGoal ? WEEK.filter((k) => history.has(k)).length : 0
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
   const [customizing, setCustomizing] = useState(false)
@@ -110,10 +121,30 @@ function HabitCard({ habit, habits, idx, days, today, view }) {
               <button key={c.k} type="button" className={'hc-color' + (habit.color === c.k ? ' on' : '')} style={{ background: c.val }} aria-label={c.k} onClick={() => updateHabit(habit.id, { color: c.k })} />
             ))}
           </div>
+          <div className="hc-weekly">
+            <span className="hc-weekly-lbl">Ukemål</span>
+            <div className="hc-weekly-opts">
+              {WEEKLY_OPTS.map((w) => (
+                <button
+                  key={w ?? 'none'}
+                  type="button"
+                  className={'hc-week-opt' + ((habit.weeklyGoal || null) === w ? ' on' : '')}
+                  onClick={() => updateHabit(habit.id, { weeklyGoal: w })}
+                >{w ? `${w}x` : 'Av'}</button>
+              ))}
+            </div>
+          </div>
           <div className="hc-acts">
             <button type="button" className="hc-archive" onClick={() => updateHabit(habit.id, { archived: true })}>Arkiver</button>
             <button type="button" className="hc-delete" onClick={() => { if (window.confirm(`Slette vanen «${habit.name}»?`)) deleteHabit(habit.id) }}>Slett</button>
           </div>
+        </div>
+      )}
+
+      {habit.weeklyGoal && (
+        <div className="hc-week-prog">
+          <span className="hc-week-bar"><i style={{ width: Math.min(100, (weekDone / habit.weeklyGoal) * 100) + '%', background: col }} /></span>
+          <span className="hc-week-txt">{weekDone}/{habit.weeklyGoal} denne uka{weekDone >= habit.weeklyGoal ? ' ✓' : ''}</span>
         </div>
       )}
 
