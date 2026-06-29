@@ -656,6 +656,24 @@
   width: 19px;
   height: 19px;
 }
+.est {
+  flex: 0 0 auto;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b0b8a8;
+  cursor: pointer;
+}
+.est.on {
+  color: var(--forest);
+  border-color: rgba(66, 99, 74, 0.3);
+}
 .snooze {
   flex: 0 0 auto;
   width: 34px;
@@ -2122,10 +2140,84 @@ label.backup-action {
   color: var(--forest);
   background: #eef2ec;
 }
+.wn-time-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 16px 0 8px;
+}
+.wn-est {
+  margin-left: 8px;
+  color: var(--muted);
+  font-weight: 600;
+}
 .wn-quickadd {
   margin-top: 36px;
   border-top: 1px solid var(--line);
   padding-top: 20px;
+}
+/* pomodoro */
+.wn-pomo {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  text-align: center;
+}
+.wn-pomo .wn-qa-label {
+  text-align: left;
+}
+.wn-clock {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 52px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 14px;
+}
+.wn-clock.done {
+  color: var(--forest);
+  font-size: 38px;
+}
+.wn-pomo-opts {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.wn-pomo-acts {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.wn-pomo-start {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 13px;
+  padding: 13px 32px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(204, 136, 43, 0.26);
+}
+.wn-pomo-start.pause {
+  background: var(--forest);
+  box-shadow: none;
+}
+.wn-pomo-reset {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 13px 22px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
 }
 .wn-qa-label {
   font-size: 12px;

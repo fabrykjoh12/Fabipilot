@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, addTask } from '../db.js'
-import { vibrate } from '../lib/fx.js'
+import { burst, vibrate } from '../lib/fx.js'
 
 const TYPE_META = {
   task:    { label: 'Oppgave',  color: 'var(--accent)',  icon: '✓' },
@@ -15,11 +15,55 @@ const ENERGY_OPTS = [
   { k: 'hoy',  label: 'Høy energi' },
 ]
 
+const TIME_OPTS = [
+  { k: 0, label: 'Når som helst' },
+  { k: 5, label: '5 min' },
+  { k: 15, label: '15 min' },
+  { k: 30, label: '30 min' },
+]
+const POMO_OPTS = [15, 25, 45]
+const fmtClock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
 export default function WhatNow() {
   const today = todayKey()
   const [idx, setIdx] = useState(0)
   const [energy, setEnergy] = useState('alle')
+  const [time, setTime] = useState(0)
   const [addVal, setAddVal] = useState('')
+
+  // pomodoro
+  const [pomoDur, setPomoDur] = useState(25)
+  const [secs, setSecs] = useState(25 * 60)
+  const [running, setRunning] = useState(false)
+  const pomoRef = useRef(null)
+  const tickRef = useRef(null)
+
+  useEffect(() => {
+    if (!running) return
+    tickRef.current = setInterval(() => {
+      setSecs((s) => {
+        if (s <= 1) {
+          clearInterval(tickRef.current)
+          setRunning(false)
+          vibrate([14, 40, 14, 40, 14])
+          burst(pomoRef.current)
+          return 0
+        }
+        return s - 1
+      })
+    }, 1000)
+    return () => clearInterval(tickRef.current)
+  }, [running])
+
+  function setPomo(min) {
+    setPomoDur(min)
+    setSecs(min * 60)
+    setRunning(false)
+  }
+  function resetPomo() {
+    setRunning(false)
+    setSecs(pomoDur * 60)
+  }
 
   const allItems = useLiveQuery(async () => {
     const [tasks, habits, nowItems] = await Promise.all([
@@ -31,7 +75,7 @@ export default function WhatNow() {
     const suggestions = []
 
     for (const t of tasks) {
-      suggestions.push({ id: t.id, type: 'task', text: t.title, energy: null })
+      suggestions.push({ id: t.id, type: 'task', text: t.title, energy: null, estimate: t.estimate || null })
     }
 
     for (const h of habits) {
@@ -54,9 +98,12 @@ export default function WhatNow() {
 
   if (allItems === null) return <div className="screen" />
 
-  const items = energy === 'alle'
+  let items = energy === 'alle'
     ? allItems
     : allItems.filter((i) => i.energy === energy || (energy === 'lav' && i.type !== 'project'))
+  if (time > 0) {
+    items = items.filter((i) => i.type === 'task' && i.estimate && i.estimate <= time)
+  }
 
   const safeIdx = items.length > 0 ? idx % items.length : 0
   const current = items.length > 0 ? items[safeIdx] : null
@@ -69,6 +116,10 @@ export default function WhatNow() {
 
   function changeEnergy(k) {
     setEnergy(k)
+    setIdx(0)
+  }
+  function changeTime(k) {
+    setTime(k)
     setIdx(0)
   }
 
@@ -103,12 +154,28 @@ export default function WhatNow() {
           </div>
         )}
 
+        <p className="wn-time-lbl">Jeg har…</p>
+        <div className="wn-energy-filter">
+          {TIME_OPTS.map((o) => (
+            <button
+              key={o.k}
+              type="button"
+              className={'wn-ef-btn' + (time === o.k ? ' active' : '')}
+              onClick={() => changeTime(o.k)}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+
         <div className="wn-wrap">
           {!current ? (
             <div className="wn-empty">
               <div className="wn-glyph">✦</div>
               <p>
-                {energy !== 'alle'
+                {time > 0
+                  ? `Ingen oppgaver som tar ${time} min eller mindre. Sett tidsestimat (⏱) på oppgaver i «I dag».`
+                  : energy !== 'alle'
                   ? `Ingen forslag for «${ENERGY_OPTS.find((o) => o.k === energy)?.label}» akkurat nå.`
                   : 'Alt virker ryddig akkurat nå — ingenting haster.'}
               </p>
@@ -119,6 +186,7 @@ export default function WhatNow() {
                 <span className="wn-type" style={{ color: meta.color }}>
                   <span className="wn-type-icon">{meta.icon}</span>
                   {meta.label}
+                  {current.estimate ? <span className="wn-est">⏱ {current.estimate} min</span> : null}
                 </span>
                 <p className="wn-text">{current.text}</p>
               </div>
@@ -161,6 +229,28 @@ export default function WhatNow() {
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </button>
+          </div>
+        </div>
+
+        <div className="wn-pomo">
+          <p className="wn-qa-label">Fokus-timer</p>
+          <div ref={pomoRef} className={'wn-clock' + (secs === 0 ? ' done' : '')}>
+            {secs === 0 ? 'Ferdig! 🌿' : fmtClock(secs)}
+          </div>
+          <div className="wn-pomo-opts">
+            {POMO_OPTS.map((m) => (
+              <button key={m} type="button" className={'wn-ef-btn' + (pomoDur === m ? ' active' : '')} onClick={() => setPomo(m)}>{m} min</button>
+            ))}
+          </div>
+          <div className="wn-pomo-acts">
+            {!running ? (
+              <button type="button" className="wn-pomo-start" onClick={() => { if (secs === 0) setSecs(pomoDur * 60); setRunning(true) }}>
+                {secs === 0 || secs === pomoDur * 60 ? 'Start' : 'Fortsett'}
+              </button>
+            ) : (
+              <button type="button" className="wn-pomo-start pause" onClick={() => setRunning(false)}>Pause</button>
+            )}
+            <button type="button" className="wn-pomo-reset" onClick={resetPomo}>Nullstill</button>
           </div>
         </div>
       </div>

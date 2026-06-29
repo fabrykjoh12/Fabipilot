@@ -171,6 +171,7 @@ export async function addTask(title) {
     isFocus: false,
     dueDate: todayKey(),
     completedAt: null,
+    estimate: null,
     sortOrder: now(),
     createdAt: now(),
   }

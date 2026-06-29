@@ -28,6 +28,11 @@ const MOON = (
     <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />
   </svg>
 )
+const EST_CYCLE = [null, 5, 15, 30, 60]
+function nextEst(e) {
+  const i = EST_CYCLE.indexOf(e ?? null)
+  return EST_CYCLE[(i + 1) % EST_CYCLE.length]
+}
 
 function greeting() {
   const h = new Date().getHours()
@@ -118,6 +123,15 @@ function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop, onSnooze }) {
         </div>
       ) : !done ? (
         <>
+          <button
+            type="button"
+            className={'est' + (task.estimate ? ' on' : '')}
+            aria-label="Tidsestimat"
+            title="Tidsestimat — trykk for å endre"
+            onClick={() => updateTask(task.id, { estimate: nextEst(task.estimate) })}
+          >
+            {task.estimate ? `${task.estimate}m` : '⏱'}
+          </button>
           {onSnooze && (
             <button
               type="button"
