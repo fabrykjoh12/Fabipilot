@@ -82,6 +82,20 @@ db.version(6).stores({
   todos: 'id, isDone, sortOrder, createdAt',
 })
 
+// v7: budsjett — expenses (logget forbruk) + budgets (månedsbudsjett per kategori).
+db.version(7).stores({
+  ideas: 'id, category, createdAt',
+  tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+  habits: 'id, sortOrder, createdAt',
+  subscriptions: 'id, createdAt',
+  projects: 'id, status, sortOrder, lastTouched, createdAt',
+  projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  events: 'id, date, createdAt',
+  todos: 'id, isDone, sortOrder, createdAt',
+  expenses: 'id, date, category, createdAt',
+  budgets: 'id, category, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -189,6 +203,44 @@ export async function addSubscription({ name, amount, cycle = 'monthly' }) {
 export const updateSubscription = (id, patch) => db.subscriptions.update(id, patch)
 export const deleteSubscription = (id) => db.subscriptions.delete(id)
 export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 : s.amount || 0)
+
+/* =========================================================
+   PENGER — forbruk (expenses) + budsjett (budgets)
+   - expenses: id, amount, category, note, date('YYYY-MM-DD'), createdAt
+   - budgets:  id, category, amount, createdAt  (én rad per kategori; månedsbeløp)
+   ========================================================= */
+export async function listExpenses() {
+  return db.expenses.orderBy('date').reverse().toArray()
+}
+export async function addExpense({ amount, category = 'annet', note = '', date }) {
+  const e = {
+    id: uid(),
+    amount: Number(amount) || 0,
+    category,
+    note: note || '',
+    date: date || todayKey(),
+    createdAt: now(),
+  }
+  await db.expenses.add(e)
+  return e
+}
+export const updateExpense = (id, patch) => db.expenses.update(id, patch)
+export const deleteExpense = (id) => db.expenses.delete(id)
+
+export async function listBudgets() {
+  return db.budgets.toArray()
+}
+/** Setter (eller fjerner ved 0) månedsbudsjett for en kategori. */
+export async function setBudget(category, amount) {
+  const amt = Number(amount) || 0
+  const existing = await db.budgets.where('category').equals(category).first()
+  if (amt <= 0) {
+    if (existing) await db.budgets.delete(existing.id)
+    return
+  }
+  if (existing) await db.budgets.update(existing.id, { amount: amt })
+  else await db.budgets.add({ id: uid(), category, amount: amt, createdAt: now() })
+}
 
 /* =========================================================
    PROSJEKTER (roadmaps)
@@ -358,10 +410,10 @@ export async function moveTodo(id, direction) {
 /* =========================================================
    BACKUP — eksport/import av HELE dashboardet
    ========================================================= */
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos']
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets']
 
 export async function exportAll() {
-  const out = { type: 'dashboard-backup', version: 6, exportedAt: new Date().toISOString() }
+  const out = { type: 'dashboard-backup', version: 7, exportedAt: new Date().toISOString() }
   for (const t of TABLES) out[t] = await db.table(t).toArray()
   return out
 }

@@ -1,0 +1,226 @@
+/* ===== Penger: faner + budsjett + forbruk ===== */
+.money-tabs {
+  display: flex;
+  background: var(--line);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 2px;
+  margin: 16px 0 18px;
+}
+.money-tabs button {
+  flex: 1;
+  border: 0;
+  background: none;
+  border-radius: 9px;
+  padding: 8px 6px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.money-tabs button.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* måned-nav */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.month-nav-lbl {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 140px;
+  text-align: center;
+}
+.cal-arrow {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink);
+}
+.cal-arrow:disabled { opacity: 0.35; cursor: default; }
+.cal-arrow svg {
+  width: 18px; height: 18px;
+  stroke: currentColor; stroke-width: 2.2; fill: none;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* sammendrags-kort */
+.budget-summary {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.budget-summary.slim { padding: 16px 20px; }
+.bs-label {
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.bs-amount {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700; font-size: 34px;
+  letter-spacing: -0.02em; color: var(--accent);
+  line-height: 1.1;
+}
+.bs-bar {
+  height: 8px; border-radius: 99px;
+  background: var(--canvas); overflow: hidden;
+  margin: 8px 0 2px;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.bs-bar > i {
+  display: block; height: 100%; border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.bs-sub { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+/* budsjett per kategori */
+.budget-cats { display: flex; flex-direction: column; gap: 8px; }
+.budget-cat {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid transparent;
+  border-radius: 14px; padding: 13px 14px;
+  box-shadow: var(--shadow); cursor: pointer; font-family: inherit;
+  animation: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.budget-cat:active { transform: scale(0.99); }
+.bc-emoji { flex: 0 0 auto; font-size: 22px; }
+.bc-main { flex: 1; min-width: 0; }
+.bc-top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.bc-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.bc-amt { font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bc-of { color: var(--muted); font-weight: 500; }
+.bc-bar {
+  height: 6px; border-radius: 99px; background: var(--canvas);
+  overflow: hidden; box-shadow: inset 0 0 0 1px var(--line);
+}
+.bc-bar > i { display: block; height: 100%; border-radius: 99px; transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+.budget-add {
+  width: 100%; margin-top: 14px;
+  background: none; border: 1px dashed var(--line);
+  border-radius: 13px; padding: 13px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  color: var(--muted); cursor: pointer;
+}
+.budget-add:hover { border-color: var(--forest); color: var(--forest); }
+
+/* forbruk-liste */
+.exp-list { display: flex; flex-direction: column; gap: 8px; }
+.exp-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid transparent;
+  border-radius: 14px; padding: 12px 14px;
+  box-shadow: var(--shadow); cursor: pointer; font-family: inherit;
+  animation: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.exp-emoji {
+  flex: 0 0 auto; width: 36px; height: 36px;
+  border-radius: 10px; display: grid; place-items: center; font-size: 18px;
+}
+.exp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.exp-title { font-size: 15px; font-weight: 500; color: var(--ink); word-break: break-word; }
+.exp-meta { font-size: 12.5px; color: var(--muted); }
+.exp-amt { flex: 0 0 auto; font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* legg-til-forbruk-knapp (bunn) */
+.money-fab {
+  width: 100%;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--accent); color: #fff; border: 0;
+  border-radius: 14px; padding: 15px;
+  font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(204, 136, 43, 0.26);
+}
+.money-fab svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.money-fab:active { transform: scale(0.98); }
+
+/* ===== bunn-sheet (forbruk + budsjett) ===== */
+.msheet-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(34, 40, 31, 0.45); backdrop-filter: blur(3px);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.msheet {
+  width: 100%; max-width: 560px;
+  background: var(--canvas); border-radius: 24px 24px 0 0;
+  padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 40px rgba(34, 40, 31, 0.22);
+  animation: cal-sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  max-height: 92vh; overflow-y: auto;
+}
+@keyframes cal-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.msheet-grip { width: 38px; height: 4px; border-radius: 99px; background: var(--line); margin: 0 auto 14px; }
+.msheet-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600; font-size: 20px; margin: 0 0 16px;
+}
+.msheet-amount {
+  display: flex; align-items: baseline; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 16px;
+}
+.msheet-amount-in {
+  flex: 1; border: 0; background: none; outline: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 30px; font-weight: 700; color: var(--ink); min-width: 0;
+}
+.msheet-kr { font-size: 15px; font-weight: 600; color: var(--muted); flex: 0 0 auto; }
+.msheet-lbl {
+  display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px;
+}
+.msheet-cats { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+.msheet-cat {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1.5px solid var(--line); background: var(--surface);
+  border-radius: 11px; padding: 8px 11px;
+  font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink);
+  cursor: pointer;
+}
+.msheet-cat-emoji { font-size: 15px; }
+.msheet-row { display: flex; gap: 10px; }
+.msheet-field { flex: 1; min-width: 0; }
+.msheet-in {
+  width: 100%; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 12px; padding: 12px 13px; font-family: inherit;
+  font-size: 15px; color: var(--ink); outline: 0;
+}
+.msheet-in:focus { border-color: var(--accent); }
+.msheet-save {
+  width: 100%; margin-top: 18px;
+  background: var(--accent); color: #fff; border: 0;
+  border-radius: 13px; padding: 15px;
+  font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(204, 136, 43, 0.26);
+}
+.msheet-save:disabled { opacity: 0.5; box-shadow: none; cursor: default; }
+.msheet-del {
+  width: 100%; margin-top: 8px; background: none; border: 0;
+  color: var(--danger); font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 11px; cursor: pointer;
+}
+@media (min-width: 860px) {
+  .msheet { border-radius: 24px; margin-bottom: 24px; align-self: center; }
+  .msheet-overlay { align-items: center; }
+}

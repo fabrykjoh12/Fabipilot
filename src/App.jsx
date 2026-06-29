@@ -326,7 +326,7 @@ export default function App() {
   const navRef = useRef(null)
 
   const itemCount = useLiveQuery(async () => {
-    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos']
+    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets']
     let n = 0
     for (const t of tabs) n += await db.table(t).count()
     return n
@@ -374,7 +374,7 @@ export default function App() {
         total > 0
           ? `Importerte ${total} ting:\n` +
               `${added.tasks} oppgaver, ${added.ideas} ideer, ${added.habits} vaner, ` +
-              `${added.subscriptions} abonnement, ${added.projects} prosjekter, ${added.events} hendelser, ${added.todos} gjøremål.`
+              `${added.subscriptions} abonnement, ${added.projects} prosjekter, ${added.events} hendelser, ${added.todos} gjøremål, ${added.expenses} forbruk.`
           : 'Ingenting nytt å importere (alt fantes fra før).',
       )
     } catch (err) {

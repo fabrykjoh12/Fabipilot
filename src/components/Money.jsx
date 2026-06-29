@@ -1,29 +1,183 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
-  listSubscriptions,
-  addSubscription,
-  updateSubscription,
-  deleteSubscription,
-  monthlyCost,
+  listSubscriptions, addSubscription, updateSubscription, deleteSubscription, monthlyCost,
+  listExpenses, addExpense, updateExpense, deleteExpense, listBudgets, setBudget, todayKey,
 } from '../db.js'
-import { kr, vibrate } from '../lib/fx.js'
+import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
+import './Money.css'
 
-const CATS = [
-  { k: 'annet',     label: 'Annet',      color: '#9aa394' },
-  { k: 'strømming', label: 'Strømming',  color: '#6b8cba' },
-  { k: 'musikk',    label: 'Musikk',     color: '#7ba07c' },
-  { k: 'software',  label: 'Software',   color: '#a07b9c' },
-  { k: 'helse',     label: 'Helse',      color: '#ba8c6b' },
-  { k: 'mat',       label: 'Mat',        color: '#b09a4a' },
-  { k: 'transport', label: 'Transport',  color: '#6b9aba' },
+const CATEGORIES = [
+  { k: 'mat', label: 'Mat', emoji: '🍔', color: '#cc882b' },
+  { k: 'transport', label: 'Transport', emoji: '🚗', color: '#5f86b0' },
+  { k: 'bolig', label: 'Bolig', emoji: '🏠', color: '#42634a' },
+  { k: 'helse', label: 'Helse', emoji: '💊', color: '#b4574a' },
+  { k: 'klar', label: 'Klær', emoji: '👕', color: '#9c7a98' },
+  { k: 'moro', label: 'Moro', emoji: '🎉', color: '#e8a53d' },
+  { k: 'strømming', label: 'Strømming', emoji: '📺', color: '#6b8cba' },
+  { k: 'musikk', label: 'Musikk', emoji: '🎵', color: '#7ba07c' },
+  { k: 'software', label: 'Software', emoji: '💻', color: '#a07b9c' },
+  { k: 'annet', label: 'Annet', emoji: '📦', color: '#737b6e' },
 ]
-const catMeta = (k) => CATS.find((c) => c.k === k) || CATS[0]
-const nextCat = (k) => { const i = CATS.findIndex((c) => c.k === k); return CATS[(i + 1) % CATS.length].k }
+const catMeta = (k) => CATEGORIES.find((c) => c.k === k) || CATEGORIES[CATEGORIES.length - 1]
+const catKey = (k) => (CATEGORIES.some((c) => c.k === k) ? k : 'annet')
 
+const MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember']
+const pad = (n) => String(n).padStart(2, '0')
+
+function barColor(ratio) {
+  if (ratio > 1) return '#b4574a'
+  if (ratio >= 0.8) return '#cc882b'
+  return '#4f9d5b'
+}
+
+const TABS = [
+  { k: 'oversikt', label: 'Oversikt' },
+  { k: 'forbruk', label: 'Forbruk' },
+  { k: 'faste', label: 'Faste' },
+]
+
+/* ============ bunn-sheet: legg til / rediger forbruk ============ */
+function ExpenseSheet({ initial, onClose }) {
+  const editing = !!initial
+  const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
+  const [category, setCategory] = useState(initial?.category || 'mat')
+  const [note, setNote] = useState(initial?.note || '')
+  const [date, setDate] = useState(initial?.date || todayKey())
+  const saveRef = useRef(null)
+
+  async function save() {
+    const amt = Number(amount)
+    if (!amt) return
+    if (editing) await updateExpense(initial.id, { amount: amt, category, note: note.trim(), date })
+    else await addExpense({ amount: amt, category, note: note.trim(), date })
+    vibrate([12, 30, 12])
+    burst(saveRef.current)
+    setTimeout(onClose, reduceMotion() ? 0 : 160)
+  }
+  async function remove() {
+    if (!editing) return
+    await deleteExpense(initial.id)
+    vibrate(8)
+    onClose()
+  }
+
+  return (
+    <div className="msheet-overlay" onClick={onClose}>
+      <div className="msheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="msheet-grip" />
+        <h2 className="msheet-title">{editing ? 'Rediger forbruk' : 'Nytt forbruk'}</h2>
+
+        <div className="msheet-amount">
+          <input
+            className="msheet-amount-in"
+            type="number"
+            inputMode="decimal"
+            placeholder="0"
+            value={amount}
+            autoFocus={!editing}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <span className="msheet-kr">kr</span>
+        </div>
+
+        <span className="msheet-lbl">Kategori</span>
+        <div className="msheet-cats">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.k}
+              type="button"
+              className={'msheet-cat' + (category === c.k ? ' on' : '')}
+              style={category === c.k ? { borderColor: c.color, background: c.color + '18' } : undefined}
+              onClick={() => setCategory(c.k)}
+            >
+              <span className="msheet-cat-emoji">{c.emoji}</span>
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="msheet-row">
+          <label className="msheet-field">
+            <span className="msheet-lbl">Dato</span>
+            <input className="msheet-in" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </label>
+          <label className="msheet-field">
+            <span className="msheet-lbl">Notat (valgfritt)</span>
+            <input className="msheet-in" placeholder="f.eks. Rema" value={note} onChange={(e) => setNote(e.target.value)} />
+          </label>
+        </div>
+
+        <button ref={saveRef} type="button" className="msheet-save" disabled={!Number(amount)} onClick={save}>
+          {editing ? 'Lagre' : 'Legg til'}
+        </button>
+        {editing && <button type="button" className="msheet-del" onClick={remove}>Slett</button>}
+      </div>
+    </div>
+  )
+}
+
+/* ============ bunn-sheet: sett budsjett ============ */
+function BudgetSheet({ initialCat, budgetByCat, onClose }) {
+  const [category, setCategory] = useState(initialCat || 'mat')
+  const [amount, setAmount] = useState(initialCat && budgetByCat[initialCat] ? String(budgetByCat[initialCat]) : '')
+
+  function pick(k) {
+    setCategory(k)
+    setAmount(budgetByCat[k] ? String(budgetByCat[k]) : '')
+  }
+  async function save() {
+    await setBudget(category, Number(amount) || 0)
+    vibrate(8)
+    onClose()
+  }
+
+  return (
+    <div className="msheet-overlay" onClick={onClose}>
+      <div className="msheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="msheet-grip" />
+        <h2 className="msheet-title">Månedsbudsjett</h2>
+
+        <span className="msheet-lbl">Kategori</span>
+        <div className="msheet-cats">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.k}
+              type="button"
+              className={'msheet-cat' + (category === c.k ? ' on' : '')}
+              style={category === c.k ? { borderColor: c.color, background: c.color + '18' } : undefined}
+              onClick={() => pick(c.k)}
+            >
+              <span className="msheet-cat-emoji">{c.emoji}</span>
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="msheet-amount">
+          <input
+            className="msheet-amount-in"
+            type="number"
+            inputMode="decimal"
+            placeholder="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+          <span className="msheet-kr">kr / mnd</span>
+        </div>
+
+        <button type="button" className="msheet-save" onClick={save}>
+          {Number(amount) > 0 ? 'Lagre budsjett' : 'Fjern budsjett'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ============ abonnementskort (Faste) ============ */
 function SubCard({ sub }) {
   const perMonth = monthlyCost(sub)
-  const cat = catMeta(sub.category || 'annet')
+  const cat = catMeta(catKey(sub.category || 'annet'))
   const [editingName, setEditingName] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const inputRef = useRef(null)
@@ -37,6 +191,11 @@ function SubCard({ sub }) {
     const v = nameVal.trim()
     if (v && v !== sub.name) await updateSubscription(sub.id, { name: v })
     setEditingName(false)
+  }
+  function nextCat() {
+    const keys = CATEGORIES.map((c) => c.k)
+    const i = keys.indexOf(catKey(sub.category || 'annet'))
+    updateSubscription(sub.id, { category: keys[(i + 1) % keys.length] })
   }
 
   return (
@@ -58,9 +217,7 @@ function SubCard({ sub }) {
           <button
             type="button"
             className="sub-cycle"
-            onClick={() =>
-              updateSubscription(sub.id, { cycle: sub.cycle === 'yearly' ? 'monthly' : 'yearly' })
-            }
+            onClick={() => updateSubscription(sub.id, { cycle: sub.cycle === 'yearly' ? 'monthly' : 'yearly' })}
           >
             {sub.cycle === 'yearly' ? 'per år' : 'per måned'}
           </button>
@@ -68,10 +225,10 @@ function SubCard({ sub }) {
             type="button"
             className="sub-cat"
             style={{ color: cat.color, borderColor: cat.color + '55', background: cat.color + '18' }}
-            onClick={() => updateSubscription(sub.id, { category: nextCat(sub.category || 'annet') })}
+            onClick={nextCat}
             title="Trykk for å endre kategori"
           >
-            {cat.label}
+            {cat.emoji} {cat.label}
           </button>
         </div>
       </div>
@@ -81,10 +238,7 @@ function SubCard({ sub }) {
           className="sub-amount"
           aria-label="Endre beløp"
           onClick={() => {
-            const v = window.prompt(
-              `Beløp for «${sub.name}» (kr ${sub.cycle === 'yearly' ? 'per år' : 'per måned'}):`,
-              sub.amount,
-            )
+            const v = window.prompt(`Beløp for «${sub.name}» (kr ${sub.cycle === 'yearly' ? 'per år' : 'per måned'}):`, sub.amount)
             if (v !== null && !Number.isNaN(Number(v))) updateSubscription(sub.id, { amount: Number(v) })
           }}
         >
@@ -95,33 +249,61 @@ function SubCard({ sub }) {
           type="button"
           className="icon-x"
           aria-label="Slett"
-          onClick={() => {
-            if (window.confirm(`Slette «${sub.name}»?`)) deleteSubscription(sub.id)
-          }}
+          onClick={() => { if (window.confirm(`Slette «${sub.name}»?`)) deleteSubscription(sub.id) }}
         >
-          <svg viewBox="0 0 24 24">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
       </div>
     </div>
   )
 }
 
+/* ============ hovedmodul ============ */
 export default function Money() {
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
+  const expenses = useLiveQuery(() => listExpenses(), [], [])
+  const budgets = useLiveQuery(() => listBudgets(), [], [])
+
+  const [tab, setTab] = useState('oversikt')
+  const [cursor, setCursor] = useState(() => {
+    const [y, m] = todayKey().split('-').map(Number)
+    return { y, m: m - 1 }
+  })
+  const [sheet, setSheet] = useState(null) // {type:'expense', expense?} | {type:'budget', cat?}
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
 
-  const totalMonth = subs.reduce((sum, s) => sum + monthlyCost(s), 0)
+  const monthPrefix = `${cursor.y}-${pad(cursor.m + 1)}`
+  const monthExpenses = expenses.filter((e) => (e.date || '').startsWith(monthPrefix))
+  const subTotal = subs.reduce((s, x) => s + monthlyCost(x), 0)
+  const expTotal = monthExpenses.reduce((s, x) => s + (x.amount || 0), 0)
+  const totalSpent = subTotal + expTotal
+  const totalBudget = budgets.reduce((s, b) => s + (b.amount || 0), 0)
 
-  const byCategory = CATS.map((c) => {
-    const items = subs.filter((s) => (s.category || 'annet') === c.k)
-    const total = items.reduce((sum, s) => sum + monthlyCost(s), 0)
-    return { ...c, total, count: items.length }
-  }).filter((c) => c.count > 0).sort((a, b) => b.total - a.total)
+  const budgetByCat = {}
+  for (const b of budgets) budgetByCat[b.category] = b.amount
 
-  async function add() {
+  const spentByCat = {}
+  for (const e of monthExpenses) spentByCat[e.category] = (spentByCat[e.category] || 0) + (e.amount || 0)
+  for (const s of subs) {
+    const k = catKey(s.category || 'annet')
+    spentByCat[k] = (spentByCat[k] || 0) + monthlyCost(s)
+  }
+
+  const catRows = CATEGORIES
+    .map((c) => ({ ...c, spent: spentByCat[c.k] || 0, budget: budgetByCat[c.k] || 0 }))
+    .filter((c) => c.spent > 0 || c.budget > 0)
+    .sort((a, b) => b.spent - a.spent)
+
+  const isCurrentMonth = monthPrefix === todayKey().slice(0, 7)
+  const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
+
+  function shiftMonth(d) {
+    const dt = new Date(cursor.y, cursor.m + d, 1)
+    setCursor({ y: dt.getFullYear(), m: dt.getMonth() })
+  }
+
+  async function addSub() {
     const n = name.trim()
     if (!n) return
     await addSubscription({ name: n, amount: Number(amount) || 0, cycle: 'monthly' })
@@ -134,76 +316,178 @@ export default function Money() {
     <div className="screen">
       <div className="screen-scroll">
         <h1 className="scr-title">Penger</h1>
-        <p className="scr-sub">Faste utgifter, samlet.</p>
 
-        <div className="total-card">
-          <span className="total-label">samlet per måned</span>
-          <span className="total-amount">{kr(totalMonth)}</span>
-          <span className="total-sub">
-            {subs.length} abonnement · {kr(totalMonth * 12)} per år
-          </span>
-          {byCategory.length > 1 && (
-            <div className="cat-breakdown">
-              {byCategory.map((c) => (
-                <div key={c.k} className="cat-row">
-                  <span className="cat-bar-wrap">
-                    <span
-                      className="cat-bar"
-                      style={{ width: totalMonth ? (c.total / totalMonth * 100) + '%' : '0%', background: c.color }}
-                    />
+        <div className="money-tabs">
+          {TABS.map((t) => (
+            <button key={t.k} type="button" className={tab === t.k ? 'active' : ''} onClick={() => setTab(t.k)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ===== OVERSIKT ===== */}
+        {tab === 'oversikt' && (
+          <>
+            <div className="month-nav">
+              <button type="button" className="cal-arrow" aria-label="Forrige måned" onClick={() => shiftMonth(-1)}>
+                <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" /></svg>
+              </button>
+              <span className="month-nav-lbl">{monthLabel}</span>
+              <button type="button" className="cal-arrow" aria-label="Neste måned" disabled={isCurrentMonth} onClick={() => shiftMonth(1)}>
+                <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+              </button>
+            </div>
+
+            <div className="budget-summary">
+              <span className="bs-label">brukt denne måneden</span>
+              <span className="bs-amount">{kr(totalSpent)}</span>
+              {totalBudget > 0 ? (
+                <>
+                  <div className="bs-bar">
+                    <i style={{ width: Math.min(100, (totalSpent / totalBudget) * 100) + '%', background: barColor(totalSpent / totalBudget) }} />
+                  </div>
+                  <span className="bs-sub">
+                    av {kr(totalBudget)} budsjett ·{' '}
+                    {totalSpent <= totalBudget
+                      ? `${kr(totalBudget - totalSpent)} igjen`
+                      : `${kr(totalSpent - totalBudget)} over`}
                   </span>
-                  <span className="cat-name" style={{ color: c.color }}>{c.label}</span>
-                  <span className="cat-amt">{kr(c.total)}</span>
-                </div>
-              ))}
+                </>
+              ) : (
+                <span className="bs-sub">Sett et budsjett nedenfor for å følge med.</span>
+              )}
             </div>
-          )}
-        </div>
 
-        <div style={{ marginTop: 8 }}>
-          {subs.length === 0 ? (
-            <div className="empty">
-              <div className="glyph">💳</div>
-              <p className="em-ttl">Ingen abonnement enda</p>
-              <p>Legg inn de faste utgiftene dine nederst — Spotify, Netflix, treningssenter — så ser du totalen.</p>
+            {catRows.length === 0 ? (
+              <div className="empty">
+                <div className="glyph">📊</div>
+                <p className="em-ttl">Ingen tall enda</p>
+                <p>Logg forbruk under «Forbruk», eller sett et budsjett her — så ser du oversikten.</p>
+              </div>
+            ) : (
+              <div className="budget-cats">
+                {catRows.map((c) => {
+                  const ratio = c.budget > 0 ? c.spent / c.budget : 0
+                  return (
+                    <button key={c.k} type="button" className="budget-cat" onClick={() => setSheet({ type: 'budget', cat: c.k })}>
+                      <span className="bc-emoji">{c.emoji}</span>
+                      <div className="bc-main">
+                        <div className="bc-top">
+                          <span className="bc-name">{c.label}</span>
+                          <span className="bc-amt">
+                            {kr(c.spent)}{c.budget > 0 && <span className="bc-of"> / {kr(c.budget)}</span>}
+                          </span>
+                        </div>
+                        <div className="bc-bar">
+                          <i style={{ width: (c.budget > 0 ? Math.min(100, ratio * 100) : 0) + '%', background: barColor(ratio) }} />
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            <button type="button" className="budget-add" onClick={() => setSheet({ type: 'budget' })}>
+              + Sett / endre budsjett
+            </button>
+          </>
+        )}
+
+        {/* ===== FORBRUK ===== */}
+        {tab === 'forbruk' && (
+          <>
+            <div className="budget-summary slim">
+              <span className="bs-label">logget denne måneden</span>
+              <span className="bs-amount">{kr(expTotal)}</span>
+              <span className="bs-sub">{monthExpenses.length} kjøp</span>
             </div>
-          ) : (
-            subs.map((s) => <SubCard key={s.id} sub={s} />)
-          )}
-        </div>
+
+            {monthExpenses.length === 0 ? (
+              <div className="empty">
+                <div className="glyph">🧾</div>
+                <p className="em-ttl">Ingen forbruk logget</p>
+                <p>Trykk knappen nederst hver gang du bruker penger — så ser du hvor de tar veien.</p>
+              </div>
+            ) : (
+              <div className="exp-list">
+                {monthExpenses.map((e) => {
+                  const c = catMeta(e.category)
+                  return (
+                    <button key={e.id} type="button" className="exp-row" onClick={() => setSheet({ type: 'expense', expense: e })}>
+                      <span className="exp-emoji" style={{ background: c.color + '22' }}>{c.emoji}</span>
+                      <div className="exp-main">
+                        <span className="exp-title">{e.note || c.label}</span>
+                        <span className="exp-meta">{c.label} · {e.date.slice(8)}.{e.date.slice(5, 7)}</span>
+                      </div>
+                      <span className="exp-amt">{kr(e.amount)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ===== FASTE (abonnement) ===== */}
+        {tab === 'faste' && (
+          <>
+            <div className="budget-summary slim">
+              <span className="bs-label">faste utgifter per måned</span>
+              <span className="bs-amount">{kr(subTotal)}</span>
+              <span className="bs-sub">{subs.length} abonnement · {kr(subTotal * 12)} per år</span>
+            </div>
+
+            {subs.length === 0 ? (
+              <div className="empty">
+                <div className="glyph">💳</div>
+                <p className="em-ttl">Ingen abonnement enda</p>
+                <p>Legg inn faste utgifter nederst — Spotify, Netflix, treningssenter.</p>
+              </div>
+            ) : (
+              subs.map((s) => <SubCard key={s.id} sub={s} />)
+            )}
+          </>
+        )}
       </div>
 
-      <div className="screen-bar">
-        <div className="field">
-          <input
-            type="text"
-            placeholder="Hva betaler du for…"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && add()}
-          />
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="kr"
-            className="amount-in"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && add()}
-          />
-          <button
-            type="button"
-            className="field-btn"
-            aria-label="Legg til abonnement"
-            disabled={name.trim() === ''}
-            onClick={add}
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
+      {/* ===== bunn-bar per fane ===== */}
+      {tab === 'forbruk' && (
+        <div className="screen-bar">
+          <button type="button" className="money-fab" onClick={() => setSheet({ type: 'expense' })}>
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+            Legg til forbruk
           </button>
         </div>
-      </div>
+      )}
+      {tab === 'faste' && (
+        <div className="screen-bar">
+          <div className="field">
+            <input
+              type="text"
+              placeholder="Hva betaler du for…"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addSub()}
+            />
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="kr"
+              className="amount-in"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addSub()}
+            />
+            <button type="button" className="field-btn" aria-label="Legg til abonnement" disabled={name.trim() === ''} onClick={addSub}>
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {sheet?.type === 'expense' && <ExpenseSheet initial={sheet.expense} onClose={() => setSheet(null)} />}
+      {sheet?.type === 'budget' && <BudgetSheet initialCat={sheet.cat} budgetByCat={budgetByCat} onClose={() => setSheet(null)} />}
     </div>
   )
 }

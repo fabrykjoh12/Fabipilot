@@ -35,7 +35,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **6**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **7**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -45,7 +45,11 @@ Synces via Dexie Cloud (se §3).
 - **habits** (Vaner) — `id, name, history[], sortOrder, createdAt`
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
 - **subscriptions** (Penger) — `id, name, amount, cycle, category, createdAt`
-  `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = løs kategori-nøkkel.
+  `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = nøkkel i `CATEGORIES` (Money.jsx).
+- **expenses** (Penger/Forbruk) — `id, amount, category, note, date, createdAt`
+  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES`.
+- **budgets** (Penger/Budsjett) — `id, category, amount, createdAt`
+  Én rad per kategori; `amount` = månedsbudsjett. `setBudget(cat, 0)` fjerner raden.
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
   `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon (begge uindeksert, ingen schema-bump).
@@ -78,7 +82,7 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
-  - `Money.jsx` — «Penger» (+ kategorier)
+  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget) / Faste (abonnement)
   - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt + roadmap-side
 - `prototypes/` — visuell fasit: `idebank.html`, `idag-prototype.html`, `roadmap-prototype.html`
 
