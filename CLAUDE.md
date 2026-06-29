@@ -35,7 +35,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **8**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **9**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -66,6 +66,11 @@ Synces via Dexie Cloud (se §3).
   Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
 - **todos** (Liste) — `id, text, isDone, completedAt, dueDate, sortOrder, createdAt`
   Gjøremål med valgfri dato (`dueDate` = `YYYY-MM-DD` eller `null`, uindeksert). Manuell sortering via `sortOrder`.
+- **sharedItems** (Delt) — `id, realmId, owner, text, isDone, completedAt, sortOrder, createdAt`
+  Delt liste i ÉT Dexie Cloud-realm (`SHARED_REALM_NAME = 'Delt liste'`). `realmId` settes via `ensureSharedRealm()`;
+  `owner` = `db.cloud.currentUserId`. Invitasjon på e-post via `inviteToShared(email)` (legger rad i `db.members`
+  med `permissions:{manage:'*'}`). Bruker auto-tabellene `realms`/`members` fra dexie-cloud-addon. IKKE i JSON-eksport
+  (deles via sky-realmet, ikke lokal backup).
 
 Alle stores er med i JSON-eksport/import (se §8).
 
@@ -89,6 +94,7 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
   - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget) / Faste (abonnement)
   - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt + roadmap-side
+  - `SharedList.jsx` — «Delt»: én delt liste med kjæresten (Dexie Cloud realm + e-postinvitasjon). Kun denne lista deles
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
 - `prototypes/` — visuell fasit: `idebank.html`, `idag-prototype.html`, `roadmap-prototype.html`
 

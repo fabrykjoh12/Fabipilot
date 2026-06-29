@@ -112,6 +112,23 @@ db.version(8).stores({
   goals: 'id, createdAt',
 })
 
+// v9: deling — sharedItems (delt liste i et eget Dexie Cloud-realm).
+db.version(9).stores({
+  ideas: 'id, category, createdAt',
+  tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+  habits: 'id, sortOrder, createdAt',
+  subscriptions: 'id, createdAt',
+  projects: 'id, status, sortOrder, lastTouched, createdAt',
+  projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  events: 'id, date, createdAt',
+  todos: 'id, isDone, sortOrder, createdAt',
+  expenses: 'id, date, category, createdAt',
+  budgets: 'id, category, createdAt',
+  incomes: 'id, createdAt',
+  goals: 'id, createdAt',
+  sharedItems: 'id, realmId, isDone, sortOrder, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -553,6 +570,80 @@ export async function moveTodo(id, direction) {
   await db.todos.update(a.id, { sortOrder: b.sortOrder })
   await db.todos.update(b.id, { sortOrder: a.sortOrder })
 }
+
+/* =========================================================
+   DELING — delt liste med én annen person (Dexie Cloud realm)
+   ---------------------------------------------------------
+   Alt i `sharedItems` legges i ÉT delt realm. Den andre personen
+   inviteres på e-post og får full tilgang til lista. Krever at begge
+   er innlogget (samme Dexie Cloud-database). Personlige stores røres
+   ikke — kun denne ene lista deles.
+   ========================================================= */
+const SHARED_REALM_NAME = 'Delt liste'
+
+/** Finn (eller lag) det delte realmet og returner realmId. */
+export async function ensureSharedRealm() {
+  const mine = await db.realms.where({ name: SHARED_REALM_NAME }).toArray()
+  // Bruk det realmet jeg eier hvis det finnes.
+  const owned = mine.find((r) => r.owner === db.cloud.currentUserId) || mine[0]
+  if (owned) return owned.realmId
+  const realmId = await db.realms.add({ name: SHARED_REALM_NAME })
+  return realmId
+}
+
+/** Alle delte realms jeg er med i (eier eller invitert). */
+export async function listSharedRealms() {
+  return db.realms.toArray()
+}
+
+export async function listSharedItems() {
+  return db.sharedItems.orderBy('sortOrder').toArray()
+}
+
+export async function addSharedItem(text) {
+  const t = text.trim()
+  if (!t) return
+  const realmId = await ensureSharedRealm()
+  const item = {
+    id: uid(),
+    realmId,
+    owner: db.cloud.currentUserId,
+    text: t,
+    isDone: false,
+    completedAt: null,
+    sortOrder: now(),
+    createdAt: now(),
+  }
+  await db.sharedItems.add(item)
+  return item
+}
+
+export const updateSharedItem = (id, patch) => db.sharedItems.update(id, patch)
+export const deleteSharedItem = (id) => db.sharedItems.delete(id)
+export async function setSharedItemDone(id, done) {
+  await db.sharedItems.update(id, { isDone: done, completedAt: done ? now() : null })
+}
+
+/** Inviter en person på e-post til den delte lista (full tilgang). */
+export async function inviteToShared(email) {
+  const e = (email || '').trim().toLowerCase()
+  if (!e) throw new Error('Mangler e-post.')
+  const realmId = await ensureSharedRealm()
+  await db.members.add({
+    realmId,
+    email: e,
+    invite: true,
+    permissions: { manage: '*' },
+  })
+}
+
+/** Medlemmer i det delte realmet (inkl. ventende invitasjoner). */
+export async function listSharedMembers() {
+  const realmId = await ensureSharedRealm()
+  return db.members.where('realmId').equals(realmId).toArray()
+}
+
+export const removeSharedMember = (memberId) => db.members.delete(memberId)
 
 /* =========================================================
    BACKUP — eksport/import av HELE dashboardet

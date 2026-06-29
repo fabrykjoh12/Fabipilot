@@ -11,6 +11,7 @@ import Habits from './components/Habits.jsx'
 import Money from './components/Money.jsx'
 import Projects from './components/Projects.jsx'
 import Search from './components/Search.jsx'
+import SharedList from './components/SharedList.jsx'
 import { db, exportAll, importAll, pushAllToCloud } from './db.js'
 
 const ICONS = {
@@ -81,6 +82,13 @@ const ICONS = {
       <path d="M21 21l-4.3-4.3" />
     </>
   ),
+  shared: (
+    <>
+      <circle cx="9" cy="8" r="3" />
+      <circle cx="17" cy="9" r="2.4" />
+      <path d="M3.5 19a5.5 5.5 0 0111 0M15 19a4.5 4.5 0 016-4.2" />
+    </>
+  ),
   more: (
     <>
       <circle cx="5" cy="12" r="2" />
@@ -104,6 +112,7 @@ const MODULES = [
   { k: 'money', label: 'Penger', Comp: Money },
   { k: 'projects', label: 'Prosjekter', Comp: Projects },
   { k: 'search', label: 'Søk', Comp: Search },
+  { k: 'shared', label: 'Delt', Comp: SharedList },
 ]
 
 /* Sky-sync-status → norsk etikett + farge-LED. */

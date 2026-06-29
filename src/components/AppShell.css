@@ -2479,3 +2479,56 @@ label.backup-action {
   margin-bottom: 14px;
 }
 .theme-toggle span { font-size: 17px; }
+
+/* ===== Delt liste ===== */
+.share-panel { margin-top: 16px; padding: 16px; }
+.share-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.share-invite { display: flex; gap: 8px; }
+.share-invite input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--canvas);
+  border-radius: 11px;
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink);
+}
+.share-invite input:focus { outline: none; border-color: var(--accent); }
+.share-invite button {
+  flex: 0 0 auto;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 11px;
+  padding: 0 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.share-invite button:disabled { opacity: 0.4; cursor: default; }
+.share-msg { margin: 10px 0 0; font-size: 13px; color: var(--forest); font-weight: 600; }
+.share-members { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.share-members li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 8px 10px;
+  background: var(--canvas);
+  border-radius: 10px;
+}
+.share-mail { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.share-state { flex: 0 0 auto; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.share-remove { flex: 0 0 auto; border: none; background: none; color: var(--muted); font-size: 19px; line-height: 1; cursor: pointer; }
+.share-hint { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
