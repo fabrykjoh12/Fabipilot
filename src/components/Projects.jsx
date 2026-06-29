@@ -36,6 +36,17 @@ const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
 const NEXT_STATUS = { active: 'onice', onice: 'done', done: 'active' }
 const ENERGY_NEXT = { '': 'lav', lav: 'hoy', hoy: '' }
 
+const PROJECT_COLORS = [
+  { k: 'forest', val: '#42634a' },
+  { k: 'amber', val: '#cc882b' },
+  { k: 'blue', val: '#5f86b0' },
+  { k: 'rose', val: '#b4574a' },
+  { k: 'plum', val: '#9c7a98' },
+  { k: 'slate', val: '#5e6b6f' },
+]
+const colorVal = (k) => (PROJECT_COLORS.find((c) => c.k === k) || PROJECT_COLORS[0]).val
+const PROJECT_EMOJIS = ['🗂️', '🚀', '🏡', '💪', '🎨', '📚', '💻', '🎸', '🌱', '💰', '✈️', '🧩', '🎯', '🔧', '📷', '🍳', '🎬', '🏃']
+
 function touchedText(ts) {
   if (!ts) return ''
   const days = Math.floor((Date.now() - ts) / 86400000)
@@ -52,10 +63,18 @@ function ProjectsList({ onOpen }) {
     [],
     [],
   )
+  const allItems = useLiveQuery(() => db.projectItems.toArray(), [], [])
   const [val, setVal] = useState('')
 
   const nextByProject = {}
   for (const it of nowItems) if (!nextByProject[it.projectId]) nextByProject[it.projectId] = it
+
+  const statsByProject = {}
+  for (const it of allItems) {
+    const s = (statsByProject[it.projectId] ||= { total: 0, done: 0 })
+    s.total++
+    if (it.stage === 'done') s.done++
+  }
 
   const active = projects.filter((p) => p.status === 'active')
   const onice = projects.filter((p) => p.status === 'onice')
@@ -78,6 +97,9 @@ function ProjectsList({ onOpen }) {
 
   function Card({ p, idx, total }) {
     const next = nextByProject[p.id]
+    const stat = statsByProject[p.id] || { total: 0, done: 0 }
+    const pct = stat.total ? Math.round((stat.done / stat.total) * 100) : 0
+    const col = colorVal(p.color)
     return (
       <div className="plist-card-wrap">
         <div className="plist-sort">
@@ -96,15 +118,22 @@ function ProjectsList({ onOpen }) {
             onClick={(e) => { e.stopPropagation(); moveProject(p.id, 1) }}
           >▼</button>
         </div>
-        <button type="button" className="plist-card" onClick={() => onOpen(p.id)}>
+        <button type="button" className="plist-card" onClick={() => onOpen(p.id)} style={{ '--pc': col }}>
           <div className="plist-top">
+            <span className="plist-emoji" style={{ background: col + '22' }}>{p.emoji || '🗂️'}</span>
             <span className="plist-name">{p.name}</span>
             <span className={'pstatus st-' + p.status}>{STATUS_LABEL[p.status]}</span>
           </div>
+          {stat.total > 0 && (
+            <div className="plist-prog">
+              <span className="plist-bar"><i style={{ width: pct + '%', background: col }} /></span>
+              <span className="plist-pct">{stat.done}/{stat.total}</span>
+            </div>
+          )}
           <div className="plist-next">
             {next ? (
               <>
-                <span className="plist-dot" />
+                <span className="plist-dot" style={{ background: col }} />
                 {next.text}
               </>
             ) : (
@@ -298,6 +327,7 @@ function Roadmap({ projectId, onBack }) {
   const [editingName, setEditingName] = useState(false)
   const [editingWhy, setEditingWhy] = useState(false)
   const [editingHero, setEditingHero] = useState(false)
+  const [customizing, setCustomizing] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const [whyVal, setWhyVal] = useState('')
   const [heroVal, setHeroVal] = useState('')
@@ -350,6 +380,7 @@ function Roadmap({ projectId, onBack }) {
 
   const total = items.length
   const pct = total ? Math.round((doneItems.length / total) * 100) : 0
+  const col = colorVal(project.color)
 
   function completeHero() {
     if (!hero) return
@@ -385,18 +416,29 @@ function Roadmap({ projectId, onBack }) {
         </button>
 
         <div className="phead">
-          {editingName ? (
-            <input
-              className="pname-input"
-              value={nameVal}
-              autoFocus
-              onChange={(e) => setNameVal(e.target.value)}
-              onBlur={saveName}
-              onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
-            />
-          ) : (
-            <h1 className="pname" onClick={startEditName} title="Trykk for å redigere">{project.name}</h1>
-          )}
+          <button
+            type="button"
+            className="pemoji-badge"
+            style={{ background: col + '22', borderColor: col + '55' }}
+            onClick={() => setCustomizing((c) => !c)}
+            aria-label="Endre ikon og farge"
+          >
+            {project.emoji || '🗂️'}
+          </button>
+          <div className="phead-main">
+            {editingName ? (
+              <input
+                className="pname-input"
+                value={nameVal}
+                autoFocus
+                onChange={(e) => setNameVal(e.target.value)}
+                onBlur={saveName}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
+              />
+            ) : (
+              <h1 className="pname" onClick={startEditName} title="Trykk for å redigere">{project.name}</h1>
+            )}
+          </div>
           <div className="phead-actions">
             <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>
               {STATUS_LABEL[project.status]}
@@ -406,6 +448,36 @@ function Roadmap({ projectId, onBack }) {
             </button>
           </div>
         </div>
+
+        {customizing && (
+          <div className="pcustom">
+            <div className="pcustom-emojis">
+              {PROJECT_EMOJIS.map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  className={'pemoji-opt' + ((project.emoji || '🗂️') === e ? ' on' : '')}
+                  onClick={() => updateProject(project.id, { emoji: e })}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+            <div className="pcustom-colors">
+              {PROJECT_COLORS.map((c) => (
+                <button
+                  key={c.k}
+                  type="button"
+                  className={'pcolor' + (project.color === c.k ? ' on' : '')}
+                  style={{ background: c.val }}
+                  aria-label={c.k}
+                  onClick={() => updateProject(project.id, { color: c.k })}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {editingWhy ? (
           <div className="pwhy-edit">
             <input
@@ -427,11 +499,18 @@ function Roadmap({ projectId, onBack }) {
 
         <div className="prog">
           <span className="bar">
-            <i style={{ width: pct + '%' }} />
+            <i style={{ width: pct + '%', background: col }} />
           </span>
           <span className="lbl">
-            {doneItems.length} av {total}
+            {doneItems.length} av {total} · {pct}%
           </span>
+        </div>
+
+        <div className="pstats">
+          <div className="pstat"><b style={{ color: col }}>{nowItems.length}</b><span>Nå</span></div>
+          <div className="pstat"><b>{nextItems.length}</b><span>Neste</span></div>
+          <div className="pstat"><b>{laterItems.length}</b><span>Senere</span></div>
+          <div className="pstat"><b>{doneItems.length}</b><span>Ferdig</span></div>
         </div>
 
         <div className="hero">

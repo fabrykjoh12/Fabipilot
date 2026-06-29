@@ -202,13 +202,15 @@ export async function listProjects() {
 export const getProject = (id) => db.projects.get(id)
 export const countActiveProjects = () => db.projects.where('status').equals('active').count()
 
-export async function addProject({ name, why = '', status = 'active' }) {
+export async function addProject({ name, why = '', status = 'active', color = 'forest', emoji = '🗂️' }) {
   const maxOrder = await db.projects.orderBy('sortOrder').last()
   const p = {
     id: uid(),
     name: name.trim(),
     why: why.trim ? why.trim() : why,
     status,
+    color,
+    emoji,
     sortOrder: maxOrder ? (maxOrder.sortOrder ?? 0) + 1000 : 0,
     createdAt: now(),
     lastTouched: now(),

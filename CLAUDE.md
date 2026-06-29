@@ -46,8 +46,9 @@ Synces via Dexie Cloud (se §3).
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
 - **subscriptions** (Penger) — `id, name, amount, cycle, category, createdAt`
   `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = løs kategori-nøkkel.
-- **projects** (Prosjekter) — `id, name, why, status, sortOrder, createdAt, lastTouched`
+- **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
+  `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon (begge uindeksert, ingen schema-bump).
 - **projectItems** — `id, projectId, text, stage, energy, sortOrder, createdAt`
   `stage` = `'now' | 'next' | 'later' | 'done'`. `energy` = `'lav' | 'hoy' | null`.
   «Neste steg» = første item med `stage='now'` (etter `sortOrder`). Ingen egen flagg-kolonne.
