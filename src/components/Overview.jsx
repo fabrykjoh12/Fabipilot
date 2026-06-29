@@ -165,12 +165,14 @@ export default function Overview({ onNav }) {
             {projects.length === 0 ? (
               <p className="ov-desc">Legg til en større ting du jobber mot.</p>
             ) : (
-              <p className="ov-desc">
-                {projects.map((p) => {
-                  const next = nextByProject[p.id]
-                  return next ? `${p.name}: ${next.text}` : p.name
-                }).join(' · ')}
-              </p>
+              <ul className="ov-list">
+                {projects.slice(0, 3).map((p) => (
+                  <li key={p.id}>
+                    <span className="ov-list-emoji">{p.emoji || '🗂️'}</span>
+                    {p.name}
+                  </li>
+                ))}
+              </ul>
             )}
           </OvCard>
 
