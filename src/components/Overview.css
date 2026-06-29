@@ -40,6 +40,23 @@
   }
 }
 
+/* PC: bruk mer bredde — «I dag» på toppen, de fire andre på én rad */
+@media (min-width: 860px) {
+  .screen.ov-screen {
+    max-width: 960px;
+  }
+  .ov-screen .screen-scroll {
+    padding: 40px 32px 60px;
+  }
+  .ov-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .ov-greeting {
+    font-size: 40px;
+  }
+}
+
 .ov-card {
   background: var(--surface);
   border: none;
