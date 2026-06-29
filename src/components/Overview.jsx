@@ -1,7 +1,24 @@
+import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, monthlyCost } from '../db.js'
 import { kr } from '../lib/fx.js'
 import './Overview.css'
+
+/* Standard rekkefølge på Oversikt-kortene. Lagres tilpasset i localStorage. */
+const DEFAULT_ORDER = ['today', 'habits', 'money', 'projects', 'ideas']
+const CARD_LABEL = { today: 'I dag', habits: 'Vaner', money: 'Penger', projects: 'Prosjekter', ideas: 'Idébank' }
+
+function loadCfg() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('ovCards') || '{}')
+    const order = Array.isArray(raw.order) ? raw.order.filter((k) => DEFAULT_ORDER.includes(k)) : []
+    for (const k of DEFAULT_ORDER) if (!order.includes(k)) order.push(k) // nye kort havner bakerst
+    const hidden = Array.isArray(raw.hidden) ? raw.hidden.filter((k) => DEFAULT_ORDER.includes(k)) : []
+    return { order, hidden }
+  } catch {
+    return { order: [...DEFAULT_ORDER], hidden: [] }
+  }
+}
 
 function greeting() {
   const h = new Date().getHours()
@@ -86,6 +103,29 @@ function ProgressCircle({ pct }) {
 
 export default function Overview({ onNav }) {
   const today = todayKey()
+  const [cfg, setCfg] = useState(loadCfg)
+  const [editing, setEditing] = useState(false)
+
+  useEffect(() => {
+    localStorage.setItem('ovCards', JSON.stringify(cfg))
+  }, [cfg])
+
+  function move(key, dir) {
+    setCfg((c) => {
+      const order = [...c.order]
+      const i = order.indexOf(key)
+      const j = i + dir
+      if (j < 0 || j >= order.length) return c
+      ;[order[i], order[j]] = [order[j], order[i]]
+      return { ...c, order }
+    })
+  }
+  function toggleHide(key) {
+    setCfg((c) => ({
+      ...c,
+      hidden: c.hidden.includes(key) ? c.hidden.filter((k) => k !== key) : [...c.hidden, key],
+    }))
+  }
 
   const tasks = useLiveQuery(() => db.tasks.where('dueDate').belowOrEqual(today).toArray(), [today], [])
   const habits = useLiveQuery(() => db.habits.toArray(), [], [])
@@ -112,101 +152,147 @@ export default function Overview({ onNav }) {
     return { key, done: habits.some((h) => (h.history || []).includes(key)) }
   })
 
+  const CARDS = {
+    today: (
+      <OvCard
+        icon={ICONS.today}
+        color="var(--accent)"
+        title="I dag"
+        sub={total === 0 ? 'ingenting planlagt' : `${todayTasks.length} igjen av ${total}`}
+        onClick={editing ? undefined : () => onNav('today')}
+      >
+        <div className="ov-today-body">
+          <ProgressCircle pct={pct} />
+          <p className="ov-today-msg">
+            {total === 0
+              ? 'Blank dag — legg til det første du vil få gjort.'
+              : pct === 100
+              ? 'Alt gjort. Bra jobba.'
+              : todayTasks.length === 1
+              ? 'Én ting igjen — det klarer du.'
+              : `${todayTasks.length} ting igjen.`}
+          </p>
+        </div>
+      </OvCard>
+    ),
+    habits: (
+      <OvCard
+        icon={ICONS.habits}
+        color="var(--forest)"
+        title="Vaner"
+        sub={habits.length === 0 ? 'ingen enda' : `${habitsDoneToday} av ${habits.length} i dag`}
+        onClick={editing ? undefined : () => onNav('habits')}
+      >
+        {habits.length > 0 && (
+          <div className="ov-habit-dots">
+            {last7.map((d) => (
+              <span key={d.key} className={'ov-hdot' + (d.done ? ' on' : '') + (d.key === today ? ' today' : '')} />
+            ))}
+          </div>
+        )}
+      </OvCard>
+    ),
+    money: (
+      <OvCard
+        icon={ICONS.money}
+        color="#6b8cba"
+        title="Penger"
+        sub={`${subs.length} abonnement · per måned`}
+        onClick={editing ? undefined : () => onNav('money')}
+      >
+        <span className="ov-total">{kr(totalMonth)}</span>
+      </OvCard>
+    ),
+    projects: (
+      <OvCard
+        icon={ICONS.projects}
+        color="var(--forest)"
+        title="Prosjekter"
+        sub={projects.length === 0 ? 'ingen enda' : `${projects.length} aktive`}
+        onClick={editing ? undefined : () => onNav('projects')}
+      >
+        {projects.length === 0 ? (
+          <p className="ov-desc">Legg til en større ting du jobber mot.</p>
+        ) : (
+          <ul className="ov-list">
+            {projects.slice(0, 3).map((p) => (
+              <li key={p.id}>
+                <span className="ov-list-emoji">{p.emoji || '🗂️'}</span>
+                {p.name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </OvCard>
+    ),
+    ideas: (
+      <OvCard
+        icon={ICONS.ideas}
+        color="var(--accent)"
+        title="Idébank"
+        sub={ideas === 0 ? 'tom enda' : `${ideas} ideer`}
+        onClick={editing ? undefined : () => onNav('ideas')}
+      >
+        <p className="ov-desc">
+          {ideas === 0
+            ? 'Neste gang noe kult slår deg — dump det her og sorter senere.'
+            : `${ideas} ting lagret.`}
+        </p>
+      </OvCard>
+    ),
+  }
+
+  const visible = cfg.order.filter((k) => !cfg.hidden.includes(k))
+
   return (
     <div className="screen ov-screen">
       <div className="screen-scroll">
-        <p className="ov-date">{fmtDate()}</p>
-        <h1 className="ov-greeting">{greeting()}, Fabi</h1>
-        <p className="ov-peptalk">{peptalk()}</p>
+        <div className="ov-head">
+          <div>
+            <p className="ov-date">{fmtDate()}</p>
+            <h1 className="ov-greeting">{greeting()}, Fabi</h1>
+            <p className="ov-peptalk">{peptalk()}</p>
+          </div>
+          <button type="button" className={'ov-edit-btn' + (editing ? ' on' : '')} onClick={() => setEditing((e) => !e)}>
+            {editing ? 'Ferdig' : 'Tilpass'}
+          </button>
+        </div>
+
+        {visible.length === 0 && !editing && (
+          <div className="empty">
+            <div className="glyph">🫥</div>
+            <p className="em-ttl">Alle kort er skjult</p>
+            <p>Trykk «Tilpass» for å hente dem tilbake.</p>
+          </div>
+        )}
 
         <div className="ov-grid">
-          {/* I dag — stor */}
-          <OvCard
-            icon={ICONS.today}
-            color="var(--accent)"
-            title="I dag"
-            sub={total === 0 ? 'ingenting planlagt' : `${todayTasks.length} igjen av ${total}`}
-            onClick={() => onNav('today')}
-          >
-            <div className="ov-today-body">
-              <ProgressCircle pct={pct} />
-              <p className="ov-today-msg">
-                {total === 0
-                  ? 'Blank dag — legg til det første du vil få gjort.'
-                  : pct === 100
-                  ? 'Alt gjort. Bra jobba.'
-                  : todayTasks.length === 1
-                  ? 'Én ting igjen — det klarer du.'
-                  : `${todayTasks.length} ting igjen.`}
-              </p>
+          {visible.map((key, i) => (
+            <div key={key} className={'ov-cell' + (editing ? ' editing' : '')}>
+              {editing && (
+                <div className="ov-edit-bar">
+                  <button type="button" className="ov-eb" aria-label="Flytt opp" disabled={i === 0} onClick={() => move(key, -1)}>▲</button>
+                  <button type="button" className="ov-eb" aria-label="Flytt ned" disabled={i === visible.length - 1} onClick={() => move(key, 1)}>▼</button>
+                  <button type="button" className="ov-eb ov-eb-hide" onClick={() => toggleHide(key)}>Skjul</button>
+                </div>
+              )}
+              {CARDS[key]}
             </div>
-          </OvCard>
-
-          {/* Vaner */}
-          <OvCard
-            icon={ICONS.habits}
-            color="var(--forest)"
-            title="Vaner"
-            sub={habits.length === 0 ? 'ingen enda' : `${habitsDoneToday} av ${habits.length} i dag`}
-            onClick={() => onNav('habits')}
-          >
-            {habits.length > 0 && (
-              <div className="ov-habit-dots">
-                {last7.map((d) => (
-                  <span key={d.key} className={'ov-hdot' + (d.done ? ' on' : '') + (d.key === today ? ' today' : '')} />
-                ))}
-              </div>
-            )}
-          </OvCard>
-
-          {/* Penger */}
-          <OvCard
-            icon={ICONS.money}
-            color="#6b8cba"
-            title="Penger"
-            sub={`${subs.length} abonnement · per måned`}
-            onClick={() => onNav('money')}
-          >
-            <span className="ov-total">{kr(totalMonth)}</span>
-          </OvCard>
-
-          {/* Prosjekter */}
-          <OvCard
-            icon={ICONS.projects}
-            color="var(--forest)"
-            title="Prosjekter"
-            sub={projects.length === 0 ? 'ingen enda' : `${projects.length} aktive`}
-            onClick={() => onNav('projects')}
-          >
-            {projects.length === 0 ? (
-              <p className="ov-desc">Legg til en større ting du jobber mot.</p>
-            ) : (
-              <ul className="ov-list">
-                {projects.slice(0, 3).map((p) => (
-                  <li key={p.id}>
-                    <span className="ov-list-emoji">{p.emoji || '🗂️'}</span>
-                    {p.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </OvCard>
-
-          {/* Idébank */}
-          <OvCard
-            icon={ICONS.ideas}
-            color="var(--accent)"
-            title="Idébank"
-            sub={ideas === 0 ? 'tom enda' : `${ideas} ideer`}
-            onClick={() => onNav('ideas')}
-          >
-            <p className="ov-desc">
-              {ideas === 0
-                ? 'Neste gang noe kult slår deg — dump det her og sorter senere.'
-                : `${ideas} ting lagret.`}
-            </p>
-          </OvCard>
+          ))}
         </div>
+
+        {editing && cfg.hidden.length > 0 && (
+          <div className="ov-hidden">
+            <span className="ov-hidden-lbl">Skjulte kort</span>
+            <div className="ov-hidden-chips">
+              {cfg.hidden.map((key) => (
+                <button key={key} type="button" className="ov-chip" onClick={() => toggleHide(key)}>
+                  + {CARD_LABEL[key]}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

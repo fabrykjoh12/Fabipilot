@@ -31,8 +31,18 @@
   gap: 12px;
 }
 
-/* I dag tar full bredde */
-.ov-grid .ov-card:first-child {
+/* Cellen (wrapper rundt hvert kort) er grid-elementet */
+.ov-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ov-cell .ov-card {
+  flex: 1 1 auto;
+}
+
+/* Det første kortet tar full bredde */
+.ov-grid > .ov-cell:first-child {
   grid-column: 1 / -1;
 }
 
@@ -41,7 +51,7 @@
   .ov-grid {
     grid-template-columns: 1fr;
   }
-  .ov-grid .ov-card:first-child {
+  .ov-grid > .ov-cell:first-child {
     grid-column: 1;
   }
 }
@@ -61,6 +71,90 @@
   .ov-greeting {
     font-size: 40px;
   }
+}
+
+/* ===== Tilpass-modus ===== */
+.ov-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ov-edit-btn {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ov-edit-btn.on {
+  border-color: var(--accent);
+  background: var(--surface-focus);
+  color: var(--accent);
+}
+.ov-cell.editing .ov-card {
+  cursor: default;
+}
+.ov-cell.editing .ov-card:active {
+  transform: none;
+}
+.ov-edit-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.ov-eb {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ov-eb:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ov-eb-hide {
+  margin-left: auto;
+  color: var(--danger);
+}
+.ov-hidden {
+  margin-top: 22px;
+}
+.ov-hidden-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.ov-hidden-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ov-chip {
+  border: 1px dashed var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .ov-card {
