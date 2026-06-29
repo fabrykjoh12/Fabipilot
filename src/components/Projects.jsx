@@ -12,11 +12,12 @@ import {
   countActiveProjects,
   listProjectItems,
   addProjectItem,
-  advanceItem,
   setItemStage,
   setItemEnergy,
   updateProjectItem,
   deleteProjectItem,
+  moveItemToStage,
+  reorderItem,
   MAX_ACTIVE_PROJECTS,
 } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
@@ -25,11 +26,6 @@ import './Projects.css'
 const CHECK = (
   <svg viewBox="0 0 24 24">
     <path d="M5 13l4 4L19 7" />
-  </svg>
-)
-const ADV = (
-  <svg viewBox="0 0 24 24">
-    <path d="M9 6l6 6-6 6" />
   </svg>
 )
 const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
@@ -229,11 +225,69 @@ function ProjectsList({ onOpen }) {
 }
 
 /* ===================== ROADMAP (én prosjektside) ===================== */
-function SpineCard({ item, later }) {
-  const [leaving, setLeaving] = useState(false)
+const MORE = (
+  <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+  </svg>
+)
+const STAGE_OPTS = [
+  { k: 'now', label: 'Nå' },
+  { k: 'next', label: 'Neste' },
+  { k: 'later', label: 'Senere' },
+]
+
+/* Handlingssheet for ett steg: flytt fritt mellom faser, omroker, fullfør, slett. */
+function StepSheet({ item, onClose }) {
+  function move(stage) {
+    if (stage !== item.stage) moveItemToStage(item, stage)
+    onClose()
+  }
+  function done() {
+    vibrate([12, 30, 12])
+    setItemStage(item, 'done')
+    onClose()
+  }
+  function remove() {
+    if (window.confirm(`Slette «${item.text}»?`)) {
+      deleteProjectItem(item)
+      onClose()
+    }
+  }
+  return (
+    <div className="step-sheet-overlay" onClick={onClose}>
+      <div className="step-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="step-grip" />
+        <p className="step-sheet-txt">{item.text}</p>
+
+        <span className="step-lbl">Flytt til fase</span>
+        <div className="step-stages">
+          {STAGE_OPTS.map((s) => (
+            <button
+              key={s.k}
+              type="button"
+              className={'step-stage' + (item.stage === s.k ? ' on' : '')}
+              onClick={() => move(s.k)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="step-reorder">
+          <button type="button" onClick={() => reorderItem(item, -1)}>↑ Flytt opp</button>
+          <button type="button" onClick={() => reorderItem(item, 1)}>↓ Flytt ned</button>
+        </div>
+
+        <button type="button" className="step-done" onClick={done}>✓ Marker som ferdig</button>
+        <button type="button" className="step-del" onClick={remove}>Slett steg</button>
+      </div>
+    </div>
+  )
+}
+
+function SpineCard({ item, onActions }) {
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
-  const ref = useRef(null)
 
   function startEdit(e) { e.stopPropagation(); setEditVal(item.text); setEditing(true) }
   function saveEdit() {
@@ -242,19 +296,8 @@ function SpineCard({ item, later }) {
     setEditing(false)
   }
 
-  function handleAdvance() {
-    if (item.stage === 'now') {
-      setLeaving(true)
-      vibrate([12, 30, 12])
-      burst(ref.current)
-      setTimeout(() => setItemStage(item, 'done'), reduceMotion() ? 0 : 340)
-    } else {
-      advanceItem(item)
-    }
-  }
-
   return (
-    <div ref={ref} className={'rm-card' + (leaving ? ' leaving' : '')}>
+    <div className="rm-card">
       <button
         type="button"
         className={'energy ' + (item.energy || 'none')}
@@ -273,33 +316,22 @@ function SpineCard({ item, later }) {
       ) : (
         <span className="ctxt" onClick={startEdit} title="Trykk for å redigere">{item.text}</span>
       )}
-      <button
-        type="button"
-        className="adv"
-        aria-label="Flytt fremover"
-        onClick={handleAdvance}
-        onDoubleClick={(e) => e.preventDefault()}
-      >
-        {ADV}
+      <button type="button" className="rm-more" aria-label="Handlinger" onClick={() => onActions(item)}>
+        {MORE}
       </button>
-      {!later && (
-        <button
-          type="button"
-          className="rm-del"
-          aria-label="Slett"
-          onClick={() => deleteProjectItem(item)}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      )}
     </div>
   )
 }
 
-function StageBlock({ stage, label, note, items }) {
+function StageBlock({ stage, label, note, items, onAdd, onActions }) {
   const cls = stage === 'now' ? 'now' : stage === 'later' ? 'later' : 'next'
+  const [val, setVal] = useState('')
+  function submit() {
+    const v = val.trim()
+    if (!v) return
+    onAdd(stage, v)
+    setVal('')
+  }
   return (
     <div className={'stage ' + cls}>
       <span className="node" />
@@ -308,13 +340,21 @@ function StageBlock({ stage, label, note, items }) {
         <span className="ct">{items.length}</span>
         {note && <span className="note">{note}</span>}
       </div>
-      {items.length === 0 ? (
+      {items.length === 0 && (
         <div className="rm-card empty-card">
           <span className="ctxt muted">— tomt —</span>
         </div>
-      ) : (
-        items.map((i) => <SpineCard key={i.id} item={i} later={stage === 'later'} />)
       )}
+      {items.map((i) => <SpineCard key={i.id} item={i} onActions={onActions} />)}
+      <div className="stage-add">
+        <input
+          placeholder={`Legg til i ${label}…`}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && submit()}
+        />
+        <button type="button" disabled={!val.trim()} onClick={submit} aria-label={`Legg til i ${label}`}>+</button>
+      </div>
     </div>
   )
 }
@@ -322,7 +362,7 @@ function StageBlock({ stage, label, note, items }) {
 function Roadmap({ projectId, onBack }) {
   const project = useLiveQuery(() => getProject(projectId), [projectId])
   const items = useLiveQuery(() => listProjectItems(projectId), [projectId], [])
-  const [addVal, setAddVal] = useState('')
+  const [sheetItem, setSheetItem] = useState(null)
   const [doneCollapsed, setDoneCollapsed] = useState(true)
   const [editingName, setEditingName] = useState(false)
   const [editingWhy, setEditingWhy] = useState(false)
@@ -390,11 +430,8 @@ function Roadmap({ projectId, onBack }) {
     setTimeout(() => setItemStage(hero, 'done'), reduceMotion() ? 0 : 260)
   }
 
-  async function add() {
-    const v = addVal.trim()
-    if (!v) return
-    await addProjectItem(projectId, v, 'next')
-    setAddVal('')
+  async function addTo(stage, text) {
+    await addProjectItem(projectId, text, stage)
     vibrate(8)
   }
 
@@ -535,26 +572,15 @@ function Roadmap({ projectId, onBack }) {
             </div>
           ) : (
             <div className="hero-empty">
-              Ingenting i «Nå» akkurat nå. Flytt én ting fra Neste hit (pilen) — bare én. Det er nok.
+              Ingenting i «Nå» akkurat nå. Trykk ⋯ på en ting i Neste og flytt den hit — bare én. Det er nok.
             </div>
           )}
         </div>
 
         <div className="road">
-          <StageBlock stage="now" label="Nå" note="det du jobber med" items={nowRest} />
-          <StageBlock stage="next" label="Neste" items={nextItems} />
-          <div className="addrow">
-            <input
-              placeholder="Legg til i Neste…"
-              value={addVal}
-              onChange={(e) => setAddVal(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && add()}
-            />
-            <button type="button" disabled={addVal.trim() === ''} onClick={add} aria-label="Legg til">
-              +
-            </button>
-          </div>
-          <StageBlock stage="later" label="Senere" note="ingen press" items={laterItems} />
+          <StageBlock stage="now" label="Nå" note="det du jobber med" items={nowRest} onAdd={addTo} onActions={setSheetItem} />
+          <StageBlock stage="next" label="Neste" items={nextItems} onAdd={addTo} onActions={setSheetItem} />
+          <StageBlock stage="later" label="Senere" note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} />
         </div>
 
         {doneItems.length > 0 && (
@@ -570,20 +596,22 @@ function Roadmap({ projectId, onBack }) {
             {!doneCollapsed && (
               <div className="done-wrap">
                 {doneItems.map((i) => (
-                  <div key={i.id} className="donecard">
+                  <button key={i.id} type="button" className="donecard" onClick={() => setSheetItem(i)}>
                     <span className="dot">
                       <svg viewBox="0 0 24 24">
                         <path d="M5 13l4 4L19 7" />
                       </svg>
                     </span>
                     <span className="t">{i.text}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </>
         )}
       </div>
+
+      {sheetItem && <StepSheet item={sheetItem} onClose={() => setSheetItem(null)} />}
     </div>
   )
 }

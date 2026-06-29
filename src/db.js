@@ -343,6 +343,29 @@ export async function deleteProjectItem(item) {
   await touch(item.projectId)
 }
 
+/** Flytt et item til en vilkårlig fase (legges nederst i målfasen). */
+export async function moveItemToStage(item, stage) {
+  if (item.stage === stage) return
+  const all = await listProjectItems(item.projectId)
+  const inStage = all.filter((i) => i.stage === stage && i.id !== item.id)
+  const maxOrder = inStage.length ? Math.max(...inStage.map((i) => i.sortOrder || 0)) : now()
+  await db.projectItems.update(item.id, { stage, sortOrder: maxOrder + 1000 })
+  await touch(item.projectId)
+}
+
+/** Omroker et item opp/ned innenfor sin egen fase. */
+export async function reorderItem(item, direction) {
+  const all = await listProjectItems(item.projectId)
+  const inStage = all.filter((i) => i.stage === item.stage)
+  const idx = inStage.findIndex((i) => i.id === item.id)
+  const swap = idx + direction
+  if (idx < 0 || swap < 0 || swap >= inStage.length) return
+  const a = inStage[idx], b = inStage[swap]
+  await db.projectItems.update(a.id, { sortOrder: b.sortOrder ?? 0 })
+  await db.projectItems.update(b.id, { sortOrder: a.sortOrder ?? 0 })
+  await touch(item.projectId)
+}
+
 /** Forfremm en idé til et nytt prosjekt. Respekterer WIP-taket. */
 export async function promoteIdeaToProject(idea) {
   const active = await countActiveProjects()
