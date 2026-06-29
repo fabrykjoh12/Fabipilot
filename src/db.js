@@ -96,6 +96,22 @@ db.version(7).stores({
   budgets: 'id, category, createdAt',
 })
 
+// v8: penger — incomes (månedsinntekt) + goals (sparemål).
+db.version(8).stores({
+  ideas: 'id, category, createdAt',
+  tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+  habits: 'id, sortOrder, createdAt',
+  subscriptions: 'id, createdAt',
+  projects: 'id, status, sortOrder, lastTouched, createdAt',
+  projectItems: 'id, projectId, stage, sortOrder, createdAt',
+  events: 'id, date, createdAt',
+  todos: 'id, isDone, sortOrder, createdAt',
+  expenses: 'id, date, category, createdAt',
+  budgets: 'id, category, createdAt',
+  incomes: 'id, createdAt',
+  goals: 'id, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -257,6 +273,35 @@ export async function setBudget(category, amount) {
   }
   if (existing) await db.budgets.update(existing.id, { amount: amt })
   else await db.budgets.add({ id: uid(), category, amount: amt, createdAt: now() })
+}
+
+/* ---- inntekt (månedlig) ---- */
+export async function listIncomes() {
+  return db.incomes.orderBy('createdAt').toArray()
+}
+export async function addIncome({ name, amount }) {
+  const i = { id: uid(), name: name.trim(), amount: Number(amount) || 0, createdAt: now() }
+  await db.incomes.add(i)
+  return i
+}
+export const updateIncome = (id, patch) => db.incomes.update(id, patch)
+export const deleteIncome = (id) => db.incomes.delete(id)
+
+/* ---- sparemål ---- */
+export async function listGoals() {
+  return db.goals.orderBy('createdAt').toArray()
+}
+export async function addGoal({ name, target }) {
+  const g = { id: uid(), name: name.trim(), target: Number(target) || 0, saved: 0, createdAt: now() }
+  await db.goals.add(g)
+  return g
+}
+export const updateGoal = (id, patch) => db.goals.update(id, patch)
+export const deleteGoal = (id) => db.goals.delete(id)
+export async function addToGoal(id, delta) {
+  const g = await db.goals.get(id)
+  if (!g) return
+  await db.goals.update(id, { saved: Math.max(0, (g.saved || 0) + delta) })
 }
 
 /* =========================================================
@@ -470,10 +515,10 @@ export async function moveTodo(id, direction) {
 /* =========================================================
    BACKUP — eksport/import av HELE dashboardet
    ========================================================= */
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets']
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals']
 
 export async function exportAll() {
-  const out = { type: 'dashboard-backup', version: 7, exportedAt: new Date().toISOString() }
+  const out = { type: 'dashboard-backup', version: 8, exportedAt: new Date().toISOString() }
   for (const t of TABLES) out[t] = await db.table(t).toArray()
   return out
 }

@@ -2,6 +2,7 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-06-29 — Bolk 2 (del 1): Penger fikk inntekt + sparemål (nye stores `incomes` + `goals`, schema v8). Inntekt-kort på Oversikt-fanen + «igjen å bruke» i sammendraget. Ny «Sparing»-fane med sparemål (fremdriftslinje, + Spar/− for å justere spart, rediger mål/slett). Med i sync + backup.
 - 2026-06-29 — Bolk 1 (del 3, ferdig): Idébank fikk frie tagger (#tag-chips på kortet, tag-editor i utvidet visning, klikk på tagg søker; søk matcher nå tagger). Liste-gjøremål fikk sjekkliste/delpunkter (`subtasks`-array + `addSubtask`/`toggleSubtask`/`deleteSubtask`, ☑ N/M-chip som utvider en mini-sjekkliste). Begge er uindekserte array-felter.
 - 2026-06-29 — Bolk 1 (del 2): Vaner fikk emoji + farge + arkiv (uindekserte felt på `habits`, customize-panel per kort, fargede prikker, arkivseksjon med «hent tilbake»). Prosjekter fikk frist (deadline-dato med forfall-farge) og eget notatfelt (uindekserte felt på `projects`).
 - 2026-06-29 — Bolk 1 (del 1) av funksjonsutrullingen: «Utsett til i morgen»-knapp (måne) på I dag-oppgaver (`snoozeTaskToTomorrow`), sort-toggle Manuelt/Dato + «→ I dag»-knapp på Liste-gjøremål, «Kommende betalinger»-liste på Penger/Faste (sortert på trekkdag), og en roterende dags-hilsen på Oversikt.

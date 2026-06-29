@@ -3,6 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import {
   listSubscriptions, addSubscription, updateSubscription, deleteSubscription, monthlyCost,
   listExpenses, addExpense, updateExpense, deleteExpense, listBudgets, setBudget, todayKey,
+  listIncomes, addIncome, updateIncome, deleteIncome,
+  listGoals, addGoal, updateGoal, deleteGoal, addToGoal,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
 import './Money.css'
@@ -44,6 +46,7 @@ const TABS = [
   { k: 'oversikt', label: 'Oversikt' },
   { k: 'forbruk', label: 'Forbruk' },
   { k: 'faste', label: 'Faste' },
+  { k: 'sparing', label: 'Sparing' },
 ]
 
 /* ============ bunn-sheet: legg til / rediger forbruk ============ */
@@ -288,6 +291,8 @@ export default function Money() {
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
   const expenses = useLiveQuery(() => listExpenses(), [], [])
   const budgets = useLiveQuery(() => listBudgets(), [], [])
+  const incomes = useLiveQuery(() => listIncomes(), [], [])
+  const goals = useLiveQuery(() => listGoals(), [], [])
 
   const [tab, setTab] = useState('oversikt')
   const [cursor, setCursor] = useState(() => {
@@ -297,6 +302,12 @@ export default function Money() {
   const [sheet, setSheet] = useState(null) // {type:'expense', expense?} | {type:'budget', cat?}
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
+  const [incName, setIncName] = useState('')
+  const [incAmount, setIncAmount] = useState('')
+  const [goalName, setGoalName] = useState('')
+  const [goalTarget, setGoalTarget] = useState('')
+
+  const totalIncome = incomes.reduce((s, i) => s + (i.amount || 0), 0)
 
   const monthPrefix = `${cursor.y}-${pad(cursor.m + 1)}`
   const monthExpenses = expenses.filter((e) => (e.date || '').startsWith(monthPrefix))
@@ -340,6 +351,15 @@ export default function Money() {
     await addSubscription({ name: n, amount: Number(amount) || 0, cycle: 'monthly' })
     setName('')
     setAmount('')
+    vibrate(8)
+  }
+
+  async function addGoalNow() {
+    const n = goalName.trim()
+    if (!n) return
+    await addGoal({ name: n, target: Number(goalTarget) || 0 })
+    setGoalName('')
+    setGoalTarget('')
     vibrate(8)
   }
 
@@ -387,6 +407,11 @@ export default function Money() {
               ) : (
                 <span className="bs-sub">Sett et budsjett nedenfor for å følge med.</span>
               )}
+              {totalIncome > 0 && (
+                <span className="bs-income">
+                  Inntekt {kr(totalIncome)} · {kr(totalIncome - totalSpent)} igjen å bruke
+                </span>
+              )}
             </div>
 
             {catRows.length === 0 ? (
@@ -422,6 +447,90 @@ export default function Money() {
             <button type="button" className="budget-add" onClick={() => setSheet({ type: 'budget' })}>
               + Sett / endre budsjett
             </button>
+
+            <div className="income-card">
+              <span className="income-lbl">Månedsinntekt</span>
+              {incomes.map((i) => (
+                <div key={i.id} className="income-row">
+                  <span className="income-name">{i.name}</span>
+                  <button
+                    type="button"
+                    className="income-amt"
+                    onClick={() => {
+                      const v = window.prompt(`Beløp for «${i.name}» per måned:`, i.amount)
+                      if (v !== null && !Number.isNaN(Number(v))) updateIncome(i.id, { amount: Number(v) })
+                    }}
+                  >{kr(i.amount)}</button>
+                  <button type="button" className="income-del" aria-label="Slett" onClick={() => deleteIncome(i.id)}>×</button>
+                </div>
+              ))}
+              <div className="income-add">
+                <input
+                  type="text"
+                  placeholder="Lønn, stipend…"
+                  value={incName}
+                  onChange={(e) => setIncName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && incName.trim() && (addIncome({ name: incName, amount: incAmount }), setIncName(''), setIncAmount(''))}
+                />
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="kr"
+                  className="income-amt-in"
+                  value={incAmount}
+                  onChange={(e) => setIncAmount(e.target.value)}
+                />
+                <button
+                  type="button"
+                  disabled={!incName.trim()}
+                  onClick={() => { addIncome({ name: incName, amount: incAmount }); setIncName(''); setIncAmount('') }}
+                  aria-label="Legg til inntekt"
+                >+</button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ===== SPARING ===== */}
+        {tab === 'sparing' && (
+          <>
+            {goals.length === 0 ? (
+              <div className="empty">
+                <div className="glyph">🎯</div>
+                <p className="em-ttl">Ingen sparemål enda</p>
+                <p>Lag et mål nederst — ferie, ny telefon, buffer — og legg til etter hvert som du sparer.</p>
+              </div>
+            ) : (
+              <div className="goals">
+                {goals.map((g) => {
+                  const pct = g.target > 0 ? Math.min(100, Math.round((g.saved / g.target) * 100)) : 0
+                  const reached = g.target > 0 && g.saved >= g.target
+                  return (
+                    <div key={g.id} className={'goal' + (reached ? ' reached' : '')}>
+                      <div className="goal-top">
+                        <span className="goal-name">{g.name}</span>
+                        <button type="button" className="goal-del" aria-label="Slett" onClick={() => { if (window.confirm(`Slette «${g.name}»?`)) deleteGoal(g.id) }}>×</button>
+                      </div>
+                      <div className="goal-bar"><i style={{ width: pct + '%' }} /></div>
+                      <div className="goal-foot">
+                        <button
+                          type="button"
+                          className="goal-amt"
+                          onClick={() => {
+                            const v = window.prompt(`Mål for «${g.name}»:`, g.target)
+                            if (v !== null && !Number.isNaN(Number(v))) updateGoal(g.id, { target: Number(v) })
+                          }}
+                        >{kr(g.saved)} av {kr(g.target)} · {pct}%</button>
+                        <div className="goal-acts">
+                          <button type="button" onClick={() => { const v = window.prompt('Legg til spart beløp:', '500'); if (v !== null && Number(v)) { addToGoal(g.id, Number(v)); vibrate(8) } }}>+ Spar</button>
+                          <button type="button" onClick={() => { const v = window.prompt('Trekk fra beløp:', '500'); if (v !== null && Number(v)) addToGoal(g.id, -Number(v)) }}>−</button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </>
         )}
 
@@ -524,6 +633,31 @@ export default function Money() {
               onKeyDown={(e) => e.key === 'Enter' && addSub()}
             />
             <button type="button" className="field-btn" aria-label="Legg til abonnement" disabled={name.trim() === ''} onClick={addSub}>
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
+      {tab === 'sparing' && (
+        <div className="screen-bar">
+          <div className="field">
+            <input
+              type="text"
+              placeholder="Nytt sparemål…"
+              value={goalName}
+              onChange={(e) => setGoalName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addGoalNow()}
+            />
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="mål kr"
+              className="amount-in"
+              value={goalTarget}
+              onChange={(e) => setGoalTarget(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addGoalNow()}
+            />
+            <button type="button" className="field-btn" aria-label="Legg til sparemål" disabled={goalName.trim() === ''} onClick={addGoalNow}>
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
             </button>
           </div>

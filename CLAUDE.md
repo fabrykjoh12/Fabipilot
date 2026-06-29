@@ -35,7 +35,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **7**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **8**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -51,6 +51,10 @@ Synces via Dexie Cloud (se §3).
   `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES`.
 - **budgets** (Penger/Budsjett) — `id, category, amount, createdAt`
   Én rad per kategori; `amount` = månedsbudsjett. `setBudget(cat, 0)` fjerner raden.
+- **incomes** (Penger/Inntekt) — `id, name, amount, createdAt`
+  Månedlig inntektskilde. Sum = «igjen å bruke» på Oversikt-fanen.
+- **goals** (Penger/Sparing) — `id, name, target, saved, createdAt`
+  Sparemål. `addToGoal(id, delta)` justerer `saved` (min 0).
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
   `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon (begge uindeksert, ingen schema-bump).
