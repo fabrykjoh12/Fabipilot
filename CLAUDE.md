@@ -70,9 +70,12 @@ Synces via Dexie Cloud (se §3).
   Sparemål. `addToGoal(id, delta)` justerer `saved` (min 0).
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
-  `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon (begge uindeksert, ingen schema-bump).
+  `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon. Prompt-verksted-felt (alle uindeksert, ingen
+  schema-bump): `context` (Claude-kontekst/stack — limes inn foran kopierte prompts), `liveUrl`, `repoUrl`,
+  `deadline` (`YYYY-MM-DD` el. `null`), `notes`.
 - **projectItems** — `id, projectId, text, stage, energy, sortOrder, createdAt`
-  `stage` = `'now' | 'next' | 'later' | 'done'`. `energy` = `'lav' | 'hoy' | null`.
+  `stage` = `'now' | 'next' | 'later' | 'done'` (prioritet Høy/Medium/Lav på PC-tavla). `energy` = `'lav' | 'hoy' | null`.
+  `aiStatus` = `'idea' | 'asked' | 'built' | 'verified'` (Claude-loop, uindeksert; default `'idea'`), `subtasks[]`.
   «Neste steg» = første item med `stage='now'` (etter `sortOrder`). Ingen egen flagg-kolonne.
 - **events** (Kalender) — `id, title, date, time, note, color, createdAt`
   `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).
@@ -112,7 +115,11 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
   - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget) / Faste (abonnement)
-  - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt + roadmap-side
+  - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt (kort-rutenett på PC) + prosjektside som
+    Claude-prompt-verksted. PC = to-spalte arbeidsbenk: info-skinne (hvorfor, lenker, Claude-kontekst,
+    fremdrift, statistikk, «Viktigst nå») + kanban-tavle (Høy/Medium/Lav). Hvert steg er en prompt:
+    «kopier som prompt» (limer prosjektkontekst foran via `buildPrompt`), AI-status-pille (Idé→Spurt→
+    Bygd→Verifisert), og «Kjør prompts»-kø (`PromptQueue`: én prompt om gangen → kopier/åpne Claude → neste)
   - `SharedList.jsx` — «Delt»: én delt liste med kjæresten (Dexie Cloud realm + e-postinvitasjon). Kun denne lista deles
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
   - `Garden.jsx` / `Garden.css` — «Hage»: rolig, levende SVG-scene som speiler uka (vaner=blomster, prosjekter=trær, gjort i dag=sommerfugler, fokus=sol, penger=vær). Kun lesing over eksisterende stores, ingen skam/visning

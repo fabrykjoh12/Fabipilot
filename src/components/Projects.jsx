@@ -253,6 +253,26 @@ const COPY = (
     <path d="M5 15V5a2 2 0 0 1 2-2h10" />
   </svg>
 )
+/* Setter sammen et steg til en ferdig prompt med prosjektkontekst foran,
+   klar til å lime inn i Claude/Codex. Uten kontekst → bare teksten. */
+function buildPrompt(project, text) {
+  const ctx = []
+  if (project?.name) ctx.push(`Prosjekt: ${project.name}`)
+  if (project?.why) ctx.push(`Mål: ${project.why}`)
+  if (project?.context) ctx.push(`Kontekst: ${project.context}`)
+  if (project?.liveUrl) ctx.push(`Live: ${project.liveUrl}`)
+  if (project?.repoUrl) ctx.push(`Repo: ${project.repoUrl}`)
+  const header = ctx.join('\n')
+  return header ? `${header}\n\nOppgave:\n${text}` : text
+}
+function hasContext(project) {
+  return !!(project?.why || project?.context || project?.liveUrl || project?.repoUrl)
+}
+
+/* AI-arbeidsflyt: hvor i Claude-loopen et steg er. */
+const AI_NEXT = { idea: 'asked', asked: 'built', built: 'verified', verified: 'idea' }
+const AI_LABEL = { idea: 'Idé', asked: 'Spurt', built: 'Bygd', verified: 'Verifisert' }
+
 /* Prioritetsnivåer. Lagres fortsatt som stage-verdiene now/next/later i db-en. */
 const STAGE_OPTS = [
   { k: 'now', label: 'Høy' },
@@ -311,13 +331,14 @@ function StepSheet({ item, onClose }) {
   )
 }
 
-function SpineCard({ item, onActions }) {
+function SpineCard({ item, onActions, project }) {
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [subVal, setSubVal] = useState('')
   const subs = item.subtasks || []
   const subsDone = subs.filter((s) => s.done).length
+  const ai = item.aiStatus || 'idea'
 
   function startEdit(e) { e.stopPropagation(); setEditVal(item.text); setEditing(true) }
   function saveEdit() {
@@ -334,12 +355,17 @@ function SpineCard({ item, onActions }) {
   async function copy(e) {
     e.stopPropagation()
     try {
-      await navigator.clipboard.writeText(item.text)
+      await navigator.clipboard.writeText(buildPrompt(project, item.text))
       vibrate(8)
-      toast.success('Kopiert')
+      toast.success(hasContext(project) ? 'Kopiert som prompt' : 'Kopiert')
     } catch {
       toast.error('Kunne ikke kopiere')
     }
+  }
+  function cycleAi(e) {
+    e.stopPropagation()
+    updateProjectItem(item, { aiStatus: AI_NEXT[ai] })
+    vibrate(6)
   }
 
   return (
@@ -364,6 +390,9 @@ function SpineCard({ item, onActions }) {
           <span className="ctxt" onClick={startEdit} title="Trykk for å redigere">{item.text}</span>
         )}
         <div className="rm-actions">
+        <button type="button" className={'ai-pill ai-' + ai} onClick={cycleAi} title="Bytt status i Claude-loopen">
+          {AI_LABEL[ai]}
+        </button>
         <button
           type="button"
           className={'rm-subchip' + (subs.length ? '' : ' empty')}
@@ -371,7 +400,7 @@ function SpineCard({ item, onActions }) {
         >
           {subs.length ? `☑ ${subsDone}/${subs.length}` : '+'}
         </button>
-        <button type="button" className="rm-copy" aria-label="Kopier tekst" onClick={copy}>
+        <button type="button" className="rm-copy" aria-label="Kopier som prompt" onClick={copy}>
           {COPY}
         </button>
         <button type="button" className="rm-more" aria-label="Handlinger" onClick={() => onActions(item)}>
@@ -401,7 +430,7 @@ function SpineCard({ item, onActions }) {
   )
 }
 
-function StageBlock({ stage, label, note, items, onAdd, onActions }) {
+function StageBlock({ stage, label, note, items, onAdd, onActions, project }) {
   const cls = stage === 'now' ? 'now' : stage === 'later' ? 'later' : 'next'
   const [val, setVal] = useState('')
   function submit() {
@@ -423,7 +452,7 @@ function StageBlock({ stage, label, note, items, onAdd, onActions }) {
           <span className="ctxt muted">— tomt —</span>
         </div>
       )}
-      {items.map((i) => <SpineCard key={i.id} item={i} onActions={onActions} />)}
+      {items.map((i) => <SpineCard key={i.id} item={i} onActions={onActions} project={project} />)}
       <div className="stage-add">
         <input
           placeholder={`Legg til i ${label}…`}
@@ -432,6 +461,62 @@ function StageBlock({ stage, label, note, items, onAdd, onActions }) {
           onKeyDown={(e) => e.key === 'Enter' && submit()}
         />
         <button type="button" disabled={!val.trim()} onClick={submit} aria-label={`Legg til i ${label}`}>+</button>
+      </div>
+    </div>
+  )
+}
+
+/* Kø-/fokusmodus: jobb gjennom prompts én om gangen — kopier, åpne Claude,
+   marker «spurt», neste. Jobber på et øyeblikksbilde av køen (stabil rekkefølge). */
+function PromptQueue({ items, project, onClose }) {
+  const [idx, setIdx] = useState(0)
+  const atEnd = idx >= items.length
+  const item = items[idx]
+
+  function copy() {
+    navigator.clipboard.writeText(buildPrompt(project, item.text))
+      .then(() => { vibrate(8); toast.success(hasContext(project) ? 'Kopiert som prompt' : 'Kopiert') })
+      .catch(() => toast.error('Kunne ikke kopiere'))
+  }
+  function openClaude() {
+    copy()
+    window.open('https://claude.ai/new', '_blank', 'noopener')
+  }
+  function markAsked() {
+    updateProjectItem(item, { aiStatus: 'asked' })
+    setIdx((i) => i + 1)
+  }
+
+  return (
+    <div className="pq-overlay" onClick={onClose}>
+      <div className="pq" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="pq-top">
+          <span className="pq-count">{Math.min(idx + 1, items.length)} / {items.length}</span>
+          <button type="button" className="pq-close" onClick={onClose} aria-label="Lukk">×</button>
+        </div>
+        {atEnd ? (
+          <div className="pq-done">
+            <div className="pq-done-glyph">🎉</div>
+            <p className="pq-done-ttl">Køen er gjennomgått</p>
+            <button type="button" className="pq-cta" onClick={onClose}>Ferdig</button>
+          </div>
+        ) : (
+          <>
+            <p className="pq-eyebrow">Prompt · {PRIO_LABEL[item.stage] || ''}</p>
+            <p className="pq-text">{item.text}</p>
+            <div className="pq-actions">
+              <button type="button" className="pq-claude" onClick={openClaude}>Åpne Claude ↗</button>
+              <button type="button" className="pq-copy" onClick={copy}>⧉ Kopier prompt</button>
+            </div>
+            <div className="pq-nav">
+              <button type="button" className="pq-skip" onClick={() => setIdx((i) => i + 1)}>Hopp over →</button>
+              <button type="button" className="pq-mark" onClick={markAsked}>✓ Spurt — neste</button>
+            </div>
+            {idx > 0 && (
+              <button type="button" className="pq-prev" onClick={() => setIdx((i) => Math.max(0, i - 1))}>‹ Forrige</button>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
@@ -447,13 +532,34 @@ function Roadmap({ projectId, onBack }) {
   const [editingHero, setEditingHero] = useState(false)
   const [customizing, setCustomizing] = useState(false)
   const [editingNotes, setEditingNotes] = useState(false)
+  const [editingContext, setEditingContext] = useState(false)
+  const [linksEditing, setLinksEditing] = useState(false)
+  const [queueOpen, setQueueOpen] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const [whyVal, setWhyVal] = useState('')
   const [heroVal, setHeroVal] = useState('')
   const [notesVal, setNotesVal] = useState('')
+  const [contextVal, setContextVal] = useState('')
+  const [liveVal, setLiveVal] = useState('')
+  const [repoVal, setRepoVal] = useState('')
   const heroCheckRef = useRef(null)
 
   if (!project) return <div className="screen" />
+
+  function openLinksEdit() {
+    setLiveVal(project.liveUrl || '')
+    setRepoVal(project.repoUrl || '')
+    setLinksEditing(true)
+  }
+  function saveLinks() {
+    const norm = (u) => {
+      const v = u.trim()
+      if (!v) return ''
+      return /^https?:\/\//i.test(v) ? v : 'https://' + v
+    }
+    updateProject(project.id, { liveUrl: norm(liveVal), repoUrl: norm(repoVal) })
+    setLinksEditing(false)
+  }
 
   function startEditName() {
     setNameVal(project.name)
@@ -495,6 +601,7 @@ function Roadmap({ projectId, onBack }) {
   const doneItems = items.filter((i) => i.stage === 'done')
   const hero = nowItems[0] || null
   const nowRest = nowItems.slice(1)
+  const queue = [...nowItems, ...nextItems, ...laterItems]
 
   function startEditHero() {
     if (!hero) return
@@ -565,6 +672,11 @@ function Roadmap({ projectId, onBack }) {
               <h1 className="pname" onClick={startEditName} title="Trykk for å redigere">{project.name}</h1>
             )}
           </div>
+          {queue.length > 0 && (
+            <button type="button" className="prun" onClick={() => setQueueOpen(true)}>
+              ▶ Kjør prompts <span className="prun-ct">{queue.length}</span>
+            </button>
+          )}
           <div className="phead-actions">
             <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>
               {STATUS_LABEL[project.status]}
@@ -606,6 +718,21 @@ function Roadmap({ projectId, onBack }) {
 
         <div className="rm-workspace">
         <aside className="rm-rail">
+        {linksEditing ? (
+          <div className="plinks-edit">
+            <input className="plink-input" placeholder="Live-URL (min-side.vercel.app)" value={liveVal} autoFocus onChange={(e) => setLiveVal(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveLinks(); if (e.key === 'Escape') setLinksEditing(false) }} />
+            <input className="plink-input" placeholder="Repo-URL (github.com/…)" value={repoVal} onChange={(e) => setRepoVal(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveLinks(); if (e.key === 'Escape') setLinksEditing(false) }} />
+            <button type="button" className="plink-save" onClick={saveLinks}>Lagre lenker</button>
+          </div>
+        ) : project.liveUrl || project.repoUrl ? (
+          <div className="plinks">
+            {project.liveUrl && <a className="plink plink-live" href={project.liveUrl} target="_blank" rel="noreferrer">↗ Live</a>}
+            {project.repoUrl && <a className="plink plink-repo" href={project.repoUrl} target="_blank" rel="noreferrer">⎇ Repo</a>}
+            <button type="button" className="plink-editbtn" onClick={openLinksEdit} aria-label="Rediger lenker">✎</button>
+          </div>
+        ) : (
+          <button type="button" className="plinks-add" onClick={openLinksEdit}>+ Live-URL / repo</button>
+        )}
         {editingWhy ? (
           <div className="pwhy-edit">
             <input
@@ -654,6 +781,25 @@ function Roadmap({ projectId, onBack }) {
           </p>
         )}
 
+        {editingContext ? (
+          <textarea
+            className="pcontext-input"
+            value={contextVal}
+            autoFocus
+            placeholder="Stack, konvensjoner, mappestruktur… Blir limt inn foran hver prompt du kopierer."
+            rows={3}
+            onChange={(e) => setContextVal(e.target.value)}
+            onBlur={() => { updateProject(project.id, { context: contextVal.trim() }); setEditingContext(false) }}
+          />
+        ) : (
+          <button type="button" className="pcontext" onClick={() => { setContextVal(project.context || ''); setEditingContext(true) }}>
+            <span className="pcontext-lbl">🧠 Claude-kontekst</span>
+            {project.context
+              ? <span className="pcontext-txt">{project.context}</span>
+              : <span className="pcontext-placeholder">+ stack &amp; konvensjoner — blir med i hver prompt</span>}
+          </button>
+        )}
+
         <div className="prog">
           <span className="bar">
             <i style={{ width: pct + '%', background: col }} />
@@ -689,6 +835,20 @@ function Roadmap({ projectId, onBack }) {
               ) : (
                 <div className="htxt" onClick={startEditHero} title="Trykk for å redigere">{hero.text}</div>
               )}
+              <button
+                type="button"
+                className="rm-copy hero-copy"
+                aria-label="Kopier som prompt"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(buildPrompt(project, hero.text))
+                    vibrate(8)
+                    toast.success(hasContext(project) ? 'Kopiert som prompt' : 'Kopiert')
+                  } catch { toast.error('Kunne ikke kopiere') }
+                }}
+              >
+                {COPY}
+              </button>
             </div>
           ) : (
             <div className="hero-empty">
@@ -700,9 +860,9 @@ function Roadmap({ projectId, onBack }) {
 
         <section className="rm-board">
         <div className="road prio-list">
-          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} />
-          <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} />
-          <StageBlock stage="later" label={PRIO_LABEL.later} note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} />
+          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} project={project} />
+          <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} project={project} />
+          <StageBlock stage="later" label={PRIO_LABEL.later} note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} project={project} />
         </div>
 
         {doneItems.length > 0 && (
@@ -736,6 +896,9 @@ function Roadmap({ projectId, onBack }) {
       </div>
 
       {sheetItem && <StepSheet item={sheetItem} onClose={() => setSheetItem(null)} />}
+      {queueOpen && queue.length > 0 && (
+        <PromptQueue items={queue} project={project} onClose={() => setQueueOpen(false)} />
+      )}
     </div>
   )
 }
