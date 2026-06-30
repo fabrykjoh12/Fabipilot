@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { motion, useMotionValue, useTransform } from 'motion/react'
 import {
   listTasks,
   addTask,
@@ -83,12 +84,22 @@ function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop, onSnooze }) {
     setTimeout(() => onDrop(task), reduceMotion() ? 0 : 340)
   }
 
-  return (
-    <div
-      className={
-        'task' + (task.isFocus && !done ? ' focus' : '') + (done ? ' done' : '') + (leaving ? ' leaving' : '')
-      }
-    >
+  // ---- sveip: høyre = fullfør, venstre = utsett til i morgen ----
+  const x = useMotionValue(0)
+  const completeOpacity = useTransform(x, [12, 80], [0, 1])
+  const snoozeOpacity = useTransform(x, [-80, -12], [1, 0])
+  const swipeable = !done && !carry
+  const SWIPE_THRESHOLD = 80
+  function onDragEnd(_e, info) {
+    if (info.offset.x > SWIPE_THRESHOLD) handleCheck()
+    else if (info.offset.x < -SWIPE_THRESHOLD && onSnooze) onSnooze(task)
+  }
+
+  const taskClass =
+    'task' + (task.isFocus && !done ? ' focus' : '') + (done ? ' done' : '') + (leaving ? ' leaving' : '')
+
+  const inner = (
+    <>
       <div
         ref={checkRef}
         className="check"
@@ -170,6 +181,32 @@ function Task({ task, onCheck, onUndo, onFocus, onCarry, onDrop, onSnooze }) {
           </button>
         </>
       ) : null}
+    </>
+  )
+
+  if (!swipeable) return <div className={taskClass}>{inner}</div>
+
+  return (
+    <div className="swipe-wrap">
+      <div className="swipe-actions" aria-hidden="true">
+        <motion.span className="swipe-act complete" style={{ opacity: completeOpacity }}>
+          {CHECK} Fullfør
+        </motion.span>
+        <motion.span className="swipe-act snooze" style={{ opacity: snoozeOpacity }}>
+          {MOON} I morgen
+        </motion.span>
+      </div>
+      <motion.div
+        className={taskClass + ' swipeable'}
+        drag="x"
+        dragDirectionLock
+        dragSnapToOrigin
+        dragElastic={0.9}
+        style={{ x }}
+        onDragEnd={onDragEnd}
+      >
+        {inner}
+      </motion.div>
     </div>
   )
 }

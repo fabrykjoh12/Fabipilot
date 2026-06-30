@@ -780,6 +780,59 @@
   border: 1px solid transparent;
   animation: rise 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+
+/* ===== Sveip på oppgaver (I dag) ===== */
+.swipe-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+.swipe-wrap .task.swipeable {
+  margin-bottom: 0;
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y;
+  cursor: grab;
+  /* viktig: rise-animasjonen beholder transform:none og ville overstyrt
+     motion sin drag-transform — skru den av for sveipbare kort */
+  animation: none;
+}
+.swipe-wrap .task.swipeable:active {
+  cursor: grabbing;
+}
+.swipe-actions {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.swipe-act {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius);
+  padding: 0 22px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.swipe-act svg {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+  stroke-width: 2.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.swipe-act.complete {
+  justify-content: flex-start;
+  background: var(--success);
+}
+.swipe-act.snooze {
+  justify-content: flex-end;
+  background: var(--forest);
+}
 .task.focus {
   background: var(--surface-focus);
   border-color: rgba(204, 136, 43, 0.28);
