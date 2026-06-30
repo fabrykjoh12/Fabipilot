@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight } from 'lucide-react'
+import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2 } from 'lucide-react'
 import { db, todayKey, monthlyCost } from '../db.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
 import MorningFlow from './MorningFlow.jsx'
+import { useGardenData, GardenScene } from './Garden.jsx'
 import './Overview.css'
 
 /* Standard rekkefølge på Oversikt-kortene. Lagres tilpasset i localStorage. */
-const DEFAULT_ORDER = ['today', 'habits', 'money', 'projects', 'ideas']
-const CARD_LABEL = { today: 'I dag', habits: 'Vaner', money: 'Penger', projects: 'Prosjekter', ideas: 'Idébank' }
+const DEFAULT_ORDER = ['today', 'habits', 'money', 'projects', 'ideas', 'garden']
+const CARD_LABEL = { today: 'I dag', habits: 'Vaner', money: 'Penger', projects: 'Prosjekter', ideas: 'Idébank', garden: 'Hage' }
 
 function loadCfg() {
   try {
@@ -57,6 +58,7 @@ const ICONS = {
   money: <Wallet />,
   projects: <FolderKanban />,
   ideas: <Lightbulb />,
+  garden: <Flower2 />,
   arrow: <ArrowRight />,
 }
 
@@ -132,6 +134,7 @@ export default function Overview({ onNav }) {
   const projects = useLiveQuery(() => db.projects.where('status').equals('active').toArray(), [], [])
   const ideas = useLiveQuery(() => db.ideas.count(), [], 0)
   const nowItems = useLiveQuery(() => db.projectItems.where('stage').equals('now').sortBy('sortOrder'), [], [])
+  const gardenData = useGardenData()
 
   const todayTasks = tasks.filter((t) => !t.isDone)
   const doneTasks = tasks.filter((t) => t.isDone)
@@ -239,6 +242,23 @@ export default function Overview({ onNav }) {
         </p>
       </OvCard>
     ),
+    garden: (
+      <OvCard
+        icon={ICONS.garden}
+        color="var(--forest)"
+        title="Hagen din"
+        sub={
+          gardenData && (gardenData.habitsDone > 0 || gardenData.doneToday > 0)
+            ? `${gardenData.habitsDone} vaner passet på · ${gardenData.doneToday} gjort i dag`
+            : 'et speil av uka'
+        }
+        onClick={editing ? undefined : () => onNav('garden')}
+      >
+        <div className="ov-garden-scene">
+          {gardenData && <GardenScene data={gardenData} compact />}
+        </div>
+      </OvCard>
+    ),
   }
 
   const visible = cfg.order.filter((k) => !cfg.hidden.includes(k))
@@ -270,7 +290,7 @@ export default function Overview({ onNav }) {
 
         <div className="ov-grid">
           {visible.map((key, i) => (
-            <Reveal key={key} i={i} className={'ov-cell' + (editing ? ' editing' : '')}>
+            <Reveal key={key} i={i} className={'ov-cell ov-cell-' + key + (editing ? ' editing' : '')}>
               {editing && (
                 <div className="ov-edit-bar">
                   <button type="button" className="ov-eb" aria-label="Flytt opp" disabled={i === 0} onClick={() => move(key, -1)}>▲</button>

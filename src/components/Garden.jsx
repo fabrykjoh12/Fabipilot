@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, monthlyCost } from '../db.js'
 import './Garden.css'
@@ -74,9 +75,10 @@ function Butterfly({ x, y, i }) {
   )
 }
 
-export default function Garden({ onNav }) {
+/* Delt aggregering — brukt av både Hage-siden og mini-kortet på Oversikt. */
+export function useGardenData() {
   const today = todayKey()
-  const data = useLiveQuery(async () => {
+  return useLiveQuery(async () => {
     const [habits, tasks, projects, nowItems, incomes, subs, expenses] = await Promise.all([
       db.habits.filter((h) => !h.archived).toArray(),
       db.tasks.where('dueDate').belowOrEqual(today).toArray(),
@@ -108,12 +110,26 @@ export default function Garden({ onNav }) {
       habitsDone: flowers.filter((f) => f.bloom).length,
     }
   }, [today], null)
+}
 
-  if (!data) return <div className="screen" />
+export function gardenCaption(data) {
+  if (!data) return ''
+  const { flowers, trees, doneToday, totalToday, habitsDone } = data
+  const empty = flowers.length === 0 && trees.length === 0 && totalToday === 0
+  if (empty) return 'Hagen din vokser når du tar vare på ting. Begynn med én liten ting i dag.'
+  return [
+    habitsDone > 0 && `${habitsDone} ${habitsDone === 1 ? 'vane' : 'vaner'} passet på`,
+    doneToday > 0 && `${doneToday} gjort i dag`,
+    trees.length > 0 && `${trees.length} ${trees.length === 1 ? 'prosjekt' : 'prosjekter'} gror`,
+  ].filter(Boolean).join(' · ') || 'Rolig dag. Hagen hviler.'
+}
 
+/* Selve SVG-scenen. `compact` brukes på mini-kortet (litt færre detaljer). */
+export function GardenScene({ data, compact = false }) {
   const hour = new Date().getHours()
   const sky = skyFor(hour)
-  const { flowers, trees, doneToday, totalToday, focusPct, moneyOk, habitsDone } = data
+  const { flowers, trees, doneToday, totalToday } = data
+  const focusPct = data.focusPct
   const empty = flowers.length === 0 && trees.length === 0 && totalToday === 0
 
   const W = 400, H = 280, ground = 214
@@ -121,17 +137,77 @@ export default function Garden({ onNav }) {
   const sunY = hour < 11 || hour >= 17 ? 92 : 66
   const sunGlow = 0.35 + 0.65 * focusPct
 
-  const fShown = flowers.slice(0, 9)
-  const tShown = trees.slice(0, 5)
-  const butterflies = Math.min(doneToday, 6)
+  const fShown = flowers.slice(0, compact ? 6 : 9)
+  const tShown = trees.slice(0, compact ? 3 : 5)
+  const butterflies = Math.min(doneToday, compact ? 3 : 6)
+  const uid = compact ? 'c' : 'f'
 
-  const caption = empty
-    ? 'Hagen din vokser når du tar vare på ting. Begynn med én liten ting i dag.'
-    : [
-        habitsDone > 0 && `${habitsDone} ${habitsDone === 1 ? 'vane' : 'vaner'} passet på`,
-        doneToday > 0 && `${doneToday} gjort i dag`,
-        trees.length > 0 && `${trees.length} ${trees.length === 1 ? 'prosjekt' : 'prosjekter'} gror`,
-      ].filter(Boolean).join(' · ') || 'Rolig dag. Hagen hviler.'
+  return (
+    <svg className={'g-svg' + (sky.night ? ' night' : '')} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Hagen din" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id={`g-sky-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={sky.top} />
+          <stop offset="100%" stopColor={sky.bot} />
+        </linearGradient>
+        <radialGradient id={`g-sun-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={sky.sun} stopOpacity={sunGlow} />
+          <stop offset="100%" stopColor={sky.sun} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      <rect x="0" y="0" width={W} height={H} fill={`url(#g-sky-${uid})`} />
+
+      <circle className="g-sunglow" cx={sunX} cy={sunY} r="58" fill={`url(#g-sun-${uid})`} />
+      <circle className="g-sun" cx={sunX} cy={sunY} r="20" fill={sky.sun} opacity={sky.night ? 0.7 : 0.9} />
+
+      {sky.night && [[60, 50], [140, 36], [330, 60], [280, 40], [200, 30]].map(([x, y], i) => (
+        <circle key={i} className="g-star" cx={x} cy={y} r="1.4" fill="#fff" style={{ ['--d']: `${i * 0.5}s` }} />
+      ))}
+
+      {!data.moneyOk && (
+        <g className="g-cloud" opacity="0.85">
+          <ellipse cx="300" cy="70" rx="30" ry="15" fill="#dfe3da" />
+          <ellipse cx="320" cy="64" rx="20" ry="13" fill="#e8ebe3" />
+          <ellipse cx="284" cy="64" rx="16" ry="11" fill="#e8ebe3" />
+        </g>
+      )}
+
+      <path d={`M0 ${ground} Q 120 ${ground - 46} 240 ${ground - 8} T ${W} ${ground - 20} L ${W} ${H} L 0 ${H} Z`} fill="#9cc08f" opacity="0.55" />
+      <path d={`M0 ${ground + 6} Q 160 ${ground - 14} ${W} ${ground + 10} L ${W} ${H} L 0 ${H} Z`} fill="#7aa46f" />
+
+      {tShown.map((t, i) => (
+        <Tree key={i} x={tShown.length === 1 ? 300 : 70 + i * (260 / Math.max(1, tShown.length - 1))} ground={ground - 4} hasBud={t.hasBud} />
+      ))}
+
+      {fShown.map((f, i) => {
+        const n = fShown.length
+        const x = n === 1 ? W / 2 : 36 + i * ((W - 72) / (n - 1))
+        const scale = 0.62 + f.consistency * 0.7
+        return <Flower key={i} x={x} ground={ground + 40} scale={scale} color={f.color} bloom={f.bloom} />
+      })}
+
+      {[...Array(butterflies)].map((_, i) => (
+        <Butterfly key={i} i={i} x={70 + ((i * 67) % 260)} y={120 + ((i * 37) % 60)} />
+      ))}
+
+      {empty && (
+        <g className="g-sprout">
+          <path d={`M${W / 2} ${ground + 36} L ${W / 2} ${ground + 4}`} stroke="#5c7d54" strokeWidth="3" strokeLinecap="round" />
+          <path d={`M${W / 2} ${ground + 16} q -12 -6 -16 4 q 12 5 16 -4`} fill="#6f9462" />
+          <path d={`M${W / 2} ${ground + 22} q 12 -6 16 4 q -12 5 -16 -4`} fill="#7aa46f" />
+        </g>
+      )}
+    </svg>
+  )
+}
+
+export default function Garden({ onNav }) {
+  const data = useGardenData()
+  if (!data) return <div className="screen" />
+
+  const { flowers, trees, totalToday } = data
+  const empty = flowers.length === 0 && trees.length === 0 && totalToday === 0
+  const caption = gardenCaption(data)
 
   return (
     <div className="screen garden">
@@ -140,67 +216,7 @@ export default function Garden({ onNav }) {
         <p className="scr-sub">Et speil av uka — den vokser når du viser opp.</p>
 
         <div className="g-frame">
-          <svg className={'g-svg' + (sky.night ? ' night' : '')} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Hagen din">
-            <defs>
-              <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={sky.top} />
-                <stop offset="100%" stopColor={sky.bot} />
-              </linearGradient>
-              <radialGradient id="g-sun" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={sky.sun} stopOpacity={sunGlow} />
-                <stop offset="100%" stopColor={sky.sun} stopOpacity="0" />
-              </radialGradient>
-            </defs>
-
-            <rect x="0" y="0" width={W} height={H} fill="url(#g-sky)" />
-
-            {/* sol / måne */}
-            <circle className="g-sunglow" cx={sunX} cy={sunY} r="58" fill="url(#g-sun)" />
-            <circle className="g-sun" cx={sunX} cy={sunY} r="20" fill={sky.sun} opacity={sky.night ? 0.7 : 0.9} />
-
-            {sky.night && [[60, 50], [140, 36], [330, 60], [280, 40], [200, 30]].map(([x, y], i) => (
-              <circle key={i} className="g-star" cx={x} cy={y} r="1.4" fill="#fff" style={{ ['--d']: `${i * 0.5}s` }} />
-            ))}
-
-            {/* en mild sky hvis penger ikke er på stell */}
-            {!moneyOk && (
-              <g className="g-cloud" opacity="0.85">
-                <ellipse cx="300" cy="70" rx="30" ry="15" fill="#dfe3da" />
-                <ellipse cx="320" cy="64" rx="20" ry="13" fill="#e8ebe3" />
-                <ellipse cx="284" cy="64" rx="16" ry="11" fill="#e8ebe3" />
-              </g>
-            )}
-
-            {/* åser */}
-            <path d={`M0 ${ground} Q 120 ${ground - 46} 240 ${ground - 8} T ${W} ${ground - 20} L ${W} ${H} L 0 ${H} Z`} fill="#9cc08f" opacity="0.55" />
-            <path d={`M0 ${ground + 6} Q 160 ${ground - 14} ${W} ${ground + 10} L ${W} ${H} L 0 ${H} Z`} fill="#7aa46f" />
-
-            {/* trær (prosjekter) */}
-            {tShown.map((t, i) => (
-              <Tree key={i} x={tShown.length === 1 ? 300 : 70 + i * (260 / Math.max(1, tShown.length - 1))} ground={ground - 4} hasBud={t.hasBud} />
-            ))}
-
-            {/* blomster (vaner) */}
-            {fShown.map((f, i) => {
-              const n = fShown.length
-              const x = n === 1 ? W / 2 : 36 + i * ((W - 72) / (n - 1))
-              const scale = 0.62 + f.consistency * 0.7
-              return <Flower key={i} x={x} ground={ground + 40} scale={scale} color={f.color} bloom={f.bloom} />
-            })}
-
-            {/* sommerfugler (gjort i dag) */}
-            {[...Array(butterflies)].map((_, i) => (
-              <Butterfly key={i} i={i} x={70 + ((i * 67) % 260)} y={120 + ((i * 37) % 60)} />
-            ))}
-
-            {empty && (
-              <g className="g-sprout">
-                <path d={`M${W / 2} ${ground + 36} L ${W / 2} ${ground + 4}`} stroke="#5c7d54" strokeWidth="3" strokeLinecap="round" />
-                <path d={`M${W / 2} ${ground + 16} q -12 -6 -16 4 q 12 5 16 -4`} fill="#6f9462" />
-                <path d={`M${W / 2} ${ground + 22} q 12 -6 16 4 q -12 5 -16 -4`} fill="#7aa46f" />
-              </g>
-            )}
-          </svg>
+          <GardenScene data={data} />
           <p className="g-caption">{caption}</p>
         </div>
 

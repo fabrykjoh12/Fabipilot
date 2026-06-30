@@ -41,9 +41,32 @@
   flex: 1 1 auto;
 }
 
-/* Det første kortet tar full bredde */
-.ov-grid > .ov-cell:first-child {
+/* Det første kortet + Hage-kortet tar full bredde */
+.ov-grid > .ov-cell:first-child,
+.ov-grid > .ov-cell-garden {
   grid-column: 1 / -1;
+}
+
+/* Hage-mini-scene i kortet */
+.ov-garden-scene {
+  margin-top: 4px;
+  height: 156px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.ov-garden-scene .g-svg {
+  width: 100%;
+  height: 100%;
+}
+@media (min-width: 860px) {
+  /* full-bredde kort på PC: hold scenen i et rolig, sentrert format */
+  .ov-garden-scene {
+    height: 188px;
+    max-width: 620px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 /* På veldig smal skjerm: én kolonne */
