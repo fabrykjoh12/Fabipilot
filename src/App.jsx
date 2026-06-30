@@ -16,6 +16,7 @@ import {
   Users,
   CloudUpload,
   MoreHorizontal,
+  Plus,
 } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
@@ -28,6 +29,7 @@ import Habits from './components/Habits.jsx'
 import Projects from './components/Projects.jsx'
 import Search from './components/Search.jsx'
 import SharedList from './components/SharedList.jsx'
+import Capture from './components/Capture.jsx'
 import { PageTransition, toast, SkeletonCard } from './lib/ui.jsx'
 import {
   permission as notifPermission,
@@ -75,6 +77,9 @@ const ICONS = {
 
 /* Faste faner nederst på mobil. Resten ligger i «Mer» (og i sidemenyen på PC). */
 const PRIMARY = ['overview', 'today', 'calendar', 'projects']
+
+/* Moduler med egen «legg til»-linje nederst — der skjuler vi den flytende capture-knappen. */
+const HAS_COMPOSER = new Set(['today', 'todo', 'ideas', 'habits', 'projects', 'whatnow'])
 
 const MODULES = [
   { k: 'overview', label: 'Oversikt', Comp: Overview },
@@ -330,6 +335,7 @@ export default function App() {
   const [syncing, setSyncing] = useState(false)
   const [reminder, setReminder] = useState(getReminderPrefs)
   const [perm, setPerm] = useState(notifPermission())
+  const [captureOpen, setCaptureOpen] = useState(false)
   const navRef = useRef(null)
 
   const itemCount = useLiveQuery(async () => {
@@ -390,6 +396,18 @@ export default function App() {
     const el = navRef.current?.querySelector('.nav-item.active')
     if (el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [active])
+
+  // ⌘K / Ctrl+K åpner hurtiglagring fra hvor som helst.
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault()
+        setCaptureOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -527,6 +545,20 @@ export default function App() {
           </Suspense>
         </PageTransition>
       </main>
+
+      {!HAS_COMPOSER.has(active) && (
+        <button
+          type="button"
+          className="cap-fab"
+          aria-label="Legg til noe (⌘K)"
+          title="Legg til noe (⌘K)"
+          onClick={() => setCaptureOpen(true)}
+        >
+          <Plus />
+        </button>
+      )}
+
+      <Capture open={captureOpen} onClose={() => setCaptureOpen(false)} onNav={setActive} />
 
       <Toaster
         position="bottom-center"

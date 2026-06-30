@@ -1,0 +1,203 @@
+/* ===== Hurtiglagring (universell capture) ===== */
+.cap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background: rgba(34, 40, 31, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14vh 16px 16px;
+}
+.cap-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-5);
+  padding: 12px 16px 16px;
+}
+.cap-grip {
+  width: 38px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--line-strong);
+  margin: 0 auto 12px;
+}
+.cap-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  resize: none;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.3;
+  padding: 4px 2px;
+  max-height: 40vh;
+}
+.cap-input::placeholder {
+  color: var(--faint);
+  font-weight: 500;
+}
+
+.cap-preview {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 30px;
+  margin: 10px 0 4px;
+  padding: 4px 2px;
+}
+.cap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--canvas-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  padding: 5px 11px;
+}
+.cap-chip svg {
+  width: 14px;
+  height: 14px;
+}
+.cap-chip-type {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+.cap-title-prev {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cap-hint {
+  font-size: 13px;
+  color: var(--faint);
+  line-height: 1.45;
+}
+
+.cap-types {
+  display: flex;
+  gap: 7px;
+  margin: 12px 0;
+}
+.cap-type {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: var(--r-md);
+  padding: 10px 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+}
+.cap-type svg {
+  width: 16px;
+  height: 16px;
+}
+.cap-type:active {
+  transform: scale(0.96);
+}
+.cap-type.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface-focus);
+}
+
+.cap-save {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--r-md);
+  padding: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--sh-accent);
+  transition: background var(--t-mid), box-shadow var(--t-mid), transform var(--t-fast), opacity var(--t-mid);
+}
+.cap-save:hover:not(:disabled) {
+  background: var(--accent-bright);
+  box-shadow: var(--sh-accent-lg);
+}
+.cap-save:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.cap-save:disabled {
+  background: var(--line-strong);
+  box-shadow: none;
+  cursor: default;
+}
+.cap-enter {
+  display: inline-grid;
+  place-items: center;
+  opacity: 0.8;
+}
+.cap-enter svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== Flytende capture-knapp (FAB) ===== */
+.cap-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 60;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-full);
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--sh-accent-lg);
+  transition: background var(--t-mid), transform var(--t-fast), box-shadow var(--t-mid);
+}
+.cap-fab svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 2.4;
+}
+.cap-fab:hover {
+  background: var(--accent-bright);
+}
+.cap-fab:active {
+  transform: scale(0.9);
+}
+@media (min-width: 860px) {
+  .cap-fab {
+    right: 28px;
+    bottom: 28px;
+  }
+}
