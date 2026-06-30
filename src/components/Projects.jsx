@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   db,
@@ -25,15 +25,10 @@ import {
   todayKey,
   MAX_ACTIVE_PROJECTS,
 } from '../db.js'
-import { burst, vibrate, reduceMotion } from '../lib/fx.js'
+import { vibrate } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
 import './Projects.css'
 
-const CHECK = (
-  <svg viewBox="0 0 24 24">
-    <path d="M5 13l4 4L19 7" />
-  </svg>
-)
 const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
 const NEXT_STATUS = { active: 'onice', onice: 'done', done: 'active' }
 const ENERGY_NEXT = { '': 'lav', lav: 'hoy', hoy: '' }
@@ -552,7 +547,6 @@ function Roadmap({ projectId, onBack }) {
   const [doneCollapsed, setDoneCollapsed] = useState(true)
   const [editingName, setEditingName] = useState(false)
   const [editingWhy, setEditingWhy] = useState(false)
-  const [editingHero, setEditingHero] = useState(false)
   const [customizing, setCustomizing] = useState(false)
   const [editingNotes, setEditingNotes] = useState(false)
   const [editingContext, setEditingContext] = useState(false)
@@ -560,12 +554,10 @@ function Roadmap({ projectId, onBack }) {
   const [queueOpen, setQueueOpen] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const [whyVal, setWhyVal] = useState('')
-  const [heroVal, setHeroVal] = useState('')
   const [notesVal, setNotesVal] = useState('')
   const [contextVal, setContextVal] = useState('')
   const [liveVal, setLiveVal] = useState('')
   const [repoVal, setRepoVal] = useState('')
-  const heroCheckRef = useRef(null)
 
   if (!project) return <div className="screen" />
 
@@ -622,32 +614,11 @@ function Roadmap({ projectId, onBack }) {
   const nextItems = items.filter((i) => i.stage === 'next')
   const laterItems = items.filter((i) => i.stage === 'later')
   const doneItems = items.filter((i) => i.stage === 'done')
-  const hero = nowItems[0] || null
-  const nowRest = nowItems.slice(1)
   const queue = [...nowItems, ...nextItems, ...laterItems]
-
-  function startEditHero() {
-    if (!hero) return
-    setHeroVal(hero.text)
-    setEditingHero(true)
-  }
-  function saveHero() {
-    const v = heroVal.trim()
-    if (hero && v && v !== hero.text) updateProjectItem(hero, { text: v })
-    setEditingHero(false)
-  }
 
   const total = items.length
   const pct = total ? Math.round((doneItems.length / total) * 100) : 0
   const col = colorVal(project.color)
-
-  function completeHero() {
-    if (!hero) return
-    heroCheckRef.current?.classList.add('pop')
-    vibrate([12, 30, 12])
-    burst(heroCheckRef.current)
-    setTimeout(() => setItemStage(hero, 'done'), reduceMotion() ? 0 : 260)
-  }
 
   async function addTo(stage, text) {
     await addProjectItem(projectId, text, stage)
@@ -852,47 +823,6 @@ function Roadmap({ projectId, onBack }) {
           <div className="pstat"><b>{laterItems.length}</b><span>Lav</span></div>
           <div className="pstat"><b>{doneItems.length}</b><span>Ferdig</span></div>
         </div>
-
-        <div className="hero">
-          <p className="tag">Viktigst nå</p>
-          {hero ? (
-            <div className="hero-row">
-              <div ref={heroCheckRef} className="hcheck" onClick={completeHero} role="button" tabIndex={0} aria-label="Fullfør viktigste oppgave" onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && completeHero()}>
-                {CHECK}
-              </div>
-              {editingHero ? (
-                <input
-                  className="htxt-input"
-                  value={heroVal}
-                  autoFocus
-                  onChange={(e) => setHeroVal(e.target.value)}
-                  onBlur={saveHero}
-                  onKeyDown={(e) => { if (e.key === 'Enter') saveHero(); if (e.key === 'Escape') setEditingHero(false) }}
-                />
-              ) : (
-                <div className="htxt" onClick={startEditHero} title="Trykk for å redigere">{hero.text}</div>
-              )}
-              <button
-                type="button"
-                className="rm-copy hero-copy"
-                aria-label="Kopier som prompt"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(buildPrompt(project, hero.text))
-                    vibrate(8)
-                    toast.success(hasContext(project) ? 'Kopiert som prompt' : 'Kopiert')
-                  } catch { toast.error('Kunne ikke kopiere') }
-                }}
-              >
-                {COPY}
-              </button>
-            </div>
-          ) : (
-            <div className="hero-empty">
-              Ingenting med høy prioritet ennå. Trykk ⋯ på en oppgave og sett den til «Høy» — bare én. Det er nok.
-            </div>
-          )}
-        </div>
         </aside>
 
         <section className="rm-board">
@@ -905,7 +835,7 @@ function Roadmap({ projectId, onBack }) {
           ))}
         </div>
         <div className="road prio-list">
-          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
+          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
           <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
           <StageBlock stage="later" label={PRIO_LABEL.later} note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
         </div>

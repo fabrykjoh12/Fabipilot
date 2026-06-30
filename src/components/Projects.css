@@ -232,94 +232,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* next step hero */
-.roadmap .hero {
-  margin-top: 22px;
-  background: var(--surface-focus);
-  border: 1px solid var(--accent-soft);
-  border-radius: var(--radius);
-  padding: 16px;
-  box-shadow: var(--shadow);
-}
-.roadmap .hero .tag {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin: 0 0 9px;
-}
-.roadmap .hero-row {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-}
-.roadmap .hcheck {
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  background: var(--surface);
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.14s, background 0.2s;
-}
-.roadmap .hcheck:active {
-  transform: scale(0.86);
-}
-.roadmap .hcheck svg {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 16px;
-  height: 16px;
-  stroke: #fff;
-  stroke-width: 3.2;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.roadmap .hcheck.pop {
-  animation: pop 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.4);
-}
-@keyframes pop {
-  0% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(1.28);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-.roadmap .htxt {
-  flex: 1;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.3;
-  cursor: pointer;
-}
-.roadmap .htxt-input {
-  flex: 1;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.3;
-  border: 0;
-  border-bottom: 2px solid var(--accent);
-  background: transparent;
-  color: var(--ink);
-  outline: 0;
-  font-family: inherit;
-  padding: 0 0 2px;
-  min-width: 0;
-}
-.roadmap .hero-empty {
-  font-size: 15px;
-  color: var(--muted);
-  line-height: 1.45;
-}
 
 /* roadmap spine */
 .roadmap .road {
@@ -1219,7 +1131,6 @@
 .roadmap .ai-pill.ai-built { color: #fff; border-color: var(--accent); background: var(--accent); }
 .roadmap .ai-pill.ai-verified { color: #fff; border-color: var(--forest); background: var(--forest); }
 
-.roadmap .hero-copy { color: var(--accent); }
 
 /* Lenker (live / repo) */
 .roadmap .plinks { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
