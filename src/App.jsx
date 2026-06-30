@@ -17,6 +17,7 @@ import {
   CloudUpload,
   MoreHorizontal,
   Plus,
+  Flower2,
 } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
@@ -29,6 +30,7 @@ import Habits from './components/Habits.jsx'
 import Projects from './components/Projects.jsx'
 import Search from './components/Search.jsx'
 import SharedList from './components/SharedList.jsx'
+import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
 import { PageTransition, toast, SkeletonCard } from './lib/ui.jsx'
 import {
@@ -71,6 +73,7 @@ const ICONS = {
   projects: FolderKanban,
   search: SearchIcon,
   shared: Users,
+  garden: Flower2,
   backup: CloudUpload,
   more: MoreHorizontal,
 }
@@ -93,6 +96,7 @@ const MODULES = [
   { k: 'projects', label: 'Prosjekter', Comp: Projects },
   { k: 'search', label: 'Søk', Comp: Search },
   { k: 'shared', label: 'Delt', Comp: SharedList },
+  { k: 'garden', label: 'Hage', Comp: Garden },
 ]
 
 /* Sky-sync-status → norsk etikett + farge-LED. */

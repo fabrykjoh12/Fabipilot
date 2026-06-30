@@ -106,6 +106,7 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt + roadmap-side
   - `SharedList.jsx` — «Delt»: én delt liste med kjæresten (Dexie Cloud realm + e-postinvitasjon). Kun denne lista deles
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
+  - `Garden.jsx` / `Garden.css` — «Hage»: rolig, levende SVG-scene som speiler uka (vaner=blomster, prosjekter=trær, gjort i dag=sommerfugler, fokus=sol, penger=vær). Kun lesing over eksisterende stores, ingen skam/visning
 - `prototypes/` — visuell fasit: `idebank.html`, `idag-prototype.html`, `roadmap-prototype.html`
 
 ## 8. Arbeidsflyt
