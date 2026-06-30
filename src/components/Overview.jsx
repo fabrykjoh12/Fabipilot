@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2 } from 'lucide-react'
-import { db, todayKey, monthlyCost } from '../db.js'
+import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star } from 'lucide-react'
+import { db, todayKey, monthlyCost, setTaskDone } from '../db.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
 import MorningFlow from './MorningFlow.jsx'
@@ -137,6 +137,7 @@ export default function Overview({ onNav }) {
   const gardenData = useGardenData()
 
   const todayTasks = tasks.filter((t) => !t.isDone)
+  const nextTasks = [...todayTasks.filter((t) => t.isFocus), ...todayTasks.filter((t) => !t.isFocus)].slice(0, 3)
   const doneTasks = tasks.filter((t) => t.isDone)
   const total = tasks.length
   const pct = total ? Math.round((doneTasks.length / total) * 100) : 0
@@ -165,15 +166,36 @@ export default function Overview({ onNav }) {
       >
         <div className="ov-today-body">
           <ProgressCircle pct={pct} />
-          <p className="ov-today-msg">
-            {total === 0
-              ? 'Blank dag — legg til det første du vil få gjort.'
-              : pct === 100
-              ? 'Alt gjort. Bra jobba.'
-              : todayTasks.length === 1
-              ? 'Én ting igjen — det klarer du.'
-              : `${todayTasks.length} ting igjen.`}
-          </p>
+          <div className="ov-today-right">
+            {nextTasks.length === 0 ? (
+              <p className="ov-today-msg">
+                {total === 0 ? 'Blank dag — legg til det første du vil få gjort.' : 'Alt gjort. Bra jobba.'}
+              </p>
+            ) : (
+              <div className="ov-tasklist">
+                {nextTasks.map((t) => (
+                  <div key={t.id} className="ov-task-row">
+                    <span
+                      className="ov-check"
+                      role="checkbox"
+                      tabIndex={0}
+                      aria-checked="false"
+                      aria-label={`Fullfør ${t.title}`}
+                      onClick={(e) => { e.stopPropagation(); vibrate([12, 30, 12]); burst(e.currentTarget); setTaskDone(t.id, true) }}
+                      onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); setTaskDone(t.id, true) } }}
+                    />
+                    <span className="ov-task-ttl">
+                      {t.isFocus && <Star className="ov-task-star" />}
+                      {t.title}
+                    </span>
+                  </div>
+                ))}
+                {todayTasks.length > nextTasks.length && (
+                  <span className="ov-more">+{todayTasks.length - nextTasks.length} til</span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </OvCard>
     ),
