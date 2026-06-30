@@ -129,6 +129,45 @@ db.version(9).stores({
   sharedItems: 'id, realmId, isDone, sortOrder, createdAt',
 })
 
+// v10: slå sammen «Liste» (todos) inn i «Oppgaver» (tasks).
+// Flytt hver todo til tasks med SAMME id (idempotent via bulkPut) så sync
+// ikke lager duplikater, behold delpunkter, dato (kan være null) og fullført.
+db.version(10)
+  .stores({
+    ideas: 'id, category, createdAt',
+    tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+    habits: 'id, sortOrder, createdAt',
+    subscriptions: 'id, createdAt',
+    projects: 'id, status, sortOrder, lastTouched, createdAt',
+    projectItems: 'id, projectId, stage, sortOrder, createdAt',
+    events: 'id, date, createdAt',
+    todos: 'id, isDone, sortOrder, createdAt',
+    expenses: 'id, date, category, createdAt',
+    budgets: 'id, category, createdAt',
+    incomes: 'id, createdAt',
+    goals: 'id, createdAt',
+    sharedItems: 'id, realmId, isDone, sortOrder, createdAt',
+  })
+  .upgrade(async (tx) => {
+    const todos = await tx.table('todos').toArray()
+    if (!todos.length) return
+    const rows = todos.map((t) => ({
+      id: t.id,
+      title: (t.text || '').trim(),
+      isDone: !!t.isDone,
+      isFocus: false,
+      dueDate: t.dueDate || null,
+      completedAt: t.completedAt || null,
+      estimate: null,
+      repeat: 'none',
+      subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+      sortOrder: t.sortOrder || Date.now(),
+      createdAt: t.createdAt || Date.now(),
+    }))
+    await tx.table('tasks').bulkPut(rows)
+    await tx.table('todos').clear()
+  })
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -201,16 +240,23 @@ export const deleteIdea = (id) => db.ideas.delete(id)
 export async function listTasks() {
   return db.tasks.orderBy('createdAt').reverse().toArray()
 }
-export async function addTask(title) {
+/**
+ * Lag en oppgave. `opts.dueDate`:
+ *  - utelatt → i dag (standard),
+ *  - `null` → udatert («Når som helst»),
+ *  - 'YYYY-MM-DD' → den datoen.
+ */
+export async function addTask(title, opts = {}) {
   const task = {
     id: uid(),
     title: title.trim(),
     isDone: false,
     isFocus: false,
-    dueDate: todayKey(),
+    dueDate: opts.dueDate !== undefined ? opts.dueDate : todayKey(),
     completedAt: null,
-    estimate: null,
-    repeat: 'none',
+    estimate: opts.estimate ?? null,
+    repeat: opts.repeat ?? 'none',
+    subtasks: [],
     sortOrder: now(),
     createdAt: now(),
   }
@@ -219,25 +265,27 @@ export async function addTask(title) {
 }
 export const updateTask = (id, patch) => db.tasks.update(id, patch)
 export const deleteTask = (id) => db.tasks.delete(id)
+export const setTaskDate = (id, dueDate) => db.tasks.update(id, { dueDate: dueDate || null })
 export async function setTaskDone(id, done) {
   const t = await db.tasks.get(id)
+  // Behold dueDate (seksjonen styres av isDone, ikke datoen) så datoen ikke nullstilles.
   await db.tasks.update(id, {
     isDone: done,
-    isFocus: done ? false : undefined,
+    isFocus: done ? false : t?.isFocus,
     completedAt: done ? now() : null,
-    dueDate: done ? undefined : todayKey(),
   })
-  // Gjentakende oppgave: lag neste forekomst når den hukes av.
-  if (done && t && t.repeat && t.repeat !== 'none') {
+  // Gjentakende oppgave: lag neste forekomst når den hukes av (krever dato).
+  if (done && t && t.repeat && t.repeat !== 'none' && t.dueDate) {
     await db.tasks.add({
       id: uid(),
       title: t.title,
       isDone: false,
       isFocus: false,
-      dueDate: nextDate(t.dueDate || todayKey(), t.repeat),
+      dueDate: nextDate(t.dueDate, t.repeat),
       completedAt: null,
       estimate: t.estimate || null,
       repeat: t.repeat,
+      subtasks: [],
       sortOrder: now(),
       createdAt: now(),
     })
@@ -246,6 +294,33 @@ export async function setTaskDone(id, done) {
 export const setTaskFocus = (id, focus) => db.tasks.update(id, { isFocus: focus })
 export const carryTaskToToday = (id) => db.tasks.update(id, { dueDate: todayKey() })
 export const snoozeTaskToTomorrow = (id) => db.tasks.update(id, { dueDate: tomorrowKey(), isFocus: false })
+
+/* delpunkter på oppgaver */
+export async function addTaskSubtask(taskId, text) {
+  const t = await db.tasks.get(taskId)
+  if (!t) return
+  const subtasks = [...(t.subtasks || []), { id: uid(), text: text.trim(), done: false }]
+  await db.tasks.update(taskId, { subtasks })
+}
+export async function toggleTaskSubtask(taskId, subId) {
+  const t = await db.tasks.get(taskId)
+  if (!t) return
+  const subtasks = (t.subtasks || []).map((s) => (s.id === subId ? { ...s, done: !s.done } : s))
+  await db.tasks.update(taskId, { subtasks })
+}
+export async function deleteTaskSubtask(taskId, subId) {
+  const t = await db.tasks.get(taskId)
+  if (!t) return
+  await db.tasks.update(taskId, { subtasks: (t.subtasks || []).filter((s) => s.id !== subId) })
+}
+
+/** Bytt rekkefølge mellom to oppgaver (manuell sortering i «Når som helst»). */
+export async function swapTaskOrder(aId, bId) {
+  const [a, b] = await Promise.all([db.tasks.get(aId), db.tasks.get(bId)])
+  if (!a || !b) return
+  await db.tasks.update(a.id, { sortOrder: b.sortOrder })
+  await db.tasks.update(b.id, { sortOrder: a.sortOrder })
+}
 
 /* =========================================================
    VANER
@@ -686,6 +761,30 @@ export async function importAll(data) {
       .filter((row) => !existing.has(row.id))
     if (toAdd.length) await db.table(t).bulkAdd(toAdd)
     added[t] = toAdd.length
+  }
+
+  // Eldre backup: «Liste»-gjøremål (todos) flyttes inn i den samlede oppgavelista.
+  const legacyTodos = Array.isArray(data.todos) ? data.todos : []
+  if (legacyTodos.length) {
+    const existingTasks = new Set(await db.tasks.toCollection().primaryKeys())
+    const mapped = legacyTodos
+      .filter((row) => row && typeof row === 'object')
+      .map((t) => ({
+        id: typeof t.id === 'string' && t.id ? t.id : uid(),
+        title: (t.text || '').trim(),
+        isDone: !!t.isDone,
+        isFocus: false,
+        dueDate: t.dueDate || null,
+        completedAt: t.completedAt || null,
+        estimate: null,
+        repeat: 'none',
+        subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+        sortOrder: t.sortOrder || now(),
+        createdAt: t.createdAt || now(),
+      }))
+      .filter((row) => !existingTasks.has(row.id))
+    if (mapped.length) await db.tasks.bulkAdd(mapped)
+    added.tasks = (added.tasks || 0) + mapped.length
   }
   return added
 }

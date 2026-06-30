@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import { Plus, ListChecks, Lightbulb, CalendarDays, CornerDownLeft } from 'lucide-react'
-import {
-  addTask, updateTask, addTodo, updateTodo, addIdea, addEvent, todayKey,
-} from '../db.js'
+import { Plus, Lightbulb, CalendarDays, CornerDownLeft } from 'lucide-react'
+import { addTask, addIdea, addEvent, todayKey } from '../db.js'
 import { parseEntry } from '../lib/parse.js'
 import { vibrate, burst } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
 import './Capture.css'
 
 const TYPES = [
-  { k: 'task', label: 'Oppgave', Icon: Plus, nav: 'today', store: 'I dag' },
-  { k: 'todo', label: 'Liste', Icon: ListChecks, nav: 'todo', store: 'Liste' },
+  { k: 'task', label: 'Oppgave', Icon: Plus, nav: 'today', store: 'Oppgaver' },
   { k: 'idea', label: 'Idé', Icon: Lightbulb, nav: 'ideas', store: 'Idébank' },
   { k: 'event', label: 'Hendelse', Icon: CalendarDays, nav: 'calendar', store: 'Kalender' },
 ]
@@ -35,8 +32,9 @@ export default function Capture({ open, onClose, onNav }) {
   const saveRef = useRef(null)
 
   const parsed = useMemo(() => parseEntry(text), [text])
-  const type = override || parsed.type
-  const meta = TYPES.find((t) => t.k === type)
+  const base = parsed.type === 'todo' ? 'task' : parsed.type
+  const type = override || base
+  const meta = TYPES.find((t) => t.k === type) || TYPES[0]
 
   // Bare fokus i effekten (ingen setState) — state nullstilles ved lukking/lagring.
   useEffect(() => {
@@ -62,9 +60,12 @@ export default function Capture({ open, onClose, onNav }) {
     if (!title) return
     const { dueDate, time } = parsed
     if (type === 'idea') await addIdea(title)
-    else if (type === 'todo') { const x = await addTodo(title); if (dueDate) await updateTodo(x.id, { dueDate }) }
     else if (type === 'event') await addEvent({ title, date: dueDate || todayKey(), time })
-    else { const x = await addTask(title); if (dueDate) await updateTask(x.id, { dueDate }) }
+    else {
+      // «liste:»-intensjon uten dato → udatert oppgave; ellers dato eller i dag
+      const due = dueDate !== null ? dueDate : parsed.type === 'todo' ? null : undefined
+      await addTask(title, { dueDate: due })
+    }
 
     vibrate(8)
     if (saveRef.current) burst(saveRef.current)

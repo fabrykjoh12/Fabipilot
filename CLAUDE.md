@@ -38,13 +38,15 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **9**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **10**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
   (indekser: `category`, `createdAt`)
-- **tasks** (I dag) — `id, title, isDone, isFocus, dueDate, completedAt, sortOrder, createdAt`
-  `dueDate` = `YYYY-MM-DD`. «Henger igjen» = `dueDate` før i dag og ikke gjort.
+- **tasks** (Oppgaver — den samlede lista) — `id, title, isDone, isFocus, dueDate, completedAt, estimate, repeat, subtasks[], sortOrder, createdAt`
+  `dueDate` = `YYYY-MM-DD` ELLER `null` (udatert → «Når som helst»). «Henger igjen» = `dueDate` før i dag og ikke gjort.
+  `subtasks` = `[{id,text,done}]`. Seksjoner styres av `isDone`/`isFocus`/`dueDate` (datoen nullstilles ikke ved fullføring).
+  v10 slo sammen den gamle `todos`-lista inn her (samme id-er, idempotent).
 - **habits** (Vaner) — `id, name, history[], sortOrder, createdAt`
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
 - **subscriptions** (Penger) — `id, name, amount, cycle, category, renewDay, createdAt`
@@ -67,8 +69,8 @@ Synces via Dexie Cloud (se §3).
 - **events** (Kalender) — `id, title, date, time, note, color, createdAt`
   `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).
   Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
-- **todos** (Liste) — `id, text, isDone, completedAt, dueDate, sortOrder, createdAt`
-  Gjøremål med valgfri dato (`dueDate` = `YYYY-MM-DD` eller `null`, uindeksert). Manuell sortering via `sortOrder`.
+- **todos** (UTGÅTT) — slått sammen inn i `tasks` i v10. Storen beholdes tom for bakoverkompat;
+  `importAll` mapper gamle backup-`todos` automatisk inn i `tasks`. Ikke i bruk i UI.
 - **sharedItems** (Delt) — `id, realmId, owner, text, isDone, completedAt, sortOrder, createdAt`
   Delt liste i ÉT Dexie Cloud-realm (`SHARED_REALM_NAME = 'Delt liste'`). `realmId` settes via `ensureSharedRealm()`;
   `owner` = `db.cloud.currentUserId`. Invitasjon på e-post via `inviteToShared(email)` (legger rad i `db.members`
@@ -96,8 +98,7 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `MorningFlow.jsx` / `MorningFlow.css` — «Start dagen»-rituale øverst på Oversikt (én gang/dag via `ritual:<dato>`)
   - `AppShell.css` — design-tokens (`:root`-skalaer) + skall + delte komponentstiler + skeleton/toast + innloggingsskjerm + auth-dialog
   - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
-  - `Today.jsx` — «I dag»
-  - `TodoList.jsx` — «Liste»: gjøremål uten dato (hak av, rediger, sorter)
+  - `Tasks.jsx` / `Tasks.css` — «Oppgaver»: ÉN samlet liste (erstatter «I dag» + «Liste»). Seksjoner Fokus/I dag/Henger igjen/Kommende/Når som helst/Fullført, naturlig-språk-innlegging (`parseEntry`), smarte dato-chips, delpunkter, sveip (fullfør/utsett), fokus maks 3
   - `Calendar.jsx` / `Calendar.css` — «Kalender»: månedsvisning + dag-agenda + hendelse-sheet
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)

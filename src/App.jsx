@@ -5,7 +5,6 @@ import { motion } from 'motion/react'
 import {
   LayoutGrid,
   Sun,
-  ListChecks,
   CalendarDays,
   Compass,
   Lightbulb,
@@ -21,8 +20,7 @@ import {
 } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
-import Today from './components/Today.jsx'
-import TodoList from './components/TodoList.jsx'
+import Tasks from './components/Tasks.jsx'
 import Calendar from './components/Calendar.jsx'
 import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
@@ -64,7 +62,6 @@ function ScreenFallback() {
 const ICONS = {
   overview: LayoutGrid,
   today: Sun,
-  todo: ListChecks,
   calendar: CalendarDays,
   whatnow: Compass,
   ideas: Lightbulb,
@@ -82,12 +79,11 @@ const ICONS = {
 const PRIMARY = ['overview', 'today', 'calendar', 'projects']
 
 /* Moduler med egen «legg til»-linje nederst — der skjuler vi den flytende capture-knappen. */
-const HAS_COMPOSER = new Set(['today', 'todo', 'ideas', 'habits', 'projects', 'whatnow'])
+const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow'])
 
 const MODULES = [
   { k: 'overview', label: 'Oversikt', Comp: Overview },
-  { k: 'today', label: 'I dag', Comp: Today },
-  { k: 'todo', label: 'Liste', Comp: TodoList },
+  { k: 'today', label: 'Oppgaver', Comp: Tasks },
   { k: 'calendar', label: 'Kalender', Comp: Calendar },
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
