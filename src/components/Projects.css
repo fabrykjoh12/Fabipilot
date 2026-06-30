@@ -236,7 +236,7 @@
 .roadmap .hero {
   margin-top: 22px;
   background: var(--surface-focus);
-  border: 1px solid rgba(204, 136, 43, 0.32);
+  border: 1px solid var(--accent-soft);
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow);
@@ -799,6 +799,10 @@
 .roadmap .rm-copy:hover { background: var(--canvas-2); color: var(--accent); }
 .roadmap .rm-copy:active { transform: scale(0.92); }
 
+/* På mobil er handlingsknappene rett i raden (uendret). På PC-tavla
+   grupperes de i en bunnrad — se PC-WORKSPACE-blokken nederst. */
+.roadmap .rm-actions { display: contents; }
+
 .roadmap .stage-add {
   display: flex;
   gap: 8px;
@@ -823,7 +827,7 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
-  color: var(--forest);
+  color: var(--accent);
   cursor: pointer;
   font-size: 20px;
   line-height: 1;
@@ -1084,4 +1088,108 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* ===================================================================
+   PC-WORKSPACE — bredere layout, kort-rutenett, kanban-tavle
+   På mobil er .plist-grid/.rm-workspace gjennomsiktige (display:contents),
+   så telefon-oppsettet er uendret.
+   =================================================================== */
+.plist-grid { display: contents; }
+.rm-workspace { display: contents; }
+
+@media (min-width: 860px) {
+  /* ---- Prosjektliste: responsivt kort-rutenett ---- */
+  .projects-screen { max-width: 1180px; }
+  .projects-screen .screen-scroll { padding: 40px 36px 130px; }
+  .plist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .plist-grid .plist-card-wrap { margin-bottom: 0; position: relative; }
+  .plist-grid .plist-card { margin-bottom: 0; height: 100%; transition: box-shadow var(--t-mid) var(--ease), transform var(--t-mid) var(--ease); }
+  /* sorter-pilene overlapper kortet (reserverer ikke plass) så korta
+     ligger på linje med seksjonsetiketten */
+  .plist-grid .plist-sort {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    flex-direction: row;
+    gap: 4px;
+    z-index: 3;
+  }
+  .plist-grid .plist-sort .sort-btn { box-shadow: var(--sh-2); }
+  /* hold «Nytt prosjekt»-baren rolig bred, ikke strukket over hele */
+  .projects-screen .screen-bar .field { max-width: 620px; margin: 0 auto; }
+}
+@media (hover: hover) and (min-width: 860px) {
+  .plist-grid .plist-card:hover { box-shadow: var(--sh-3); transform: translateY(-2px); }
+  /* sorter-pilene er rolige til du holder over kortet */
+  .plist-grid .plist-sort { opacity: 0; transition: opacity var(--t-fast); }
+  .plist-grid .plist-card-wrap:hover .plist-sort,
+  .plist-grid .plist-sort:focus-within { opacity: 1; }
+}
+
+@media (min-width: 1000px) {
+  /* ---- Prosjektside: to-spalte arbeidsbenk (info-skinne + tavle) ---- */
+  .roadmap.screen { max-width: 1240px; }
+  .roadmap .screen-scroll { padding: 40px 36px 80px; }
+  .rm-workspace {
+    display: grid;
+    grid-template-columns: 330px minmax(0, 1fr);
+    gap: 34px;
+    align-items: start;
+    margin-top: 10px;
+  }
+  .rm-rail {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+  }
+  /* skinne-element-marger blir litt strammere i kolonnen */
+  .rm-rail .pwhy { margin-top: 0; }
+
+  /* tavle: tre prioritets-kolonner side ved side */
+  .rm-board .road { margin-top: 0; }
+  .rm-board .prio-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  .rm-board .prio-list .stage {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 16px 14px 14px;
+  }
+  .rm-board .prio-list .stage-head { margin-bottom: 14px; }
+  .rm-board .prio-list .stage-add { margin-top: 8px; }
+  .rm-board .prio-list .stage-add input { background: var(--surface); border-color: var(--line); }
+  /* korta inni kolonnene: hvit flate løfter seg fra grå kolonne */
+  .rm-board .prio-list .rm-card { background: var(--surface); padding: 12px; }
+  .rm-board .prio-list .stage.later .rm-card { background: var(--surface); }
+  /* tittel på egen linje (kan brytes), handlinger i en bunnrad —
+     ellers stjeler knappene all bredden i en smal kanban-kolonne */
+  .rm-board .rm-card .rm-row { flex-wrap: wrap; align-items: flex-start; row-gap: 2px; }
+  .rm-board .rm-card .energy { margin-top: 6px; }
+  .rm-board .rm-card .ctxt { flex: 1 1 0; min-width: 0; }
+  .rm-board .rm-card .rm-actions {
+    display: flex;
+    flex-basis: 100%;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0;
+  }
+  .rm-board .rm-card .rm-subchip { margin-right: auto; }
+  /* ferdig-seksjon under tavla, full bredde */
+  .rm-board .done-head { margin-top: 26px; }
+}
+@media (hover: hover) and (min-width: 1000px) {
+  .rm-board .rm-card { transition: box-shadow var(--t-fast), transform var(--t-fast); }
+  .rm-board .rm-card:hover { box-shadow: var(--sh-3); transform: translateY(-1px); }
 }

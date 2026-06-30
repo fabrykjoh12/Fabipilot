@@ -153,7 +153,7 @@ function ProjectsList({ onOpen }) {
   }
 
   return (
-    <div className="screen">
+    <div className="screen projects-screen">
       <div className="screen-scroll">
         <h1 className="scr-title">Prosjekter</h1>
         <p className="scr-sub">
@@ -177,9 +177,11 @@ function ProjectsList({ onOpen }) {
                 {active.length}/{MAX_ACTIVE_PROJECTS}
               </span>
             </div>
-            {active.map((p) => (
-              <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
-            ))}
+            <div className="plist-grid">
+              {active.map((p) => (
+                <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
+              ))}
+            </div>
           </div>
         )}
 
@@ -189,9 +191,11 @@ function ProjectsList({ onOpen }) {
               På is<span className="ln" />
               <span className="ct">{onice.length}</span>
             </div>
-            {onice.map((p) => (
-              <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
-            ))}
+            <div className="plist-grid">
+              {onice.map((p) => (
+                <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
+              ))}
+            </div>
           </div>
         )}
 
@@ -201,9 +205,11 @@ function ProjectsList({ onOpen }) {
               Ferdig<span className="ln" />
               <span className="ct">{done.length}</span>
             </div>
-            {done.map((p) => (
-              <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
-            ))}
+            <div className="plist-grid">
+              {done.map((p) => (
+                <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -357,6 +363,7 @@ function SpineCard({ item, onActions }) {
         ) : (
           <span className="ctxt" onClick={startEdit} title="Trykk for å redigere">{item.text}</span>
         )}
+        <div className="rm-actions">
         <button
           type="button"
           className={'rm-subchip' + (subs.length ? '' : ' empty')}
@@ -370,6 +377,7 @@ function SpineCard({ item, onActions }) {
         <button type="button" className="rm-more" aria-label="Handlinger" onClick={() => onActions(item)}>
           {MORE}
         </button>
+        </div>
       </div>
 
       {expanded && (
@@ -596,6 +604,8 @@ function Roadmap({ projectId, onBack }) {
           </div>
         )}
 
+        <div className="rm-workspace">
+        <aside className="rm-rail">
         {editingWhy ? (
           <div className="pwhy-edit">
             <input
@@ -686,7 +696,9 @@ function Roadmap({ projectId, onBack }) {
             </div>
           )}
         </div>
+        </aside>
 
+        <section className="rm-board">
         <div className="road prio-list">
           <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} />
           <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} />
@@ -719,6 +731,8 @@ function Roadmap({ projectId, onBack }) {
             )}
           </>
         )}
+        </section>
+        </div>
       </div>
 
       {sheetItem && <StepSheet item={sheetItem} onClose={() => setSheetItem(null)} />}
