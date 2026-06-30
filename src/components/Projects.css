@@ -782,6 +782,23 @@
 .roadmap .rm-more svg { width: 20px; height: 20px; }
 .roadmap .rm-more:hover { background: var(--canvas); color: var(--muted); }
 
+.roadmap .rm-copy {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: none;
+  border-radius: 9px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.roadmap .rm-copy svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.roadmap .rm-copy:hover { background: var(--canvas-2); color: var(--accent); }
+.roadmap .rm-copy:active { transform: scale(0.92); }
+
 .roadmap .stage-add {
   display: flex;
   gap: 8px;

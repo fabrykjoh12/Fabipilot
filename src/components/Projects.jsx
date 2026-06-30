@@ -241,6 +241,12 @@ const MORE = (
     <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
   </svg>
 )
+const COPY = (
+  <svg viewBox="0 0 24 24">
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+  </svg>
+)
 /* Prioritetsnivåer. Lagres fortsatt som stage-verdiene now/next/later i db-en. */
 const STAGE_OPTS = [
   { k: 'now', label: 'Høy' },
@@ -319,6 +325,16 @@ function SpineCard({ item, onActions }) {
     addItemSubtask(item, v)
     setSubVal('')
   }
+  async function copy(e) {
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(item.text)
+      vibrate(8)
+      toast.success('Kopiert')
+    } catch {
+      toast.error('Kunne ikke kopiere')
+    }
+  }
 
   return (
     <div className="rm-card rm-card-col">
@@ -347,6 +363,9 @@ function SpineCard({ item, onActions }) {
           onClick={() => setExpanded((e) => !e)}
         >
           {subs.length ? `☑ ${subsDone}/${subs.length}` : '+'}
+        </button>
+        <button type="button" className="rm-copy" aria-label="Kopier tekst" onClick={copy}>
+          {COPY}
         </button>
         <button type="button" className="rm-more" aria-label="Handlinger" onClick={() => onActions(item)}>
           {MORE}
