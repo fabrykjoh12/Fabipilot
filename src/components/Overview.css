@@ -11,7 +11,7 @@
 }
 
 .ov-greeting {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 34px;
   letter-spacing: -0.02em;
@@ -312,7 +312,7 @@
 
 .ov-prog-pct {
   fill: var(--ink);
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 12px;
   text-anchor: middle;
@@ -421,7 +421,7 @@
 
 /* Penger */
 .ov-total {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 30px;
   letter-spacing: -0.02em;

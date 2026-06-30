@@ -265,7 +265,7 @@ export default function Calendar() {
             const tks = tasksByDate[c.key] || []
             const dots = [
               ...evs.map((e) => colorVal(e.color)),
-              ...tks.map(() => 'var(--forest)'),
+              ...tks.map(() => 'var(--accent)'),
             ].slice(0, 4)
             const isToday = c.key === today
             const isSel = c.key === selected

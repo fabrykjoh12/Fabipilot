@@ -14,7 +14,9 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - React 19 + Vite
 - UI-bibliotek: `motion` (bevegelse/sideoverganger), `lucide-react` (ikoner), `sonner` (toast),
   `recharts` (diagram, lazy-lastet med Penger). Delte primitiver i `src/lib/ui.jsx`.
-- Designsystem-tokens (radius/spacing/skygge/bevegelse/typografi) i `:root` i `AppShell.css`.
+- Designsystem-tokens (radius/spacing/skygge/bevegelse/typografi/farger) i `:root` i `AppShell.css`.
+- Fonter er selv-hostet via `@fontsource-variable/plus-jakarta-sans` (importert i `main.jsx`) — ingen
+  Google Fonts-CDN (proxy blokkerer den + fungerer offline i PWA).
 - Dexie (IndexedDB) — lokal-først, fungerer offline
 - Dexie Cloud (`dexie-cloud-addon`) — sync på tvers av enheter. Innlogging med e-post + engangskode.
   DB-URL er hardkodet i `db.js`. `dexie-cloud.key` er hemmelig og er i `.gitignore` (committes aldri).
@@ -22,10 +24,16 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - vite-plugin-pwa
 - Deploy: Vercel (auto fra `main`), ingen env-variabler
 
-## 4. Designsystem (hold 1:1 med /prototypes)
-- Bakgrunn `#E9ECE5`, kort `#FBFCF9`, blekk `#22281F`, dempet `#737B6E`, linje `#DCE0D5`
-- ÉN aksentfarge: rav `#CC882B` (fokus + fullført + lagre). Sekundær: skog `#42634A`. Hold alt annet rolig.
-- Fonter: Bricolage Grotesque (display), Inter (brødtekst)
+## 4. Designsystem (Any.do-inspirert — rent, lyst, luftig)
+- Lys palett: lerret `#ffffff`, kort `#ffffff`/dempet flate `#f6f7f9`, blekk `#1a1c22`, dempet `#8b909c`,
+  linje `#ecedf1` / sterk linje `#dfe1e7`. Mørk modus = grafitt (`--canvas:#0f1116` osv.). Alle verdier er
+  CSS-tokens i `:root` — bruk `var(--…)`, aldri hardkodede hex i komponenter.
+- Aksent = blå `#2f6dff` (fokus, primær-CTA, valgt, lenker, interaktivt). Semantisk grønn `#16a37b`
+  (`--forest`) kun for positiv status (aktivt prosjekt, vane gjort). Kategori-farger (prosjekt/hendelse/
+  penger) er egne valgbare swatcher og påvirkes ikke av aksenten.
+- Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver); luftige hvite
+  kort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
+- Fonter: Plus Jakarta Sans (variabel) for både display og brødtekst, via tokens `--font-display`/`--font-body`.
 - Belønning ved fullføring/lagring: gnist-animasjon + `navigator.vibrate`
 - Respekter `prefers-reduced-motion`. Tap-mål min 44px. Synlig tastatur-fokus.
 

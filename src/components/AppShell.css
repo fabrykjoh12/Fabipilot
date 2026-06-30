@@ -1,32 +1,32 @@
 /* ============================================================
-   DESIGN SYSTEM — premium tokens
-   Brand stays warm/calm/organic (ADHD-vennlig). One accent: rav.
+   DESIGN SYSTEM — rent & lyst (Any.do-inspirert). Én aksent: blå.
+   Font: Plus Jakarta Sans (selvhostet, offline-klar).
    ============================================================ */
 :root {
   /* ---- Farger: flater ---- */
-  --canvas: #e9ece5;
-  --canvas-2: #eef0ea; /* litt lysere flate (hover/innfelt) */
-  --surface: #fbfcf9;
-  --surface-2: #f4f6f0; /* sekundær kort-flate */
-  --surface-focus: #faf4e8;
-  --ink: #22281f;
-  --ink-soft: #3c4438;
-  --muted: #737b6e;
-  --faint: #9aa394; /* placeholder / hint */
-  --line: #dce0d5;
-  --line-strong: #ccd2c4;
+  --canvas: #ffffff;
+  --canvas-2: #f3f5f8; /* innfelt/hover */
+  --surface: #ffffff;
+  --surface-2: #f6f7f9; /* sekundær flate */
+  --surface-focus: #eff4ff; /* lys blå (fokus) */
+  --ink: #1a1c22;
+  --ink-soft: #3a3d47;
+  --muted: #8b909c;
+  --faint: #bfc3cc; /* placeholder / hint */
+  --line: #ecedf1;
+  --line-strong: #dfe1e7;
 
   /* ---- Merkefarger ---- */
-  --accent: #cc882b;
-  --accent-bright: #e8a53d;
-  --accent-deep: #a96e1f;
-  --accent-soft: rgba(204, 136, 43, 0.14);
-  --accent-ring: rgba(204, 136, 43, 0.22);
-  --forest: #42634a;
-  --forest-soft: rgba(66, 99, 74, 0.12);
-  --danger: #b4574a;
-  --danger-soft: rgba(180, 87, 74, 0.12);
-  --success: #4f9d5b;
+  --accent: #2f6dff;
+  --accent-bright: #588bff;
+  --accent-deep: #2257e0;
+  --accent-soft: #eaf1ff;
+  --accent-ring: rgba(47, 109, 255, 0.22);
+  --forest: #16a37b;
+  --forest-soft: rgba(22, 163, 123, 0.12);
+  --danger: #f5483b;
+  --danger-soft: rgba(245, 72, 59, 0.1);
+  --success: #16a37b;
 
   /* ---- Radius-skala ---- */
   --r-xs: 8px;
@@ -49,13 +49,13 @@
   --s-10: 40px;
 
   /* ---- Elevasjon (lagvise, myke skygger) ---- */
-  --sh-1: 0 1px 2px rgba(34, 40, 31, 0.05), 0 1px 1px rgba(34, 40, 31, 0.03);
-  --sh-2: 0 1px 2px rgba(34, 40, 31, 0.05), 0 4px 12px rgba(34, 40, 31, 0.06);
-  --sh-3: 0 2px 4px rgba(34, 40, 31, 0.05), 0 10px 26px rgba(34, 40, 31, 0.09);
-  --sh-4: 0 6px 14px rgba(34, 40, 31, 0.08), 0 22px 48px rgba(34, 40, 31, 0.14);
-  --sh-5: 0 12px 28px rgba(34, 40, 31, 0.12), 0 36px 70px rgba(34, 40, 31, 0.2);
-  --sh-accent: 0 6px 18px rgba(204, 136, 43, 0.28);
-  --sh-accent-lg: 0 10px 26px rgba(204, 136, 43, 0.34);
+  --sh-1: 0 1px 2px rgba(20, 30, 60, 0.05);
+  --sh-2: 0 1px 2px rgba(20, 30, 60, 0.04), 0 4px 12px rgba(20, 30, 60, 0.05);
+  --sh-3: 0 2px 6px rgba(20, 30, 60, 0.06), 0 12px 28px rgba(20, 30, 60, 0.08);
+  --sh-4: 0 8px 24px rgba(20, 30, 60, 0.1);
+  --sh-5: 0 16px 44px rgba(20, 30, 60, 0.15);
+  --sh-accent: 0 6px 18px rgba(47, 109, 255, 0.26);
+  --sh-accent-lg: 0 10px 26px rgba(47, 109, 255, 0.32);
   --shadow: var(--sh-2); /* bakoverkompat */
 
   /* ---- Bevegelse ---- */
@@ -67,34 +67,34 @@
   --t-slow: 0.4s;
 
   /* ---- Typografi ---- */
-  --font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans Variable', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', system-ui, -apple-system, sans-serif;
 }
 
-/* ===== Mørk modus ===== */
+/* ===== Mørk modus (grafitt) ===== */
 [data-theme='dark'] {
-  --canvas: #14180f;
-  --canvas-2: #1b2017;
-  --surface: #1f261b;
-  --surface-2: #262e21;
-  --surface-focus: #2c2a1a;
-  --ink: #eaeee3;
-  --ink-soft: #cfd6c6;
-  --muted: #99a291;
-  --faint: #79826f;
-  --line: #313a2b;
-  --line-strong: #3d4836;
+  --canvas: #0f1116;
+  --canvas-2: #181b22;
+  --surface: #171a21;
+  --surface-2: #1e222b;
+  --surface-focus: #15203c;
+  --ink: #f1f3f7;
+  --ink-soft: #c8cdd6;
+  --muted: #8a909c;
+  --faint: #5d646f;
+  --line: #242932;
+  --line-strong: #323845;
 
-  --accent: #e0a049;
-  --accent-bright: #ecb45f;
-  --accent-deep: #c98a32;
-  --accent-soft: rgba(224, 160, 73, 0.16);
-  --accent-ring: rgba(224, 160, 73, 0.26);
-  --forest: #7ba883;
-  --forest-soft: rgba(123, 168, 131, 0.16);
-  --danger: #db7a6c;
-  --danger-soft: rgba(219, 122, 108, 0.16);
-  --success: #6bbd77;
+  --accent: #5b8bff;
+  --accent-bright: #7ba2ff;
+  --accent-deep: #3f74f0;
+  --accent-soft: rgba(91, 139, 255, 0.16);
+  --accent-ring: rgba(91, 139, 255, 0.3);
+  --forest: #2fd39a;
+  --forest-soft: rgba(47, 211, 154, 0.16);
+  --danger: #ff6b60;
+  --danger-soft: rgba(255, 107, 96, 0.16);
+  --success: #2fd39a;
 
   --sh-1: 0 1px 2px rgba(0, 0, 0, 0.35);
   --sh-2: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -118,10 +118,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(120% 80% at 100% 0%, rgba(204, 136, 43, 0.05), transparent 60%),
-    radial-gradient(100% 70% at 0% 100%, rgba(66, 99, 74, 0.04), transparent 60%),
-    var(--canvas);
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -268,7 +265,7 @@
   margin: 0 auto 12px;
 }
 .more-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 20px;
   margin: 0 0 14px;
@@ -339,7 +336,7 @@
     display: none;
   }
   .nav-brand {
-    font-family: 'Bricolage Grotesque', sans-serif;
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 20px;
     letter-spacing: -0.02em;
@@ -394,11 +391,11 @@
   font-weight: 500;
 }
 .scr-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 30px;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   margin: 0;
 }
 .scr-sub {
@@ -637,7 +634,7 @@
   margin-bottom: 10px;
 }
 .empty .em-ttl {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 20px;
   color: var(--ink);
@@ -852,7 +849,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 2px solid #c3caba;
+  border: 2px solid var(--line-strong);
   background: var(--surface);
   position: relative;
   cursor: pointer;
@@ -1271,7 +1268,7 @@
   color: var(--muted);
 }
 .total-amount {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 38px;
   letter-spacing: -0.02em;
@@ -1562,7 +1559,7 @@
   animation: rise 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .backup-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 21px;
   margin: 0;
@@ -2212,7 +2209,7 @@ label.backup-action {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 17px;
   letter-spacing: -0.01em;
@@ -2236,7 +2233,7 @@ label.backup-action {
   stroke-linejoin: round;
 }
 .login-headline {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 27px;
   line-height: 1.18;
@@ -2323,7 +2320,7 @@ label.backup-action {
   stroke-linejoin: round;
 }
 .login-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 28px;
   letter-spacing: -0.02em;
@@ -2426,7 +2423,7 @@ label.backup-action {
   animation: rise 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .lia-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 22px;
   letter-spacing: -0.02em;
@@ -2600,7 +2597,7 @@ label.backup-action {
 .wn-text {
   font-size: 22px;
   font-weight: 600;
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   line-height: 1.25;
   margin: 0;
   color: var(--ink);
@@ -2690,7 +2687,7 @@ label.backup-action {
   text-align: left;
 }
 .wn-clock {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 52px;
   letter-spacing: -0.02em;

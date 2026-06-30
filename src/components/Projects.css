@@ -116,7 +116,7 @@
   margin-top: 4px;
 }
 .roadmap .pname {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 28px;
   letter-spacing: -0.02em;
@@ -129,7 +129,7 @@
   text-underline-offset: 4px;
 }
 .roadmap .pname-input {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 28px;
   letter-spacing: -0.02em;
@@ -752,7 +752,7 @@
 }
 .roadmap .pstat b {
   display: block;
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 700;
   color: var(--ink);

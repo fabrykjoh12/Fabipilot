@@ -12,7 +12,7 @@
   margin-bottom: 18px;
 }
 .cal-month {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 27px;
   letter-spacing: -0.02em;
@@ -33,7 +33,7 @@
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--forest);
+  color: var(--accent);
   cursor: pointer;
 }
 .cal-today-btn:active {
@@ -179,7 +179,7 @@
   margin-bottom: 14px;
 }
 .cal-agenda-head h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 19px;
   letter-spacing: -0.01em;
@@ -190,7 +190,7 @@
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
-  background: var(--forest);
+  background: var(--accent);
   color: #fff;
   border: 0;
   border-radius: 11px;
@@ -285,8 +285,8 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--forest);
-  background: #e5ebe4;
+  color: var(--accent);
+  background: var(--accent-soft);
   padding: 3px 8px;
   border-radius: 7px;
 }
@@ -349,7 +349,7 @@
   margin: 0 auto 14px;
 }
 .cal-sheet-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 20px;
   margin: 0 0 16px;

@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion, useMotionValue, useTransform } from 'motion/react'
-import { Star, Moon, CalendarPlus, ChevronDown, Plus, Clock, Repeat, ListPlus, X } from 'lucide-react'
+import { Star, Moon, CalendarPlus, ChevronDown, Plus, Clock, Repeat, X } from 'lucide-react'
 import {
-  db, addTask, updateTask, setTaskDone, setTaskFocus, carryTaskToToday,
+  db, addTask, updateTask, setTaskDone, setTaskFocus,
   snoozeTaskToTomorrow, deleteWithRestore, restoreRecord, setTaskDate,
   addTaskSubtask, toggleTaskSubtask, deleteTaskSubtask,
   todayKey, tomorrowKey,
@@ -87,10 +87,9 @@ function DateChip({ task, today, tom }) {
 /* ---------- én oppgave ---------- */
 function TaskRow({ task, today, tom, focusCount }) {
   const done = task.isDone
-  const overdue = !done && task.dueDate && task.dueDate < today
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState('')
-  const [subOpen, setSubOpen] = useState(false)
+  const [open, setOpen] = useState(false)
   const [subVal, setSubVal] = useState('')
   const checkRef = useRef(null)
 
@@ -120,6 +119,11 @@ function TaskRow({ task, today, tom, focusCount }) {
     if (v && v !== task.title) updateTask(task.id, { title: v })
     setEditing(false)
   }
+  function onTitleClick() {
+    if (editing || done) return
+    if (!open) setOpen(true)
+    else { setEditVal(task.title); setEditing(true) }
+  }
   function addSub() {
     const v = subVal.trim(); if (!v) return
     addTaskSubtask(task.id, v); setSubVal('')
@@ -131,12 +135,15 @@ function TaskRow({ task, today, tom, focusCount }) {
 
   const taskClass = 'task taskU' + (task.isFocus && !done ? ' focus' : '') + (done ? ' done' : '')
 
+  const dLabel = !done ? dateLabel(task.dueDate, today, tom) : null
+  const dStatus = !task.dueDate ? 'none' : task.dueDate < today ? 'over' : task.dueDate === today ? 'today' : 'future'
+
   const inner = (
     <>
       <div className="taskU-row">
         <div
           ref={checkRef}
-          className={'check' + (done ? '' : '')}
+          className="check"
           role="checkbox" tabIndex={0} aria-checked={done} aria-label="Fullfør"
           onClick={handleCheck}
           onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); handleCheck() } }}
@@ -148,55 +155,53 @@ function TaskRow({ task, today, tom, focusCount }) {
               onChange={(e) => setEditVal(e.target.value)} onBlur={saveEdit}
               onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }} />
           ) : (
-            <div className="ttl" onDoubleClick={!done ? () => { setEditVal(task.title); setEditing(true) } : undefined}>{task.title}</div>
+            <div className="ttl" onClick={onTitleClick}>{task.title}</div>
           )}
-          {!done && (
-            <div className="taskU-meta">
-              <DateChip task={task} today={today} tom={tom} />
-              <button type="button" className={'est' + (task.estimate ? ' on' : '')} aria-label="Tidsestimat" onClick={() => updateTask(task.id, { estimate: nextEst(task.estimate) })}>
-                {task.estimate ? `${task.estimate}m` : <Clock />}
-              </button>
-              <button type="button" className={'est' + (task.repeat && task.repeat !== 'none' ? ' on' : '')} aria-label="Gjentakelse" title={REPEAT_LABEL[task.repeat || 'none']} onClick={() => updateTask(task.id, { repeat: nextRepeat(task.repeat) })}>
-                <Repeat />{task.repeat === 'daily' ? 'd' : task.repeat === 'weekly' ? 'u' : ''}
-              </button>
-              <button type="button" className={'taskU-subbtn' + (subs.length ? ' on' : '') + (subOpen ? ' open' : '')} onClick={() => setSubOpen((o) => !o)} aria-label="Delpunkter">
-                <ListPlus />{subs.length ? `${subDone}/${subs.length}` : ''}
-              </button>
+          {!done && !open && (dLabel || subs.length > 0) && (
+            <div className="taskU-quiet">
+              {dLabel && <span className={'tq-date ' + dStatus}>{dLabel}</span>}
+              {subs.length > 0 && <span className="tq-sub">{subDone}/{subs.length}</span>}
             </div>
           )}
         </div>
 
-        {!done && (
-          <div className="taskU-right">
-            <button type="button" className="snooze" aria-label="Utsett til i morgen" title="Utsett til i morgen" onClick={() => { snoozeTaskToTomorrow(task.id); toast.message('Utsatt til i morgen 🌙') }}><Moon /></button>
-            <button type="button" className={'star' + (task.isFocus ? ' on' : '')} aria-label="Sett i fokus" aria-pressed={task.isFocus} onClick={onFocusToggle}><Star /></button>
-          </div>
-        )}
-        {done && (
+        {!done ? (
+          <button type="button" className={'star' + (task.isFocus ? ' on' : '')} aria-label="Sett i fokus" aria-pressed={task.isFocus} onClick={onFocusToggle}><Star /></button>
+        ) : (
           <button type="button" className="taskU-del" aria-label="Slett" onClick={del}><X /></button>
         )}
       </div>
 
-      {overdue && (
-        <div className="taskU-carry">
-          <span>Henger igjen fra {dateLabel(task.dueDate, today, tom)}</span>
-          <button type="button" className="cbtn" onClick={() => carryTaskToToday(task.id)}>→ i dag</button>
-        </div>
-      )}
-
-      {subOpen && !done && (
-        <div className="todo-subs">
-          {subs.map((s) => (
-            <div key={s.id} className="subrow">
-              <button type="button" className={'subcheck' + (s.done ? ' on' : '')} onClick={() => toggleTaskSubtask(task.id, s.id)} aria-label="Hak av">{CHECK}</button>
-              <span className={'subtxt' + (s.done ? ' done' : '')}>{s.text}</span>
-              <button type="button" className="subdel" onClick={() => deleteTaskSubtask(task.id, s.id)} aria-label="Slett delpunkt">×</button>
-            </div>
-          ))}
-          <div className="subadd">
-            <input value={subVal} placeholder="Legg til delpunkt…" onChange={(e) => setSubVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSub()} />
-            <button type="button" disabled={!subVal.trim()} onClick={addSub}>+</button>
+      {open && !done && (
+        <div className="taskU-controls">
+          <div className="taskU-meta">
+            <DateChip task={task} today={today} tom={tom} />
+            <button type="button" className={'est' + (task.estimate ? ' on' : '')} aria-label="Tidsestimat" onClick={() => updateTask(task.id, { estimate: nextEst(task.estimate) })}>
+              <Clock />{task.estimate ? `${task.estimate}m` : 'tid'}
+            </button>
+            <button type="button" className={'est' + (task.repeat && task.repeat !== 'none' ? ' on' : '')} aria-label="Gjentakelse" title={REPEAT_LABEL[task.repeat || 'none']} onClick={() => updateTask(task.id, { repeat: nextRepeat(task.repeat) })}>
+              <Repeat />{task.repeat === 'daily' ? 'daglig' : task.repeat === 'weekly' ? 'ukentlig' : 'gjenta'}
+            </button>
+            <button type="button" className="snooze-pill" aria-label="Utsett til i morgen" onClick={() => { snoozeTaskToTomorrow(task.id); toast.message('Utsatt til i morgen 🌙') }}>
+              <Moon />i morgen
+            </button>
           </div>
+
+          <div className="todo-subs">
+            {subs.map((s) => (
+              <div key={s.id} className="subrow">
+                <button type="button" className={'subcheck' + (s.done ? ' on' : '')} onClick={() => toggleTaskSubtask(task.id, s.id)} aria-label="Hak av">{CHECK}</button>
+                <span className={'subtxt' + (s.done ? ' done' : '')}>{s.text}</span>
+                <button type="button" className="subdel" onClick={() => deleteTaskSubtask(task.id, s.id)} aria-label="Slett delpunkt">×</button>
+              </div>
+            ))}
+            <div className="subadd">
+              <input value={subVal} placeholder="Legg til delpunkt…" onChange={(e) => setSubVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSub()} />
+              <button type="button" disabled={!subVal.trim()} onClick={addSub}>+</button>
+            </div>
+          </div>
+
+          <button type="button" className="taskU-del-row" onClick={del}><X /> Slett oppgave</button>
         </div>
       )}
     </>
