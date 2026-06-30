@@ -1501,3 +1501,52 @@
   padding: 12px 28px;
   cursor: pointer;
 }
+
+/* ===================================================================
+   PROMPT-MALER + DRA-OG-SLIPP
+   =================================================================== */
+.roadmap .tpl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.roadmap .tpl-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.roadmap .tpl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
+}
+.roadmap .tpl-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.roadmap .tpl-chip:active { transform: scale(0.96); }
+.roadmap .tpl-emoji { font-size: 14px; }
+
+/* Dra-og-slipp: kortet som dras blekner; måltavla lyser opp (kun på PC-tavla) */
+.roadmap .rm-card.dragging { opacity: 0.45; }
+@media (min-width: 1000px) {
+  .rm-board .rm-card { cursor: grab; }
+  .rm-board .rm-card:active { cursor: grabbing; }
+  .rm-board .stage.drag-over {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+}

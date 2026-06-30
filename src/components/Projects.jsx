@@ -271,6 +271,16 @@ function hasContext(project) {
 
 /* AI-arbeidsflyt: hvor i Claude-loopen et steg er. */
 const AI_NEXT = { idea: 'asked', asked: 'built', built: 'verified', verified: 'idea' }
+
+/* Prompt-maler — ett klikk for å starte en vanlig type prompt. */
+const PROMPT_TEMPLATES = [
+  { emoji: '✨', label: 'Komponent', text: 'Lag en komponent som … Den skal …' },
+  { emoji: '🐛', label: 'Fiks bug', text: 'Fiks denne buggen: …\nForventet: …\nFaktisk: …' },
+  { emoji: '🎨', label: 'Design', text: 'Forbedre designet på … — mer …, mindre …' },
+  { emoji: '♻️', label: 'Refaktorer', text: 'Refaktorer … slik at …' },
+  { emoji: '🧪', label: 'Tester', text: 'Skriv tester for … som dekker …' },
+  { emoji: '⚡', label: 'Ytelse', text: 'Optimaliser … for bedre ytelse' },
+]
 const AI_LABEL = { idea: 'Idé', asked: 'Spurt', built: 'Bygd', verified: 'Verifisert' }
 
 /* Prioritetsnivåer. Lagres fortsatt som stage-verdiene now/next/later i db-en. */
@@ -336,6 +346,7 @@ function SpineCard({ item, onActions, project }) {
   const [editVal, setEditVal] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [subVal, setSubVal] = useState('')
+  const [dragging, setDragging] = useState(false)
   const subs = item.subtasks || []
   const subsDone = subs.filter((s) => s.done).length
   const ai = item.aiStatus || 'idea'
@@ -369,7 +380,12 @@ function SpineCard({ item, onActions, project }) {
   }
 
   return (
-    <div className="rm-card rm-card-col">
+    <div
+      className={'rm-card rm-card-col' + (dragging ? ' dragging' : '')}
+      draggable={!editing}
+      onDragStart={(e) => { e.dataTransfer.setData('text/plain', item.id); e.dataTransfer.effectAllowed = 'move'; setDragging(true) }}
+      onDragEnd={() => setDragging(false)}
+    >
       <div className="rm-row">
         <button
           type="button"
@@ -430,9 +446,10 @@ function SpineCard({ item, onActions, project }) {
   )
 }
 
-function StageBlock({ stage, label, note, items, onAdd, onActions, project }) {
+function StageBlock({ stage, label, note, items, onAdd, onActions, onDropTo, project }) {
   const cls = stage === 'now' ? 'now' : stage === 'later' ? 'later' : 'next'
   const [val, setVal] = useState('')
+  const [dragOver, setDragOver] = useState(false)
   function submit() {
     const v = val.trim()
     if (!v) return
@@ -440,7 +457,13 @@ function StageBlock({ stage, label, note, items, onAdd, onActions, project }) {
     setVal('')
   }
   return (
-    <div className={'stage ' + cls}>
+    <div
+      className={'stage ' + cls + (dragOver ? ' drag-over' : '')}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
+      onDragEnter={() => setDragOver(true)}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false) }}
+      onDrop={(e) => { e.preventDefault(); setDragOver(false); const id = e.dataTransfer.getData('text/plain'); if (id) onDropTo(stage, id) }}
+    >
       <div className="stage-head">
         <span className="prio-dot" />
         <span className="nm">{label}</span>
@@ -629,6 +652,20 @@ function Roadmap({ projectId, onBack }) {
   async function addTo(stage, text) {
     await addProjectItem(projectId, text, stage)
     vibrate(8)
+  }
+
+  function onDropTo(stage, itemId) {
+    const it = items.find((i) => i.id === itemId)
+    if (it && it.stage !== stage) {
+      setItemStage(it, stage)
+      vibrate(10)
+    }
+  }
+
+  async function addTemplate(text) {
+    await addProjectItem(projectId, text, 'next')
+    vibrate(8)
+    toast.success('Mal lagt til i Medium', { description: 'Trykk på steget for å fylle inn.' })
   }
 
   async function cycleStatus() {
@@ -859,10 +896,18 @@ function Roadmap({ projectId, onBack }) {
         </aside>
 
         <section className="rm-board">
+        <div className="tpl-bar">
+          <span className="tpl-lbl">Maler</span>
+          {PROMPT_TEMPLATES.map((t) => (
+            <button key={t.label} type="button" className="tpl-chip" onClick={() => addTemplate(t.text)}>
+              <span className="tpl-emoji">{t.emoji}</span>{t.label}
+            </button>
+          ))}
+        </div>
         <div className="road prio-list">
-          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} project={project} />
-          <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} project={project} />
-          <StageBlock stage="later" label={PRIO_LABEL.later} note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} project={project} />
+          <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowRest} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
+          <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
+          <StageBlock stage="later" label={PRIO_LABEL.later} note="ingen press" items={laterItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
         </div>
 
         {doneItems.length > 0 && (
