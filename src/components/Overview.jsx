@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight } from 'lucide-react'
 import { db, todayKey, monthlyCost } from '../db.js'
-import { kr } from '../lib/fx.js'
+import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
+import MorningFlow from './MorningFlow.jsx'
 import './Overview.css'
 
 /* Standard rekkefølge på Oversikt-kortene. Lagres tilpasset i localStorage. */
@@ -95,6 +96,14 @@ export default function Overview({ onNav }) {
   const today = todayKey()
   const [cfg, setCfg] = useState(loadCfg)
   const [editing, setEditing] = useState(false)
+  const [showRitual, setShowRitual] = useState(() => !localStorage.getItem(`ritual:${today}`))
+
+  function dismissRitual(e) {
+    localStorage.setItem(`ritual:${today}`, '1')
+    if (e?.currentTarget) burst(e.currentTarget)
+    vibrate([10, 24, 10])
+    setShowRitual(false)
+  }
 
   useEffect(() => {
     localStorage.setItem('ovCards', JSON.stringify(cfg))
@@ -237,16 +246,19 @@ export default function Overview({ onNav }) {
   return (
     <div className="screen ov-screen">
       <div className="screen-scroll">
-        <div className="ov-head">
-          <div>
-            <p className="ov-date">{fmtDate()}</p>
-            <h1 className="ov-greeting">{greeting()}, Fabi</h1>
-            <p className="ov-peptalk">{peptalk()}</p>
+        {showRitual && <MorningFlow onNav={onNav} onDone={dismissRitual} />}
+        {!showRitual && (
+          <div className="ov-head">
+            <div>
+              <p className="ov-date">{fmtDate()}</p>
+              <h1 className="ov-greeting">{greeting()}, Fabi</h1>
+              <p className="ov-peptalk">{peptalk()}</p>
+            </div>
+            <button type="button" className={'ov-edit-btn' + (editing ? ' on' : '')} onClick={() => setEditing((e) => !e)}>
+              {editing ? 'Ferdig' : 'Tilpass'}
+            </button>
           </div>
-          <button type="button" className={'ov-edit-btn' + (editing ? ' on' : '')} onClick={() => setEditing((e) => !e)}>
-            {editing ? 'Ferdig' : 'Tilpass'}
-          </button>
-        </div>
+        )}
 
         {visible.length === 0 && !editing && (
           <div className="empty">

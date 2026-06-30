@@ -29,7 +29,17 @@ import Projects from './components/Projects.jsx'
 import Search from './components/Search.jsx'
 import SharedList from './components/SharedList.jsx'
 import { PageTransition, toast, SkeletonCard } from './lib/ui.jsx'
-import { db, exportAll, importAll, pushAllToCloud } from './db.js'
+import {
+  permission as notifPermission,
+  requestPermission as requestNotifPermission,
+  getReminderPrefs,
+  setReminderPrefs,
+  scheduleDailyReminder,
+  fireTest,
+  triggersSupported,
+  setBadge,
+} from './lib/notify.js'
+import { db, exportAll, importAll, pushAllToCloud, todayKey } from './db.js'
 
 /* Penger drar inn recharts — last den modulen først når den åpnes. */
 const Money = lazy(() => import('./components/Money.jsx'))
@@ -318,6 +328,8 @@ export default function App() {
   const isLoggedIn = !!currentUser?.isLoggedIn
   const [pushing, setPushing] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [reminder, setReminder] = useState(getReminderPrefs)
+  const [perm, setPerm] = useState(notifPermission())
   const navRef = useRef(null)
 
   const itemCount = useLiveQuery(async () => {
@@ -326,6 +338,53 @@ export default function App() {
     for (const t of tabs) n += await db.table(t).count()
     return n
   }, [], null)
+
+  // Antall ting igjen i dag (åpne oppgaver med forfall i dag eller før) → app-ikon-badge.
+  const todayRemaining = useLiveQuery(
+    () => db.tasks.where('dueDate').belowOrEqual(todayKey()).filter((t) => !t.isDone).count(),
+    [],
+    0,
+  )
+
+  useEffect(() => {
+    if (isLoggedIn) setBadge(todayRemaining || 0)
+  }, [isLoggedIn, todayRemaining])
+
+  // Hold den daglige påminnelses-kjeden i live (best-effort, der enheten støtter det).
+  useEffect(() => {
+    if (isLoggedIn) scheduleDailyReminder()
+  }, [isLoggedIn, reminder])
+
+  async function toggleReminder() {
+    const next = { ...reminder, enabled: !reminder.enabled }
+    if (next.enabled && perm !== 'granted') {
+      const p = await requestNotifPermission()
+      setPerm(p)
+      if (p !== 'granted') {
+        toast.error('Varsler er ikke tillatt', { description: 'Skru på varsler for appen i enhetsinnstillingene.' })
+        return
+      }
+    }
+    setReminder(next)
+    setReminderPrefs(next)
+    toast.success(next.enabled ? `Påminnelse satt til ${next.time}` : 'Påminnelse av')
+  }
+
+  function changeReminderTime(time) {
+    const next = { ...reminder, time }
+    setReminder(next)
+    setReminderPrefs(next)
+  }
+
+  async function testNotif() {
+    let p = perm
+    if (p !== 'granted') {
+      p = await requestNotifPermission()
+      setPerm(p)
+    }
+    if (p === 'granted') await fireTest()
+    else toast.error('Varsler er ikke tillatt')
+  }
 
   useEffect(() => {
     const el = navRef.current?.querySelector('.nav-item.active')
@@ -533,6 +592,49 @@ export default function App() {
               <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
               {theme === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus'}
             </button>
+
+            <div className="rem-box">
+              <div className="rem-head">
+                <div>
+                  <span className="rem-title">Daglig påminnelse</span>
+                  <span className="rem-sub">En vennlig dytt om å planlegge dagen.</span>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={reminder.enabled}
+                  className={'rem-switch' + (reminder.enabled ? ' on' : '')}
+                  onClick={toggleReminder}
+                >
+                  <span className="rem-knob" />
+                </button>
+              </div>
+
+              {reminder.enabled && (
+                <div className="rem-time-row">
+                  <label className="rem-time-lbl" htmlFor="rem-time">Tidspunkt</label>
+                  <input
+                    id="rem-time"
+                    type="time"
+                    className="rem-time"
+                    value={reminder.time}
+                    onChange={(e) => changeReminderTime(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <button type="button" className="rem-test" onClick={testNotif}>
+                Test varsel nå
+              </button>
+
+              <p className="rem-note">
+                {perm === 'unsupported'
+                  ? 'Enheten din støtter ikke varsler.'
+                  : !triggersSupported()
+                  ? 'På denne enheten (f.eks. iPhone) kan ikke appen sende varsler når den er helt lukket. Du blir minnet på ved neste åpning — og app-ikonet viser hvor mye som gjenstår.'
+                  : 'Varselet kan komme selv når appen er lukket. Hold appen installert på hjemskjermen.'}
+              </p>
+            </div>
 
             <div className="sync-box">
               <div className="sync-row">

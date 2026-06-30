@@ -722,6 +722,27 @@
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+/* «Du har gjort nok»-linje */
+.enough-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 14px;
+  background: var(--forest-soft);
+  border: 1px solid rgba(66, 99, 74, 0.22);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--forest);
+  line-height: 1.4;
+  animation: rise 0.4s var(--ease) both;
+}
+.enough-leaf {
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+
 /* ===== I dag: status + oppgaver ===== */
 .status {
   margin: 12px 0 0;
@@ -1875,6 +1896,114 @@ label.backup-action {
 }
 .sync-logout:hover {
   color: var(--danger);
+}
+
+/* ===== Daglig påminnelse (innstillinger) ===== */
+.rem-box {
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.rem-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rem-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.rem-sub {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.rem-switch {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--r-full);
+  border: 0;
+  background: var(--line-strong);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: background var(--t-mid) var(--ease);
+}
+.rem-switch.on {
+  background: var(--accent);
+}
+.rem-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--sh-1);
+  transition: transform var(--t-mid) var(--ease-spring);
+}
+.rem-switch.on .rem-knob {
+  transform: translateX(20px);
+}
+.rem-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.rem-time-lbl {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.rem-time {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  outline: 0;
+}
+.rem-time:focus {
+  border-color: var(--accent);
+}
+.rem-test {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--forest);
+  border-radius: var(--r-sm);
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.rem-test:hover {
+  border-color: var(--forest);
+  background: var(--forest-soft);
+}
+.rem-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 10px 0 0;
 }
 
 :focus-visible {

@@ -88,7 +88,10 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`, `PageTransition`,
   `Reveal`, `toast` (sonner-wrapper). Bygd på `motion`; respekterer `prefers-reduced-motion`.
+- `src/lib/notify.js` — påminnelser: permission, daglig «planlegg dagen»-varsel via Notification Triggers
+  (best-effort, lukket app der støttet), `fireTest`, app-ikon-badge (`setBadge`). Prefs i localStorage per enhet.
 - `src/components/`
+  - `MorningFlow.jsx` / `MorningFlow.css` — «Start dagen»-rituale øverst på Oversikt (én gang/dag via `ritual:<dato>`)
   - `AppShell.css` — design-tokens (`:root`-skalaer) + skall + delte komponentstiler + skeleton/toast + innloggingsskjerm + auth-dialog
   - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
   - `Today.jsx` — «I dag»

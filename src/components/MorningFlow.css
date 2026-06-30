@@ -1,0 +1,258 @@
+/* ===== Start dagen — morgenrituale ===== */
+.mf {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(165deg, var(--surface) 0%, var(--surface-focus) 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-3);
+  padding: 22px 20px 18px;
+  margin-bottom: 20px;
+}
+.mf-glow {
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 70%;
+  height: 120%;
+  background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+  pointer-events: none;
+}
+.mf-head {
+  position: relative;
+}
+.mf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.mf-eyebrow svg {
+  width: 15px;
+  height: 15px;
+}
+.mf-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  margin: 6px 0 2px;
+  line-height: 1.05;
+}
+.mf-pep {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+  margin: 0 0 16px;
+}
+
+.mf-carry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--canvas-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.mf-carry-txt {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.mf-carry-btn {
+  flex: 0 0 auto;
+  border: 0;
+  background: var(--forest);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 13px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: transform var(--t-fast), opacity var(--t-fast);
+}
+.mf-carry-btn:active {
+  transform: scale(0.95);
+}
+
+.mf-block {
+  position: relative;
+  margin-bottom: 14px;
+}
+.mf-block-lbl {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.mf-empty {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.mf-tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.mf-task {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+}
+.mf-task:active {
+  transform: scale(0.99);
+}
+.mf-task.on {
+  border-color: var(--accent);
+  background: var(--surface-focus);
+}
+.mf-task-star {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--line-strong);
+}
+.mf-task-star svg {
+  width: 19px;
+  height: 19px;
+}
+.mf-task.on .mf-task-star {
+  color: var(--accent);
+}
+.mf-task.on .mf-task-star svg {
+  fill: currentColor;
+}
+.mf-task-ttl {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  word-break: break-word;
+}
+.mf-task-est {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--forest);
+  font-variant-numeric: tabular-nums;
+}
+
+.mf-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mf-stat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 12px 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--t-fast), transform var(--t-fast);
+}
+.mf-stat:active {
+  transform: scale(0.98);
+}
+.mf-stat svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--muted);
+  margin-bottom: 5px;
+}
+.mf-stat-main {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.mf-stat-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.mf-go {
+  position: relative;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--r-md);
+  padding: 14px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--sh-accent);
+  transition: background var(--t-mid), transform var(--t-fast), box-shadow var(--t-mid);
+}
+.mf-go svg {
+  width: 18px;
+  height: 18px;
+}
+.mf-go:hover {
+  background: var(--accent-bright);
+  box-shadow: var(--sh-accent-lg);
+}
+.mf-go:active {
+  transform: scale(0.98);
+}
+.mf-skip {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 8px 4px;
+  cursor: pointer;
+}
+.mf-skip svg {
+  width: 15px;
+  height: 15px;
+}
+.mf-skip:hover {
+  color: var(--ink);
+}

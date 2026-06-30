@@ -256,6 +256,13 @@ export default function Today() {
           </span>
         </div>
 
+        {doneToday.length >= 3 && openCount > 0 && (
+          <div className="enough-line">
+            <span className="enough-leaf">🌿</span>
+            Du har gjort nok i dag. Resten kan vente med god samvittighet.
+          </div>
+        )}
+
         {openCount === 0 && doneToday.length > 0 && (
           <div className="empty">
             <p className="em-ttl">Ferdig for i dag</p>
