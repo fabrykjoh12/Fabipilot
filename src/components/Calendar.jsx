@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, todayKey, addEvent, updateEvent, deleteEvent, setTaskDone } from '../db.js'
+import { db, todayKey, addEvent, updateEvent, deleteWithRestore, restoreRecord, setTaskDone } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
+import { toast } from '../lib/ui.jsx'
 import './Calendar.css'
 
 const WEEKDAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -79,9 +80,11 @@ function EventSheet({ initial, defaultDate, onClose }) {
 
   async function remove() {
     if (!editing) return
-    if (!window.confirm(`Slette «${initial.title}»?`)) return
-    await deleteEvent(initial.id)
+    const rec = await deleteWithRestore('events', initial.id)
     vibrate(8)
+    toast.message(`Slettet «${initial.title}»`, {
+      action: { label: 'Angre', onClick: () => restoreRecord('events', rec) },
+    })
     onClose()
   }
 

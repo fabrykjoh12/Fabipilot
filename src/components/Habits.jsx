@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { listHabits, addHabit, updateHabit, deleteHabit, toggleHabitDay, todayKey, db } from '../db.js'
+import { listHabits, addHabit, updateHabit, deleteWithRestore, restoreRecord, toggleHabitDay, todayKey, db } from '../db.js'
 import { vibrate } from '../lib/fx.js'
+import { toast } from '../lib/ui.jsx'
 
 const CHECK = (
   <svg viewBox="0 0 24 24">
@@ -136,7 +137,16 @@ function HabitCard({ habit, habits, idx, days, today, view }) {
           </div>
           <div className="hc-acts">
             <button type="button" className="hc-archive" onClick={() => updateHabit(habit.id, { archived: true })}>Arkiver</button>
-            <button type="button" className="hc-delete" onClick={() => { if (window.confirm(`Slette vanen «${habit.name}»?`)) deleteHabit(habit.id) }}>Slett</button>
+            <button
+              type="button"
+              className="hc-delete"
+              onClick={async () => {
+                const rec = await deleteWithRestore('habits', habit.id)
+                toast.message(`Slettet «${habit.name}»`, {
+                  action: { label: 'Angre', onClick: () => restoreRecord('habits', rec) },
+                })
+              }}
+            >Slett</button>
           </div>
         </div>
       )}

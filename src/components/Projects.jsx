@@ -21,10 +21,12 @@ import {
   deleteItemSubtask,
   moveItemToStage,
   reorderItem,
+  restoreRecord,
   todayKey,
   MAX_ACTIVE_PROJECTS,
 } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
+import { toast } from '../lib/ui.jsx'
 import './Projects.css'
 
 const CHECK = (
@@ -94,9 +96,9 @@ function ProjectsList({ onOpen }) {
     setVal('')
     vibrate(8)
     if (status === 'onice') {
-      window.alert(
-        `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. «${v}» ble lagt «på is». Sett ett aktivt prosjekt på is for å gjøre plass.`,
-      )
+      toast.info('Lagt «på is»', {
+        description: `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. «${v}» venter til du frigjør en plass.`,
+      })
     }
   }
 
@@ -259,10 +261,11 @@ function StepSheet({ item, onClose }) {
     onClose()
   }
   function remove() {
-    if (window.confirm(`Slette «${item.text}»?`)) {
-      deleteProjectItem(item)
-      onClose()
-    }
+    deleteProjectItem(item)
+    toast.message(`Slettet «${item.text}»`, {
+      action: { label: 'Angre', onClick: () => restoreRecord('projectItems', item) },
+    })
+    onClose()
   }
   return (
     <div className="step-sheet-overlay" onClick={onClose}>
@@ -445,8 +448,17 @@ function Roadmap({ projectId, onBack }) {
   }
 
   async function handleDelete() {
-    if (!window.confirm(`Slett «${project.name}» og alle stegene i det?`)) return
+    const itemsCopy = items.slice()
     await deleteProject(project.id)
+    toast.message(`Slettet «${project.name}»`, {
+      action: {
+        label: 'Angre',
+        onClick: async () => {
+          await db.projects.add(project)
+          if (itemsCopy.length) await db.projectItems.bulkAdd(itemsCopy)
+        },
+      },
+    })
     onBack()
   }
 
@@ -489,9 +501,9 @@ function Roadmap({ projectId, onBack }) {
     const target = NEXT_STATUS[project.status]
     const ok = await setProjectStatus(project.id, target)
     if (!ok) {
-      window.alert(
-        `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. Sett ett av dem «på is» først for å aktivere dette.`,
-      )
+      toast.info('WIP-tak nådd', {
+        description: `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. Sett ett «på is» først.`,
+      })
     }
   }
 

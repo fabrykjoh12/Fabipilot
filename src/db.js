@@ -161,6 +161,19 @@ export function nextDate(key, repeat) {
 export const MAX_ACTIVE_PROJECTS = 3
 
 /* =========================================================
+   SLETT MED ANGRE — generelle hjelpere for «Angre»-toast
+   ---------------------------------------------------------
+   `deleteWithRestore` returnerer raden som ble slettet, så kalleren
+   kan tilby «Angre» som legger den tilbake uendret (samme id).
+   ========================================================= */
+export async function deleteWithRestore(tableName, id) {
+  const rec = await db.table(tableName).get(id)
+  if (rec) await db.table(tableName).delete(id)
+  return rec
+}
+export const restoreRecord = (tableName, rec) => (rec ? db.table(tableName).add(rec) : undefined)
+
+/* =========================================================
    IDÉBANK
    ========================================================= */
 export async function listIdeas() {

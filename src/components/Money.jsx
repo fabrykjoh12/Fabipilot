@@ -1,16 +1,17 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion } from 'motion/react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import {
-  listSubscriptions, addSubscription, updateSubscription, deleteSubscription, monthlyCost,
+  listSubscriptions, addSubscription, updateSubscription, monthlyCost,
   listExpenses, addExpense, updateExpense, deleteExpense, listBudgets, setBudget, todayKey,
   listIncomes, addIncome, updateIncome, deleteIncome,
-  listGoals, addGoal, updateGoal, deleteGoal, addToGoal,
+  listGoals, addGoal, updateGoal, addToGoal,
+  deleteWithRestore, restoreRecord,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
-import { AnimatedNumber } from '../lib/ui.jsx'
+import { AnimatedNumber, toast } from '../lib/ui.jsx'
 import './Money.css'
 
 const CATEGORIES = [
@@ -288,7 +289,7 @@ function BudgetSheet({ initialCat, budgetByCat, onClose }) {
 }
 
 /* ============ abonnementskort (Faste) ============ */
-function SubCard({ sub }) {
+function SubCard({ sub, onAsk }) {
   const perMonth = monthlyCost(sub)
   const cat = catMeta(catKey(sub.category || 'annet'))
   const [editingName, setEditingName] = useState(false)
@@ -311,11 +312,17 @@ function SubCard({ sub }) {
     updateSubscription(sub.id, { category: keys[(i + 1) % keys.length] })
   }
   function setDay() {
-    const v = window.prompt('Hvilken dag i måneden trekkes det? (1–31, tomt for å fjerne)', sub.renewDay || '')
-    if (v === null) return
-    if (v.trim() === '') { updateSubscription(sub.id, { renewDay: null }); return }
-    const n = Math.round(Number(v))
-    if (!Number.isNaN(n) && n >= 1 && n <= 31) updateSubscription(sub.id, { renewDay: n })
+    onAsk({
+      title: `Trekkdag · ${sub.name}`,
+      label: 'Dag i måneden (1–31). Tomt felt fjerner datoen.',
+      initial: sub.renewDay || '',
+      placeholder: 'f.eks. 15',
+      onSave: (v) => {
+        if (String(v).trim() === '') { updateSubscription(sub.id, { renewDay: null }); return }
+        const n = Math.round(Number(v))
+        if (!Number.isNaN(n) && n >= 1 && n <= 31) updateSubscription(sub.id, { renewDay: n })
+      },
+    })
   }
   const days = sub.renewDay ? daysUntilDay(sub.renewDay) : null
 
@@ -366,10 +373,13 @@ function SubCard({ sub }) {
           type="button"
           className="sub-amount"
           aria-label="Endre beløp"
-          onClick={() => {
-            const v = window.prompt(`Beløp for «${sub.name}» (kr ${sub.cycle === 'yearly' ? 'per år' : 'per måned'}):`, sub.amount)
-            if (v !== null && !Number.isNaN(Number(v))) updateSubscription(sub.id, { amount: Number(v) })
-          }}
+          onClick={() => onAsk({
+            title: `Beløp · ${sub.name}`,
+            label: sub.cycle === 'yearly' ? 'Kroner per år' : 'Kroner per måned',
+            initial: sub.amount,
+            suffix: 'kr',
+            onSave: (v) => { const n = Number(v); if (!Number.isNaN(n)) updateSubscription(sub.id, { amount: n }) },
+          })}
         >
           {kr(sub.amount)}
           {sub.cycle === 'yearly' && <span className="sub-sub">≈ {kr(perMonth)}/mnd</span>}
@@ -378,7 +388,12 @@ function SubCard({ sub }) {
           type="button"
           className="icon-x"
           aria-label="Slett"
-          onClick={() => { if (window.confirm(`Slette «${sub.name}»?`)) deleteSubscription(sub.id) }}
+          onClick={async () => {
+            const rec = await deleteWithRestore('subscriptions', sub.id)
+            toast.message(`Slettet «${sub.name}»`, {
+              action: { label: 'Angre', onClick: () => restoreRecord('subscriptions', rec) },
+            })
+          }}
         >
           <X />
         </button>
@@ -388,6 +403,42 @@ function SubCard({ sub }) {
 }
 
 /* ============ hovedmodul ============ */
+/* Gjenbrukbart tall-/tekst-ark — erstatter window.prompt. */
+function AmountSheet({ cfg, onClose }) {
+  const [val, setVal] = useState(cfg.initial == null || cfg.initial === '' ? '' : String(cfg.initial))
+  const ref = useRef(null)
+  useEffect(() => {
+    const id = setTimeout(() => { ref.current?.focus(); ref.current?.select?.() }, 60)
+    return () => clearTimeout(id)
+  }, [])
+  function save() {
+    cfg.onSave(val)
+    onClose()
+  }
+  return (
+    <div className="msheet-overlay" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="msheet" onClick={(e) => e.stopPropagation()}>
+        <div className="msheet-grip" />
+        <h3 className="msheet-title">{cfg.title}</h3>
+        <div className="msheet-amount">
+          <input
+            ref={ref}
+            className="msheet-amount-in"
+            inputMode={cfg.inputMode || 'numeric'}
+            placeholder={cfg.placeholder ?? '0'}
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onClose() }}
+          />
+          {cfg.suffix && <span className="msheet-kr">{cfg.suffix}</span>}
+        </div>
+        {cfg.label && <span className="msheet-lbl">{cfg.label}</span>}
+        <button type="button" className="msheet-save" onClick={save}>Lagre</button>
+      </div>
+    </div>
+  )
+}
+
 export default function Money() {
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
   const expenses = useLiveQuery(() => listExpenses(), [], [])
@@ -407,6 +458,9 @@ export default function Money() {
   const [incAmount, setIncAmount] = useState('')
   const [goalName, setGoalName] = useState('')
   const [goalTarget, setGoalTarget] = useState('')
+  const [askCfg, setAskCfg] = useState(null)
+  const [askKey, setAskKey] = useState(0)
+  const ask = (cfg) => { setAskKey((k) => k + 1); setAskCfg(cfg) }
 
   const totalIncome = incomes.reduce((s, i) => s + (i.amount || 0), 0)
 
@@ -573,10 +627,13 @@ export default function Money() {
                   <button
                     type="button"
                     className="income-amt"
-                    onClick={() => {
-                      const v = window.prompt(`Beløp for «${i.name}» per måned:`, i.amount)
-                      if (v !== null && !Number.isNaN(Number(v))) updateIncome(i.id, { amount: Number(v) })
-                    }}
+                    onClick={() => ask({
+                      title: `Inntekt · ${i.name}`,
+                      label: 'Kroner per måned',
+                      initial: i.amount,
+                      suffix: 'kr',
+                      onSave: (v) => { const n = Number(v); if (!Number.isNaN(n)) updateIncome(i.id, { amount: n }) },
+                    })}
                   >{kr(i.amount)}</button>
                   <button type="button" className="income-del" aria-label="Slett" onClick={() => deleteIncome(i.id)}>×</button>
                 </div>
@@ -626,21 +683,38 @@ export default function Money() {
                     <div key={g.id} className={'goal' + (reached ? ' reached' : '')}>
                       <div className="goal-top">
                         <span className="goal-name">{g.name}</span>
-                        <button type="button" className="goal-del" aria-label="Slett" onClick={() => { if (window.confirm(`Slette «${g.name}»?`)) deleteGoal(g.id) }}>×</button>
+                        <button type="button" className="goal-del" aria-label="Slett" onClick={async () => { const rec = await deleteWithRestore('goals', g.id); toast.message(`Slettet «${g.name}»`, { action: { label: 'Angre', onClick: () => restoreRecord('goals', rec) } }) }}>×</button>
                       </div>
                       <div className="goal-bar"><i style={{ width: pct + '%' }} /></div>
                       <div className="goal-foot">
                         <button
                           type="button"
                           className="goal-amt"
-                          onClick={() => {
-                            const v = window.prompt(`Mål for «${g.name}»:`, g.target)
-                            if (v !== null && !Number.isNaN(Number(v))) updateGoal(g.id, { target: Number(v) })
-                          }}
+                          onClick={() => ask({
+                            title: `Mål · ${g.name}`,
+                            label: 'Hvor mye vil du spare?',
+                            initial: g.target,
+                            suffix: 'kr',
+                            onSave: (v) => { const n = Number(v); if (!Number.isNaN(n)) updateGoal(g.id, { target: n }) },
+                          })}
                         >{kr(g.saved)} av {kr(g.target)} · {pct}%</button>
                         <div className="goal-acts">
-                          <button type="button" onClick={() => { const v = window.prompt('Legg til spart beløp:', '500'); if (v !== null && Number(v)) { addToGoal(g.id, Number(v)); vibrate(8) } }}>+ Spar</button>
-                          <button type="button" onClick={() => { const v = window.prompt('Trekk fra beløp:', '500'); if (v !== null && Number(v)) addToGoal(g.id, -Number(v)) }}>−</button>
+                          <button type="button" onClick={() => ask({
+                            title: `Spar · ${g.name}`,
+                            label: 'Legg til spart beløp',
+                            initial: '',
+                            placeholder: '500',
+                            suffix: 'kr',
+                            onSave: (v) => { const n = Number(v); if (n) { addToGoal(g.id, n); vibrate(8) } },
+                          })}>+ Spar</button>
+                          <button type="button" onClick={() => ask({
+                            title: `Trekk fra · ${g.name}`,
+                            label: 'Trekk fra spart beløp',
+                            initial: '',
+                            placeholder: '500',
+                            suffix: 'kr',
+                            onSave: (v) => { const n = Number(v); if (n) addToGoal(g.id, -n) },
+                          })}>−</button>
                         </div>
                       </div>
                     </div>
@@ -715,7 +789,7 @@ export default function Money() {
                 <p>Legg inn faste utgifter nederst — Spotify, Netflix, treningssenter.</p>
               </div>
             ) : (
-              subs.map((s) => <SubCard key={s.id} sub={s} />)
+              subs.map((s) => <SubCard key={s.id} sub={s} onAsk={ask} />)
             )}
           </>
         )}
@@ -783,6 +857,7 @@ export default function Money() {
 
       {sheet?.type === 'expense' && <ExpenseSheet initial={sheet.expense} onClose={() => setSheet(null)} />}
       {sheet?.type === 'budget' && <BudgetSheet initialCat={sheet.cat} budgetByCat={budgetByCat} onClose={() => setSheet(null)} />}
+      {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
     </div>
   )
 }

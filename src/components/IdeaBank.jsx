@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Star } from 'lucide-react'
-import { listIdeas, addIdea, updateIdea, deleteIdea, promoteIdeaToProject } from '../db.js'
+import { listIdeas, addIdea, updateIdea, deleteWithRestore, restoreRecord, promoteIdeaToProject } from '../db.js'
 import { burst, vibrate, reduceMotion, autoGrow, fmtDate } from '../lib/fx.js'
+import { toast } from '../lib/ui.jsx'
 import './IdeaBank.css'
 
 const CATS = [
@@ -201,16 +202,23 @@ export default function IdeaBank() {
   const onOpen = (id) => setOpenId((cur) => (cur === id ? null : id))
   async function onDelete(id) {
     if (openId === id) setOpenId(null)
-    await deleteIdea(id)
+    const rec = await deleteWithRestore('ideas', id)
+    toast.message(`Slettet «${rec?.text || 'idé'}»`, {
+      action: { label: 'Angre', onClick: () => restoreRecord('ideas', rec) },
+    })
   }
   async function onPromote(idea) {
     if (openId === idea.id) setOpenId(null)
     const { capReached } = await promoteIdeaToProject(idea)
-    window.alert(
-      capReached
-        ? `«${idea.text}» ble lagt «på is» — du har allerede 3 aktive prosjekter. Den ligger nå under Prosjekter.`
-        : `«${idea.text}» er nå et aktivt prosjekt. Du finner det under Prosjekter.`,
-    )
+    if (capReached) {
+      toast.info('Lagt «på is»', {
+        description: `Du har allerede 3 aktive prosjekter. «${idea.text}» ligger nå under Prosjekter.`,
+      })
+    } else {
+      toast.success('Nytt prosjekt opprettet', {
+        description: `«${idea.text}» er nå et aktivt prosjekt.`,
+      })
+    }
   }
 
   async function handleAdd() {
