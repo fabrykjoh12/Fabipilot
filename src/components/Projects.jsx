@@ -237,17 +237,28 @@ const COPY = (
     <path d="M5 15V5a2 2 0 0 1 2-2h10" />
   </svg>
 )
-/* Setter sammen et steg til en ferdig prompt med prosjektkontekst foran,
-   klar til å lime inn i Claude/Codex. Uten kontekst → bare teksten. */
-function buildPrompt(project, text) {
+/* Prosjektkontekst-blokk (Prosjekt/Mål/Kontekst/Live/Repo) som limes foran prompts. */
+function projectContext(project) {
   const ctx = []
   if (project?.name) ctx.push(`Prosjekt: ${project.name}`)
   if (project?.why) ctx.push(`Mål: ${project.why}`)
   if (project?.context) ctx.push(`Kontekst: ${project.context}`)
   if (project?.liveUrl) ctx.push(`Live: ${project.liveUrl}`)
   if (project?.repoUrl) ctx.push(`Repo: ${project.repoUrl}`)
-  const header = ctx.join('\n')
+  return ctx.join('\n')
+}
+/* Setter sammen ett steg til en ferdig prompt med prosjektkontekst foran,
+   klar til å lime inn i Claude/Codex. Uten kontekst → bare teksten. */
+function buildPrompt(project, text) {
+  const header = projectContext(project)
   return header ? `${header}\n\nOppgave:\n${text}` : text
+}
+/* Setter sammen ALLE steg til én nummerert liste — «alt jeg vil at Claude skal gjøre». */
+function buildAllPrompts(project, items) {
+  const header = projectContext(project)
+  const list = items.map((it, i) => `${i + 1}. ${it.text}`).join('\n')
+  const body = `Her er alt jeg vil at du skal gjøre:\n\n${list}`
+  return header ? `${header}\n\n${body}` : body
 }
 function hasContext(project) {
   return !!(project?.why || project?.context || project?.liveUrl || project?.repoUrl)
@@ -745,6 +756,18 @@ function Roadmap({ projectId, onBack }) {
     vibrate(8)
   }
 
+  async function copyAll() {
+    try {
+      await navigator.clipboard.writeText(buildAllPrompts(project, queue))
+      vibrate(8)
+      toast.success(`Kopierte ${queue.length} ${queue.length === 1 ? 'prompt' : 'prompts'}`, {
+        description: 'Lim inn i Claude som én liste.',
+      })
+    } catch {
+      toast.error('Kunne ikke kopiere')
+    }
+  }
+
   function onDropTo(stage, itemId) {
     const it = items.find((i) => i.id === itemId)
     if (it && it.stage !== stage) {
@@ -796,9 +819,14 @@ function Roadmap({ projectId, onBack }) {
             )}
           </div>
           {queue.length > 0 && (
-            <button type="button" className="prun" onClick={() => setQueueOpen(true)}>
-              ▶ Kjør prompts <span className="prun-ct">{queue.length}</span>
-            </button>
+            <div className="phead-run">
+              <button type="button" className="prun" onClick={() => setQueueOpen(true)}>
+                ▶ Kjør prompts <span className="prun-ct">{queue.length}</span>
+              </button>
+              <button type="button" className="pcopyall" onClick={copyAll} title="Kopier alle som én liste">
+                {COPY} Kopier alle
+              </button>
+            </div>
           )}
           <div className="phead-actions">
             <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>

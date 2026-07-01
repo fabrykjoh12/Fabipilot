@@ -1239,14 +1239,23 @@
   resize: vertical;
 }
 
-/* «Kjør prompts»-knapp i topplinja. Mobil: egen full-bredde-rad under
-   tittelen (ellers kolliderer den med en tittel som brytes). */
+/* «Kjør prompts» + «Kopier alle» i topplinja. Mobil: egen full-bredde-rad
+   under tittelen (ellers kolliderer de med en tittel som brytes). */
 .roadmap .phead { flex-wrap: wrap; }
-.roadmap .prun {
+.roadmap .phead-run {
   order: 5;
   flex: 1 0 100%;
-  justify-content: center;
   margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+@media (min-width: 1000px) {
+  .roadmap .phead { flex-wrap: nowrap; }
+  .roadmap .phead-run { order: 0; flex: 0 0 auto; margin-top: 4px; }
+}
+.roadmap .prun {
+  flex: 1;
+  justify-content: center;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1262,10 +1271,6 @@
   box-shadow: var(--sh-accent);
   white-space: nowrap;
 }
-@media (min-width: 1000px) {
-  .roadmap .phead { flex-wrap: nowrap; }
-  .roadmap .prun { order: 0; flex: 0 0 auto; margin-top: 4px; font-size: 13px; padding: 8px 14px; }
-}
 .roadmap .prun:hover { background: var(--accent-deep); }
 .roadmap .prun-ct {
   background: rgba(255, 255, 255, 0.25);
@@ -1274,6 +1279,29 @@
   font-size: 12px;
   min-width: 18px;
   text-align: center;
+}
+.roadmap .pcopyall {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+.roadmap .pcopyall:hover { border-color: var(--accent); color: var(--accent); }
+.roadmap .pcopyall svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (min-width: 1000px) {
+  .roadmap .prun { flex: 0 0 auto; font-size: 13px; padding: 8px 14px; }
+  .roadmap .pcopyall { padding: 8px 13px; }
 }
 
 /* Kø-/fokusmodus-overlay */
