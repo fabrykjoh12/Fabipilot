@@ -197,7 +197,6 @@ export function nextDate(key, repeat) {
   return key
 }
 
-export const MAX_ACTIVE_PROJECTS = 3
 
 /* =========================================================
    SLETT MED ANGRE — generelle hjelpere for «Angre»-toast
@@ -484,15 +483,7 @@ export async function deleteProject(id) {
   await db.projects.delete(id)
 }
 
-/** Returnerer true hvis status ble satt, false hvis WIP-taket blokkerte. */
 export async function setProjectStatus(id, status) {
-  if (status === 'active') {
-    const current = await db.projects.get(id)
-    if (current?.status !== 'active') {
-      const active = await countActiveProjects()
-      if (active >= MAX_ACTIVE_PROJECTS) return false
-    }
-  }
   await db.projects.update(id, { status, lastTouched: now() })
   return true
 }
@@ -576,13 +567,11 @@ export async function reorderItem(item, direction) {
   await touch(item.projectId)
 }
 
-/** Forfremm en idé til et nytt prosjekt. Respekterer WIP-taket. */
+/** Forfremm en idé til et nytt aktivt prosjekt. */
 export async function promoteIdeaToProject(idea) {
-  const active = await countActiveProjects()
-  const status = active >= MAX_ACTIVE_PROJECTS ? 'onice' : 'active'
-  const project = await addProject({ name: idea.text, why: '', status })
+  const project = await addProject({ name: idea.text, why: '', status: 'active' })
   await db.ideas.delete(idea.id)
-  return { project, status, capReached: status === 'onice' }
+  return { project }
 }
 
 /* =========================================================

@@ -42,7 +42,8 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Maks 3 i fokus.
 - Ingen skam-streaks.
 - Idébanken er en meny, ikke gjeld.
-- WIP-tak: maks 3 aktive prosjekter (ikke valgfritt).
+- Ingen WIP-tak på prosjekter — de er Claude-prompt-verksteder, så du kan ha så mange aktive du vil.
+  («på is» finnes fortsatt som en manuell status). Fokus-taket (maks 3) gjelder fortsatt for oppgaver.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)

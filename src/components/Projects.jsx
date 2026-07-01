@@ -9,7 +9,6 @@ import {
   deleteProject,
   moveProject,
   setProjectStatus,
-  countActiveProjects,
   listProjectItems,
   addProjectItem,
   setItemStage,
@@ -23,7 +22,6 @@ import {
   reorderItem,
   restoreRecord,
   todayKey,
-  MAX_ACTIVE_PROJECTS,
 } from '../db.js'
 import { vibrate } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
@@ -85,16 +83,9 @@ function ProjectsList({ onOpen }) {
   async function add() {
     const v = val.trim()
     if (!v) return
-    const count = await countActiveProjects()
-    const status = count >= MAX_ACTIVE_PROJECTS ? 'onice' : 'active'
-    await addProject({ name: v, status })
+    await addProject({ name: v, status: 'active' })
     setVal('')
     vibrate(8)
-    if (status === 'onice') {
-      toast.info('Lagt «på is»', {
-        description: `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. «${v}» venter til du frigjør en plass.`,
-      })
-    }
   }
 
   function Card({ p, idx, total }) {
@@ -152,7 +143,7 @@ function ProjectsList({ onOpen }) {
       <div className="screen-scroll">
         <h1 className="scr-title">Prosjekter</h1>
         <p className="scr-sub">
-          {active.length} av {MAX_ACTIVE_PROJECTS} aktive
+          {active.length} {active.length === 1 ? 'aktivt' : 'aktive'}
           {onice.length ? ` · ${onice.length} på is` : ''}
         </p>
 
@@ -168,9 +159,7 @@ function ProjectsList({ onOpen }) {
           <div className="sec">
             <div className="sec-label">
               Aktive<span className="ln" />
-              <span className="ct">
-                {active.length}/{MAX_ACTIVE_PROJECTS}
-              </span>
+              <span className="ct">{active.length}</span>
             </div>
             <div className="plist-grid">
               {active.map((p) => (
@@ -771,14 +760,8 @@ function Roadmap({ projectId, onBack }) {
     toast.success('Prompt lagt til', { description: `Havnet i ${PRIO_LABEL[stage]}.` })
   }
 
-  async function cycleStatus() {
-    const target = NEXT_STATUS[project.status]
-    const ok = await setProjectStatus(project.id, target)
-    if (!ok) {
-      toast.info('WIP-tak nådd', {
-        description: `Du har allerede ${MAX_ACTIVE_PROJECTS} aktive prosjekter. Sett ett «på is» først.`,
-      })
-    }
+  function cycleStatus() {
+    setProjectStatus(project.id, NEXT_STATUS[project.status])
   }
 
   return (

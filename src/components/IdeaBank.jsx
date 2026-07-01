@@ -209,16 +209,10 @@ export default function IdeaBank() {
   }
   async function onPromote(idea) {
     if (openId === idea.id) setOpenId(null)
-    const { capReached } = await promoteIdeaToProject(idea)
-    if (capReached) {
-      toast.info('Lagt «på is»', {
-        description: `Du har allerede 3 aktive prosjekter. «${idea.text}» ligger nå under Prosjekter.`,
-      })
-    } else {
-      toast.success('Nytt prosjekt opprettet', {
-        description: `«${idea.text}» er nå et aktivt prosjekt.`,
-      })
-    }
+    await promoteIdeaToProject(idea)
+    toast.success('Nytt prosjekt opprettet', {
+      description: `«${idea.text}» er nå et aktivt prosjekt.`,
+    })
   }
 
   async function handleAdd() {
