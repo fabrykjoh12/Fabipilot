@@ -21,6 +21,10 @@ import {
   moveItemToStage,
   reorderItem,
   restoreRecord,
+  shareProject,
+  listProjectMembers,
+  removeProjectMember,
+  stopSharingProject,
   todayKey,
 } from '../db.js'
 import { vibrate } from '../lib/fx.js'
@@ -671,10 +675,76 @@ function PromptComposer({ template, onSwitch, onAdd, onClose }) {
   )
 }
 
+/* Del et helt prosjekt via e-post (Dexie Cloud realm). */
+function ShareSheet({ project, onClose }) {
+  const members = useLiveQuery(() => listProjectMembers(project.id).catch(() => []), [project.id], [])
+  const [email, setEmail] = useState('')
+  const [msg, setMsg] = useState('')
+  const myId = db.cloud?.currentUserId
+  const shared = members.length > 0
+
+  async function invite() {
+    const e = email.trim()
+    if (!e) return
+    try {
+      await shareProject(project.id, e)
+      setMsg(`Invitasjon sendt til ${e.toLowerCase()} ✓`)
+      setEmail('')
+      vibrate(8)
+    } catch (err) {
+      setMsg('Kunne ikke dele: ' + (err?.message || err))
+    }
+  }
+  async function stop() {
+    await stopSharingProject(project.id)
+    setMsg('Deling avsluttet.')
+  }
+
+  return (
+    <div className="pcomp-overlay" onClick={onClose}>
+      <div className="pcomp" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="pcomp-grip" />
+        <h2 className="share-title">Del «{project.name}»</h2>
+        <p className="share-sub">Inviter noen på e-post — de får hele prosjektet med stegene, og dere jobber i samme tavle.</p>
+        <div className="share-invite">
+          <input
+            type="email"
+            placeholder="navn@epost.no"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && invite()}
+          />
+          <button type="button" disabled={!email.trim()} onClick={invite}>Send</button>
+        </div>
+        {msg && <p className="share-msg">{msg}</p>}
+        {members.length > 0 && (
+          <ul className="share-members">
+            {members.map((m) => (
+              <li key={m.id}>
+                <span className="share-mail">{m.email || m.userId || '—'}{m.userId === myId ? ' (deg)' : ''}</span>
+                <span className="share-state">{m.accepted ? 'med' : m.invite ? 'invitert' : ''}</span>
+                {m.userId !== myId && (
+                  <button type="button" className="share-remove" aria-label="Fjern" onClick={() => removeProjectMember(m.id)}>×</button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="share-hint">Begge må være innlogget med hver sin e-post. Personen får invitasjonen i appen neste gang de logger inn. Bare dette prosjektet deles.</p>
+        {shared && <button type="button" className="share-stop" onClick={stop}>Slutt å dele</button>}
+      </div>
+    </div>
+  )
+}
+
 function Roadmap({ projectId, onBack }) {
   const project = useLiveQuery(() => getProject(projectId), [projectId])
   const items = useLiveQuery(() => listProjectItems(projectId), [projectId], [])
   const [sheetItem, setSheetItem] = useState(null)
+  const [shareOpen, setShareOpen] = useState(false)
   const [doneCollapsed, setDoneCollapsed] = useState(true)
   const [editingName, setEditingName] = useState(false)
   const [editingWhy, setEditingWhy] = useState(false)
@@ -841,6 +911,9 @@ function Roadmap({ projectId, onBack }) {
           <div className="phead-actions">
             <button type="button" className={'pstatus st-' + project.status} onClick={cycleStatus}>
               {STATUS_LABEL[project.status]}
+            </button>
+            <button type="button" className="pshare" aria-label="Del prosjekt" title="Del prosjekt" onClick={() => setShareOpen(true)}>
+              <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" /></svg>
             </button>
             <button type="button" className="pdel" aria-label="Slett prosjekt" onClick={handleDelete}>
               <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg>
@@ -1048,6 +1121,7 @@ function Roadmap({ projectId, onBack }) {
           onClose={() => setComposerTpl(null)}
         />
       )}
+      {shareOpen && <ShareSheet project={project} onClose={() => setShareOpen(false)} />}
     </div>
   )
 }

@@ -495,6 +495,7 @@ export async function listProjectItems(projectId) {
 const touch = (projectId) => db.projects.update(projectId, { lastTouched: now() })
 
 export async function addProjectItem(projectId, text, stage = 'next') {
+  const project = await db.projects.get(projectId)
   const item = {
     id: uid(),
     projectId,
@@ -503,6 +504,8 @@ export async function addProjectItem(projectId, text, stage = 'next') {
     energy: null,
     sortOrder: now(),
     createdAt: now(),
+    // arv prosjektets realm så nye steg i et delt prosjekt også synces
+    ...(project?.realmId ? { realmId: project.realmId } : {}),
   }
   await db.projectItems.add(item)
   await touch(projectId)
@@ -721,6 +724,53 @@ export async function listSharedMembers() {
 }
 
 export const removeSharedMember = (memberId) => db.members.delete(memberId)
+
+/* ---------------------------------------------------------
+   DELING AV PROSJEKTER — del et helt prosjekt (med steg) via e-post.
+   Hvert delt prosjekt får sitt eget Dexie Cloud-realm; prosjektet og alle
+   `projectItems` flyttes dit (realmId), og den inviterte får full tilgang.
+   --------------------------------------------------------- */
+/** Er dette realmet privat (mitt eget) eller udefinert? */
+const isPrivateRealm = (realmId) => !realmId || realmId === db.cloud.currentUserId
+
+/** Del et prosjekt: flytt prosjekt + steg inn i et eget realm og inviter på e-post. */
+export async function shareProject(projectId, email) {
+  const e = (email || '').trim().toLowerCase()
+  if (!e) throw new Error('Mangler e-post.')
+  const project = await db.projects.get(projectId)
+  if (!project) throw new Error('Fant ikke prosjektet.')
+  let realmId = project.realmId
+  if (isPrivateRealm(realmId)) {
+    realmId = await db.realms.add({ name: `Prosjekt: ${project.name}` })
+    await db.projects.update(projectId, { realmId })
+    const items = await db.projectItems.where('projectId').equals(projectId).toArray()
+    for (const it of items) await db.projectItems.update(it.id, { realmId })
+  }
+  await db.members.add({ realmId, email: e, invite: true, permissions: { manage: '*' } })
+  return realmId
+}
+
+/** Medlemmer i prosjektets realm (tom liste hvis ikke delt / ikke innlogget). */
+export async function listProjectMembers(projectId) {
+  const project = await db.projects.get(projectId)
+  if (!project || isPrivateRealm(project.realmId)) return []
+  return db.members.where('realmId').equals(project.realmId).toArray()
+}
+
+export const removeProjectMember = (memberId) => db.members.delete(memberId)
+
+/** Slutt å dele: flytt prosjekt + steg tilbake til privat realm og fjern de andre. */
+export async function stopSharingProject(projectId) {
+  const project = await db.projects.get(projectId)
+  if (!project || isPrivateRealm(project.realmId)) return
+  const oldRealm = project.realmId
+  const priv = db.cloud.currentUserId
+  await db.projects.update(projectId, { realmId: priv })
+  const items = await db.projectItems.where('projectId').equals(projectId).toArray()
+  for (const it of items) await db.projectItems.update(it.id, { realmId: priv })
+  const members = await db.members.where('realmId').equals(oldRealm).toArray()
+  for (const m of members) if (m.userId !== priv) await db.members.delete(m.id)
+}
 
 /* =========================================================
    BACKUP — eksport/import av HELE dashboardet

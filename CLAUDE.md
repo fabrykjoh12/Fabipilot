@@ -73,7 +73,9 @@ Synces via Dexie Cloud (se §3).
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
   `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon. Prompt-verksted-felt (alle uindeksert, ingen
   schema-bump): `context` (Claude-kontekst/stack — limes inn foran kopierte prompts), `liveUrl`, `repoUrl`,
-  `deadline` (`YYYY-MM-DD` el. `null`), `notes`.
+  `deadline` (`YYYY-MM-DD` el. `null`), `notes`. Deling: `shareProject(id,email)` flytter prosjektet + alle
+  `projectItems` inn i et eget Dexie Cloud-realm (`realmId`) og inviterer på e-post; `stopSharingProject`
+  flytter tilbake til privat realm. `addProjectItem` arver prosjektets `realmId`.
 - **projectItems** — `id, projectId, text, stage, energy, sortOrder, createdAt`
   `stage` = `'now' | 'next' | 'later' | 'done'` (prioritet Høy/Medium/Lav på PC-tavla). `energy` = `'lav' | 'hoy' | null`.
   `aiStatus` = `'idea' | 'asked' | 'built' | 'verified'` (Claude-loop, uindeksert; default `'idea'`), `subtasks[]`.
