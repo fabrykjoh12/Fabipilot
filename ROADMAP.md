@@ -12,6 +12,7 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 
 ## Senere
 - Generell polish: tilgjengelighet, ytelse.
+- (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
 - Vite + React 19 lokal-først scaffold, `CLAUDE.md`.
