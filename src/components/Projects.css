@@ -1461,3 +1461,110 @@
     border-color: var(--accent);
   }
 }
+
+/* ===================================================================
+   MAL-KOMPOSER — velg mal, fyll inn felt, forhåndsvis, legg til
+   =================================================================== */
+.pcomp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  background: rgba(20, 24, 33, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.pcomp {
+  width: 100%;
+  max-width: 560px;
+  background: var(--canvas);
+  border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+  padding: 10px 20px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: var(--sh-5);
+  animation: sheet-up 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.pcomp-grip { width: 38px; height: 4px; border-radius: 99px; background: var(--line-strong); margin: 4px auto 16px; }
+.pcomp-tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+.pcomp-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
+}
+.pcomp-tab.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.pcomp-fields { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.pcomp-field { display: flex; flex-direction: column; gap: 6px; }
+.pcomp-flbl { font-size: 13px; font-weight: 700; color: var(--ink); }
+.pcomp-input {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--surface);
+  outline: 0;
+  resize: vertical;
+  line-height: 1.4;
+}
+.pcomp-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.pcomp-input::placeholder { color: var(--faint); }
+.pcomp-preview {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.pcomp-plbl { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.pcomp-ptext { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--ink-soft); white-space: pre-wrap; }
+.pcomp-phint { margin: 0; font-size: 14px; color: var(--faint); }
+.pcomp-prio { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; }
+.pcomp-prio-lbl { font-size: 13px; font-weight: 600; color: var(--muted); margin-right: 2px; }
+.pcomp-prio-btn {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 9px;
+  cursor: pointer;
+}
+.pcomp-prio-btn.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
+.pcomp-add {
+  width: 100%;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px;
+  cursor: pointer;
+  box-shadow: var(--sh-accent);
+}
+.pcomp-add:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+.pcomp-add:not(:disabled):hover { background: var(--accent-deep); }
+
+@media (min-width: 860px) {
+  .pcomp-overlay { align-items: center; padding: 24px; }
+  .pcomp { border-radius: var(--r-2xl); }
+  .pcomp-grip { display: none; }
+}
