@@ -352,11 +352,20 @@ function StepSheet({ item, onClose }) {
     })
     onClose()
   }
+  function toggleWip() {
+    updateProjectItem(item, { wip: !item.wip })
+    vibrate(8)
+    onClose()
+  }
   return (
     <div className="step-sheet-overlay" onClick={onClose}>
       <div className="step-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="step-grip" />
         <p className="step-sheet-txt">{item.text}</p>
+
+        <button type="button" className={'step-wip' + (item.wip ? ' on' : '')} onClick={toggleWip}>
+          {item.wip ? '● Ta ut av pågående' : '○ Sett som pågående'}
+        </button>
 
         <span className="step-lbl">Prioritet</span>
         <div className="step-stages">
@@ -483,6 +492,35 @@ function SpineCard({ item, onActions, project }) {
             <input placeholder="Nytt delpunkt…" value={subVal} onChange={(e) => setSubVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSub()} />
             <button type="button" disabled={!subVal.trim()} onClick={addSub} aria-label="Legg til delpunkt">+</button>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* «Pågående»-lane øverst på tavla: det du fikser akkurat nå. Full bredde,
+   egen dropp-sone (setter wip=true); prioritet beholdes under. */
+function WipLane({ items, onActions, onDropWip, project }) {
+  const [dragOver, setDragOver] = useState(false)
+  return (
+    <div
+      className={'rm-wip' + (dragOver ? ' drag-over' : '') + (items.length ? '' : ' empty')}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
+      onDragEnter={() => setDragOver(true)}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false) }}
+      onDrop={(e) => { e.preventDefault(); setDragOver(false); const id = e.dataTransfer.getData('text/plain'); if (id) onDropWip(id) }}
+    >
+      <div className="rm-wip-head">
+        <span className="rm-wip-dot" />
+        <span className="nm">Pågående</span>
+        <span className="ct">{items.length}</span>
+        <span className="note">det jeg fikser nå</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="rm-wip-empty">Dra hit det du jobber med nå — eller merk et steg som «pågående» via ⋯</p>
+      ) : (
+        <div className="rm-wip-cards">
+          {items.map((i) => <SpineCard key={i.id} item={i} onActions={onActions} project={project} />)}
         </div>
       )}
     </div>
@@ -813,11 +851,12 @@ function Roadmap({ projectId, onBack }) {
     onBack()
   }
 
-  const nowItems = items.filter((i) => i.stage === 'now')
-  const nextItems = items.filter((i) => i.stage === 'next')
-  const laterItems = items.filter((i) => i.stage === 'later')
+  const wipItems = items.filter((i) => i.wip && i.stage !== 'done')
+  const nowItems = items.filter((i) => i.stage === 'now' && !i.wip)
+  const nextItems = items.filter((i) => i.stage === 'next' && !i.wip)
+  const laterItems = items.filter((i) => i.stage === 'later' && !i.wip)
   const doneItems = items.filter((i) => i.stage === 'done')
-  const queue = [...nowItems, ...nextItems, ...laterItems]
+  const queue = [...wipItems, ...nowItems, ...nextItems, ...laterItems]
 
   const total = items.length
   const pct = total ? Math.round((doneItems.length / total) * 100) : 0
@@ -850,8 +889,17 @@ function Roadmap({ projectId, onBack }) {
 
   function onDropTo(stage, itemId) {
     const it = items.find((i) => i.id === itemId)
-    if (it && it.stage !== stage) {
-      setItemStage(it, stage)
+    if (!it) return
+    if (it.stage !== stage || it.wip) {
+      updateProjectItem(it, { stage, wip: false })
+      vibrate(10)
+    }
+  }
+
+  function onDropWip(itemId) {
+    const it = items.find((i) => i.id === itemId)
+    if (it && !it.wip) {
+      updateProjectItem(it, { wip: true })
       vibrate(10)
     }
   }
@@ -1073,6 +1121,7 @@ function Roadmap({ projectId, onBack }) {
             </button>
           ))}
         </div>
+        <WipLane items={wipItems} onActions={setSheetItem} onDropWip={onDropWip} project={project} />
         <div className="road prio-list">
           <StageBlock stage="now" label={PRIO_LABEL.now} note="det viktigste" items={nowItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
           <StageBlock stage="next" label={PRIO_LABEL.next} items={nextItems} onAdd={addTo} onActions={setSheetItem} onDropTo={onDropTo} project={project} />
