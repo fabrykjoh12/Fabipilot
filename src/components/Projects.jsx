@@ -237,12 +237,13 @@ const COPY = (
     <path d="M5 15V5a2 2 0 0 1 2-2h10" />
   </svg>
 )
-/* Prosjektkontekst-blokk (Prosjekt/Mål/Kontekst/Live/Repo) som limes foran prompts. */
+/* Prosjektkontekst-blokk som limes foran prompts. Selve prompt-teksten er
+   på engelsk (brukeren jobber på engelsk med Claude); appen ellers er norsk. */
 function projectContext(project) {
   const ctx = []
-  if (project?.name) ctx.push(`Prosjekt: ${project.name}`)
-  if (project?.why) ctx.push(`Mål: ${project.why}`)
-  if (project?.context) ctx.push(`Kontekst: ${project.context}`)
+  if (project?.name) ctx.push(`Project: ${project.name}`)
+  if (project?.why) ctx.push(`Goal: ${project.why}`)
+  if (project?.context) ctx.push(`Context: ${project.context}`)
   if (project?.liveUrl) ctx.push(`Live: ${project.liveUrl}`)
   if (project?.repoUrl) ctx.push(`Repo: ${project.repoUrl}`)
   return ctx.join('\n')
@@ -251,13 +252,13 @@ function projectContext(project) {
    klar til å lime inn i Claude/Codex. Uten kontekst → bare teksten. */
 function buildPrompt(project, text) {
   const header = projectContext(project)
-  return header ? `${header}\n\nOppgave:\n${text}` : text
+  return header ? `${header}\n\nTask:\n${text}` : text
 }
 /* Setter sammen ALLE steg til én nummerert liste — «alt jeg vil at Claude skal gjøre». */
 function buildAllPrompts(project, items) {
   const header = projectContext(project)
   const list = items.map((it, i) => `${i + 1}. ${it.text}`).join('\n')
-  const body = `Her er alt jeg vil at du skal gjøre:\n\n${list}`
+  const body = `Here's everything I want you to do:\n\n${list}`
   return header ? `${header}\n\n${body}` : body
 }
 function hasContext(project) {
@@ -277,7 +278,7 @@ const PROMPT_TEMPLATES = [
       { key: 'what', label: 'Hva skal lages?', placeholder: 'en priskalkulator' },
       { key: 'does', label: 'Hva skal den gjøre?', placeholder: 'regne ut månedspris ut fra antall brukere', big: true },
     ],
-    build: (v) => `Lag ${v.what || '…'}.\nDen skal ${v.does || '…'}.`,
+    build: (v) => `Build ${v.what || '…'}.\nIt should ${v.does || '…'}.`,
   },
   {
     key: 'bug', emoji: '🐛', label: 'Fiks bug',
@@ -285,7 +286,7 @@ const PROMPT_TEMPLATES = [
       { key: 'problem', label: 'Hva er feil?', placeholder: 'knappen gjør ingenting når jeg trykker', big: true },
       { key: 'expected', label: 'Hva forventet du?', placeholder: 'at skjemaet sendes inn' },
     ],
-    build: (v) => `Fiks denne buggen: ${v.problem || '…'}\nForventet: ${v.expected || '…'}`,
+    build: (v) => `Fix this bug: ${v.problem || '…'}\nExpected: ${v.expected || '…'}`,
   },
   {
     key: 'design', emoji: '🎨', label: 'Design',
@@ -293,7 +294,7 @@ const PROMPT_TEMPLATES = [
       { key: 'what', label: 'Hva skal forbedres?', placeholder: 'forsiden / en knapp / kortene' },
       { key: 'how', label: 'Hvordan? (mer/mindre av …)', placeholder: 'luftigere, større tekst, roligere farger', big: true },
     ],
-    build: (v) => `Forbedre designet på ${v.what || '…'}.\nGjør det ${v.how || '…'}.`,
+    build: (v) => `Improve the design of ${v.what || '…'}.\nMake it ${v.how || '…'}.`,
   },
   {
     key: 'feature', emoji: '➕', label: 'Ny funksjon',
@@ -301,7 +302,7 @@ const PROMPT_TEMPLATES = [
       { key: 'what', label: 'Hvilken funksjon?', placeholder: 'søkefelt / mørk modus' },
       { key: 'detail', label: 'Hvordan skal den funke?', placeholder: 'filtrerer lista mens jeg skriver', big: true },
     ],
-    build: (v) => `Legg til ${v.what || '…'}.\nDen skal ${v.detail || '…'}.`,
+    build: (v) => `Add ${v.what || '…'}.\nIt should ${v.detail || '…'}.`,
   },
   {
     key: 'refactor', emoji: '♻️', label: 'Refaktorer',
@@ -309,7 +310,7 @@ const PROMPT_TEMPLATES = [
       { key: 'what', label: 'Hva skal ryddes?', placeholder: 'denne komponenten / denne filen' },
       { key: 'goal', label: 'Mål med opprydningen', placeholder: 'lettere å lese, mindre gjentakelse', big: true },
     ],
-    build: (v) => `Refaktorer ${v.what || '…'} slik at det blir ${v.goal || '…'}.`,
+    build: (v) => `Refactor ${v.what || '…'} so that it becomes ${v.goal || '…'}.`,
   },
   {
     key: 'blank', emoji: '✍️', label: 'Tom',
