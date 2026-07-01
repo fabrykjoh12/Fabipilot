@@ -1442,8 +1442,49 @@
 }
 
 /* ===================================================================
-   PROMPT-MALER + DRA-OG-SLIPP
+   HURTIG-SKRIVEFELT + PROMPT-MALER + DRA-OG-SLIPP
    =================================================================== */
+/* Stort, alltid-synlig skrivefelt øverst på tavla — lett å dumpe en idé */
+.roadmap .rm-quickadd {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.roadmap .rm-quickadd-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink);
+  outline: 0;
+  resize: vertical;
+}
+.roadmap .rm-quickadd-input::placeholder { color: var(--faint); }
+.roadmap .rm-quickadd-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.roadmap .rm-quickadd-btn {
+  flex: 0 0 auto;
+  align-self: stretch;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 18px;
+  cursor: pointer;
+  box-shadow: var(--sh-accent);
+  transition: background var(--t-fast);
+}
+.roadmap .rm-quickadd-btn:hover:not(:disabled) { background: var(--accent-deep); }
+.roadmap .rm-quickadd-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+
 .roadmap .tpl-bar {
   display: flex;
   flex-wrap: wrap;

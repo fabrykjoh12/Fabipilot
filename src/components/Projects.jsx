@@ -684,6 +684,7 @@ function Roadmap({ projectId, onBack }) {
   const [linksEditing, setLinksEditing] = useState(false)
   const [queueOpen, setQueueOpen] = useState(false)
   const [composerTpl, setComposerTpl] = useState(null)
+  const [quickVal, setQuickVal] = useState('')
   const [nameVal, setNameVal] = useState('')
   const [whyVal, setWhyVal] = useState('')
   const [notesVal, setNotesVal] = useState('')
@@ -754,6 +755,14 @@ function Roadmap({ projectId, onBack }) {
 
   async function addTo(stage, text) {
     await addProjectItem(projectId, text, stage)
+    vibrate(8)
+  }
+
+  async function addQuick() {
+    const lines = quickVal.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (!lines.length) return
+    for (const line of lines) await addProjectItem(projectId, line, 'next')
+    setQuickVal('')
     vibrate(8)
   }
 
@@ -970,8 +979,21 @@ function Roadmap({ projectId, onBack }) {
         </aside>
 
         <section className="rm-board">
+        <div className="rm-quickadd">
+          <textarea
+            className="rm-quickadd-input"
+            placeholder="Skriv en idé eller prompt til prosjektet…  (Enter for å legge til, Shift+Enter for ny linje)"
+            value={quickVal}
+            rows={2}
+            onChange={(e) => setQuickVal(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addQuick() } }}
+          />
+          <button type="button" className="rm-quickadd-btn" disabled={!quickVal.trim()} onClick={addQuick}>
+            Legg til
+          </button>
+        </div>
         <div className="tpl-bar">
-          <span className="tpl-lbl">Ny prompt</span>
+          <span className="tpl-lbl">eller mal</span>
           {PROMPT_TEMPLATES.map((t) => (
             <button key={t.key} type="button" className="tpl-chip" onClick={() => setComposerTpl(t)}>
               <span className="tpl-emoji">{t.emoji}</span>{t.label}
