@@ -18,6 +18,108 @@
 .tasks .pmeter { background: var(--canvas-2); box-shadow: none; height: 6px; }
 .tasks .pmeter > i { background: var(--accent); }
 
+/* ===== «I dag»-panel ===== */
+.today-hero {
+  margin: 16px 0 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-2);
+  padding: 16px;
+}
+.th-top { display: flex; align-items: center; gap: 16px; }
+.th-ring { position: relative; width: 60px; height: 60px; flex: 0 0 auto; }
+.th-ring svg { width: 60px; height: 60px; transform: rotate(-90deg); }
+.th-track { fill: none; stroke: var(--canvas-2); stroke-width: 6; }
+.th-prog {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.th-pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.th-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.th-lbl { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1; }
+.th-sub { font-size: 14px; font-weight: 500; color: var(--muted); }
+.th-carry {
+  align-self: flex-start;
+  margin-top: 9px;
+  border: 1px solid var(--accent-soft);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: var(--r-full);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.th-carry:hover { background: var(--accent); color: #fff; }
+.th-next {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: var(--surface-focus);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color var(--t-fast);
+}
+.th-next:hover { border-color: var(--accent); }
+.th-next-lbl {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--surface);
+  border-radius: var(--r-full);
+  padding: 3px 8px;
+}
+.th-next-check {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  display: grid;
+  place-items: center;
+}
+.th-next-check svg { width: 12px; height: 12px; stroke: var(--accent); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.th-next:hover .th-next-check { background: var(--accent); }
+.th-next:hover .th-next-check svg { stroke: #fff; opacity: 1; }
+.th-next-ttl {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.th-next-star { width: 15px; height: 15px; color: var(--accent); fill: var(--accent); flex: 0 0 auto; }
+
 /* seksjon: rolig grå label, ingen strek/pille */
 .tasks .sec { margin-top: 24px; }
 .tasks .sec-label {

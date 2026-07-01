@@ -237,6 +237,45 @@ function Section({ label, count, sub, collapsible, open, onToggle, children }) {
   )
 }
 
+/* ---------- «I dag»-panel: gjør dagen til hovedsaken ---------- */
+function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onCompleteNext }) {
+  const pct = total ? Math.round((done / total) * 100) : 0
+  const R = 24
+  const C = 2 * Math.PI * R
+  const allDone = total > 0 && done === total
+  return (
+    <div className="today-hero">
+      <div className="th-top">
+        <div className="th-ring" role="img" aria-label={`${done} av ${total} gjort i dag`}>
+          <svg viewBox="0 0 60 60">
+            <circle className="th-track" cx="30" cy="30" r={R} />
+            <circle className="th-prog" cx="30" cy="30" r={R} style={{ strokeDasharray: C, strokeDashoffset: C * (1 - pct / 100) }} />
+          </svg>
+          <span className="th-pct">{total ? `${done}/${total}` : '–'}</span>
+        </div>
+        <div className="th-main">
+          <span className="th-lbl">I dag</span>
+          <span className="th-sub">
+            {total === 0 ? 'ingenting planlagt ennå' : allDone ? 'alt gjort — nyt det 🎉' : `${remaining} igjen · ${done} gjort`}
+          </span>
+          {overdue > 0 && (
+            <button type="button" className="th-carry" onClick={onCarry}>
+              {overdue} henger igjen → ta med i dag
+            </button>
+          )}
+        </div>
+      </div>
+      {nextUp && (
+        <button type="button" className="th-next" onClick={onCompleteNext}>
+          <span className="th-next-lbl">Neste opp</span>
+          <span className="th-next-check" aria-hidden="true">{CHECK}</span>
+          <span className="th-next-ttl">{nextUp.isFocus && <Star className="th-next-star" />}{nextUp.title}</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function Tasks() {
   const today = todayKey()
   const tom = tomorrowKey()
@@ -262,7 +301,18 @@ export default function Tasks() {
 
   const todayScope = focus.length + todayList.length + overdue.length
   const totalToday = todayScope + doneToday.length
-  const pct = totalToday ? Math.round((doneToday.length / totalToday) * 100) : 0
+  const nextUp = focus[0] || todayList[0] || overdue[0] || null
+
+  async function carryOverdue() {
+    for (const t of overdue) await setTaskDate(t.id, today)
+    vibrate(8)
+    toast.message(`${overdue.length} tatt med til i dag`)
+  }
+  function completeNext() {
+    if (!nextUp) return
+    vibrate([12, 30, 12])
+    setTaskDone(nextUp.id, true)
+  }
 
   async function add() {
     const v = val.trim()
@@ -284,10 +334,17 @@ export default function Tasks() {
         <div className="scr-top">
           <h1 className="scr-title">{greeting()}, Fabi</h1>
         </div>
-        <div className="status">
-          <span>{open.length === 0 ? (totalToday > 0 ? 'alt unnagjort 🎉' : 'ingenting planlagt') : `${focus.length} i fokus · ${open.length} åpne`}</span>
-          <span className="pmeter"><i style={{ width: pct + '%' }} /></span>
-        </div>
+        {!empty && (
+          <TodayHero
+            done={doneToday.length}
+            total={totalToday}
+            remaining={todayScope}
+            overdue={overdue.length}
+            nextUp={nextUp}
+            onCarry={carryOverdue}
+            onCompleteNext={completeNext}
+          />
+        )}
 
         {doneToday.length >= 3 && open.length > 0 && (
           <div className="enough-line"><span className="enough-leaf">🌿</span>Du har gjort nok i dag. Resten kan vente med god samvittighet.</div>
