@@ -346,6 +346,25 @@ export default function App() {
       .catch(() => {}) // dev uten SW-støtte — helt ok
   }, [])
 
+  // Mild backup-påminnelse: >30 dager siden sist (eller siden første besøk),
+  // og aldri oftere enn ukentlig. Ett trykk åpner backup-panelet.
+  useEffect(() => {
+    if (!isLoggedIn) return
+    const first = Number(localStorage.getItem('backupFirstSeen') || 0)
+    if (!first) { localStorage.setItem('backupFirstSeen', String(Date.now())); return }
+    const ref = Number(localStorage.getItem('lastBackup') || 0) || first
+    const nudged = Number(localStorage.getItem('backupNudgedAt') || 0)
+    const DAY = 86400000
+    if (Date.now() - ref > 30 * DAY && Date.now() - nudged > 7 * DAY) {
+      localStorage.setItem('backupNudgedAt', String(Date.now()))
+      toast.message('🗄️ En stund siden sist backup', {
+        description: 'Ta en rask JSON-backup — god samvittighet på 5 sekunder.',
+        duration: 12000,
+        action: { label: 'Ta backup', onClick: () => setBackupOpen(true) },
+      })
+    }
+  }, [isLoggedIn])
+
   // Sync-feil: si fra én gang (ikke mas), nullstill når vi er i synk igjen.
   const led = syncLed(syncState)
   useEffect(() => {
@@ -461,6 +480,7 @@ export default function App() {
     a.download = `fabipilot-backup-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
+    localStorage.setItem('lastBackup', String(Date.now()))
     setBackupOpen(false)
     toast.success('Backup lastet ned', { description: 'JSON-fila ligger i Nedlastinger.' })
   }
@@ -744,6 +764,12 @@ export default function App() {
 
             <p className="backup-text">
               Vil du ha en kopi på fil i tillegg? Eksporter en JSON og legg den i iCloud/Drive.
+              {(() => {
+                const t = Number(localStorage.getItem('lastBackup') || 0)
+                return t
+                  ? ` Sist backup: ${new Intl.DateTimeFormat('nb-NO', { day: 'numeric', month: 'long' }).format(new Date(t))}.`
+                  : ' Ingen backup tatt ennå.'
+              })()}
             </p>
             <button type="button" className="btn backup-action" onClick={handleExport}>
               Eksporter alt (last ned JSON)
