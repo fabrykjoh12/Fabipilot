@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { Plus, Lightbulb, CalendarDays, CornerDownLeft } from 'lucide-react'
 import { addTask, addIdea, addEvent, todayKey } from '../db.js'
 import { parseEntry } from '../lib/parse.js'
+import { useSearchIndex, SEARCH_TYPES, Highlight } from '../lib/search.jsx'
 import { vibrate, burst } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
 import './Capture.css'
@@ -35,6 +36,17 @@ export default function Capture({ open, onClose, onNav }) {
   const base = parsed.type === 'todo' ? 'task' : parsed.type
   const type = override || base
   const meta = TYPES.find((t) => t.k === type) || TYPES[0]
+
+  // ⌘K er også søk: vis eksisterende ting som matcher mens du skriver.
+  const index = useSearchIndex(open)
+  const query = parsed.title.trim()
+  const hits = useMemo(() => {
+    if (query.length < 2) return []
+    const q = query.toLowerCase()
+    return index
+      .filter((r) => (r.text || '').toLowerCase().includes(q) || (r.sub || '').toLowerCase().includes(q))
+      .slice(0, 5)
+  }, [index, query])
 
   // Bare fokus i effekten (ingen setState) — state nullstilles ved lukking/lagring.
   useEffect(() => {
@@ -122,6 +134,27 @@ export default function Capture({ open, onClose, onNav }) {
             </span>
           )}
         </div>
+
+        {hits.length > 0 && (
+          <div className="cap-found">
+            <span className="cap-found-lbl">Fant dette</span>
+            {hits.map((r) => {
+              const m = SEARCH_TYPES[r.type]
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  className="cap-hit"
+                  onClick={() => { onNav?.(m.mod); close() }}
+                >
+                  <span className="cap-hit-emoji">{m.emoji}</span>
+                  <span className="cap-hit-text"><Highlight text={r.text || ''} q={query} /></span>
+                  <span className="cap-hit-tag">{m.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         <div className="cap-types">
           {TYPES.map((t) => (

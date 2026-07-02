@@ -201,3 +201,63 @@
     bottom: 28px;
   }
 }
+
+/* ===== «Fant dette» — ⌘K er også søk ===== */
+.cap-found {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.cap-found-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 2px 6px;
+}
+.cap-hit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: none;
+  border-radius: var(--r-sm);
+  padding: 9px 10px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.cap-hit:hover,
+.cap-hit:focus-visible { background: var(--canvas-2); }
+.cap-hit-emoji { flex: 0 0 auto; font-size: 15px; }
+.cap-hit-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cap-hit-text mark {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+[data-theme='dark'] .cap-hit-text mark { color: var(--accent-bright); }
+.cap-hit-tag {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: var(--r-full);
+  padding: 3px 8px;
+}
