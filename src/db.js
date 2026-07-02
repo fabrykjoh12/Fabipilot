@@ -599,59 +599,6 @@ export const updateEvent = (id, patch) => db.events.update(id, patch)
 export const deleteEvent = (id) => db.events.delete(id)
 
 /* =========================================================
-   LISTE (gjøremål uten dato)
-   - todos: id, text, isDone, completedAt, sortOrder, createdAt
-   ========================================================= */
-export async function listTodos() {
-  return db.todos.orderBy('sortOrder').toArray()
-}
-export async function addTodo(text) {
-  const t = {
-    id: uid(),
-    text: text.trim(),
-    isDone: false,
-    completedAt: null,
-    subtasks: [],
-    sortOrder: now(),
-    createdAt: now(),
-  }
-  await db.todos.add(t)
-  return t
-}
-export const updateTodo = (id, patch) => db.todos.update(id, patch)
-export const deleteTodo = (id) => db.todos.delete(id)
-export async function addSubtask(todoId, text) {
-  const t = await db.todos.get(todoId)
-  if (!t) return
-  const subtasks = [...(t.subtasks || []), { id: uid(), text: text.trim(), done: false }]
-  await db.todos.update(todoId, { subtasks })
-}
-export async function toggleSubtask(todoId, subId) {
-  const t = await db.todos.get(todoId)
-  if (!t) return
-  const subtasks = (t.subtasks || []).map((s) => (s.id === subId ? { ...s, done: !s.done } : s))
-  await db.todos.update(todoId, { subtasks })
-}
-export async function deleteSubtask(todoId, subId) {
-  const t = await db.todos.get(todoId)
-  if (!t) return
-  await db.todos.update(todoId, { subtasks: (t.subtasks || []).filter((s) => s.id !== subId) })
-}
-export async function setTodoDone(id, done) {
-  await db.todos.update(id, { isDone: done, completedAt: done ? now() : null })
-}
-export async function moveTodo(id, direction) {
-  const all = await db.todos.orderBy('sortOrder').toArray()
-  const open = all.filter((t) => !t.isDone)
-  const idx = open.findIndex((t) => t.id === id)
-  const swap = idx + direction
-  if (idx < 0 || swap < 0 || swap >= open.length) return
-  const a = open[idx], b = open[swap]
-  await db.todos.update(a.id, { sortOrder: b.sortOrder })
-  await db.todos.update(b.id, { sortOrder: a.sortOrder })
-}
-
-/* =========================================================
    DELING — delt liste med én annen person (Dexie Cloud realm)
    ---------------------------------------------------------
    Alt i `sharedItems` legges i ÉT delt realm. Den andre personen

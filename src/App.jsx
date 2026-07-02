@@ -332,7 +332,7 @@ export default function App() {
   const navRef = useRef(null)
 
   const itemCount = useLiveQuery(async () => {
-    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals']
+    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'expenses', 'budgets', 'incomes', 'goals']
     let n = 0
     for (const t of tabs) n += await db.table(t).count()
     return n

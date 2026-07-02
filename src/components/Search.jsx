@@ -4,8 +4,7 @@ import { db } from '../db.js'
 
 /* Moduler en treff kan hoppe til (matcher MODULES-nøklene i App.jsx). */
 const TYPES = {
-  task: { label: 'I dag', emoji: '✅', mod: 'today' },
-  todo: { label: 'Liste', emoji: '📝', mod: 'todo' },
+  task: { label: 'Oppgave', emoji: '✅', mod: 'today' },
   idea: { label: 'Idébank', emoji: '💡', mod: 'ideas' },
   project: { label: 'Prosjekt', emoji: '📁', mod: 'projects' },
   step: { label: 'Prosjektsteg', emoji: '↳', mod: 'projects' },
@@ -32,9 +31,8 @@ export default function Search({ onNav }) {
   const [q, setQ] = useState('')
 
   const all = useLiveQuery(async () => {
-    const [tasks, todos, ideas, projects, steps, events, habits, expenses, subs] = await Promise.all([
+    const [tasks, ideas, projects, steps, events, habits, expenses, subs] = await Promise.all([
       db.tasks.toArray(),
-      db.todos.toArray(),
       db.ideas.toArray(),
       db.projects.toArray(),
       db.projectItems.toArray(),
@@ -45,7 +43,6 @@ export default function Search({ onNav }) {
     ])
     const out = []
     for (const t of tasks) out.push({ id: 't' + t.id, type: 'task', text: t.title, sub: t.dueDate || '' })
-    for (const t of todos) out.push({ id: 'd' + t.id, type: 'todo', text: t.text, sub: t.dueDate || '' })
     for (const i of ideas) out.push({ id: 'i' + i.id, type: 'idea', text: i.text, sub: (i.tags || []).map((x) => '#' + x).join(' ') })
     for (const p of projects) out.push({ id: 'p' + p.id, type: 'project', text: p.name, sub: p.why || '' })
     for (const s of steps) out.push({ id: 's' + s.id, type: 'step', text: s.text, sub: '' })
