@@ -1,5 +1,9 @@
 import Dexie from 'dexie'
 import dexieCloud from 'dexie-cloud-addon'
+import { todayKey, tomorrowKey, nextDate } from './lib/dates.js'
+import { legacyTodoToTask } from './lib/migrations.js'
+
+export { todayKey, tomorrowKey, nextDate }
 
 // Lokal-først med sky-sync via Dexie Cloud.
 export const db = new Dexie('dashboard', { addons: [dexieCloud] })
@@ -153,14 +157,7 @@ db.version(10)
     if (!todos.length) return
     const rows = todos.map((t) => ({
       id: t.id,
-      title: (t.text || '').trim(),
-      isDone: !!t.isDone,
-      isFocus: false,
-      dueDate: t.dueDate || null,
-      completedAt: t.completedAt || null,
-      estimate: null,
-      repeat: 'none',
-      subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+      ...legacyTodoToTask(t),
       sortOrder: t.sortOrder || Date.now(),
       createdAt: t.createdAt || Date.now(),
     }))
@@ -176,26 +173,6 @@ db.cloud.configure({
 
 const uid = () => crypto.randomUUID()
 const now = () => Date.now()
-
-/** Lokal datonøkkel YYYY-MM-DD (ikke UTC). */
-export function todayKey(d = new Date()) {
-  const x = new Date(d)
-  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
-}
-/** Datonøkkel for i morgen. */
-export function tomorrowKey() {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return todayKey(d)
-}
-/** Neste forekomst-dato for en gjentakelse ('daily'|'weekly'|'monthly'). */
-export function nextDate(key, repeat) {
-  const [y, m, d] = key.split('-').map(Number)
-  if (repeat === 'daily') return todayKey(new Date(y, m - 1, d + 1))
-  if (repeat === 'weekly') return todayKey(new Date(y, m - 1, d + 7))
-  if (repeat === 'monthly') return todayKey(new Date(y, m, d))
-  return key
-}
 
 
 /* =========================================================
@@ -775,14 +752,7 @@ export async function importAll(data) {
       .filter((row) => row && typeof row === 'object')
       .map((t) => ({
         id: typeof t.id === 'string' && t.id ? t.id : uid(),
-        title: (t.text || '').trim(),
-        isDone: !!t.isDone,
-        isFocus: false,
-        dueDate: t.dueDate || null,
-        completedAt: t.completedAt || null,
-        estimate: null,
-        repeat: 'none',
-        subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
+        ...legacyTodoToTask(t),
         sortOrder: t.sortOrder || now(),
         createdAt: t.createdAt || now(),
       }))

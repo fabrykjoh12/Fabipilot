@@ -29,6 +29,7 @@ import {
 } from '../db.js'
 import { vibrate } from '../lib/fx.js'
 import { toast, ScreenSkeleton, useEscape } from '../lib/ui.jsx'
+import { buildPrompt, buildAllPrompts, hasContext } from '../lib/prompts.js'
 import './Projects.css'
 
 const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
@@ -241,34 +242,6 @@ const COPY = (
     <path d="M5 15V5a2 2 0 0 1 2-2h10" />
   </svg>
 )
-/* Prosjektkontekst-blokk som limes foran prompts. Selve prompt-teksten er
-   på engelsk (brukeren jobber på engelsk med Claude); appen ellers er norsk. */
-function projectContext(project) {
-  const ctx = []
-  if (project?.name) ctx.push(`Project: ${project.name}`)
-  if (project?.why) ctx.push(`Goal: ${project.why}`)
-  if (project?.context) ctx.push(`Context: ${project.context}`)
-  if (project?.liveUrl) ctx.push(`Live: ${project.liveUrl}`)
-  if (project?.repoUrl) ctx.push(`Repo: ${project.repoUrl}`)
-  return ctx.join('\n')
-}
-/* Setter sammen ett steg til en ferdig prompt med prosjektkontekst foran,
-   klar til å lime inn i Claude/Codex. Uten kontekst → bare teksten. */
-function buildPrompt(project, text) {
-  const header = projectContext(project)
-  return header ? `${header}\n\nTask:\n${text}` : text
-}
-/* Setter sammen ALLE steg til én nummerert liste — «alt jeg vil at Claude skal gjøre». */
-function buildAllPrompts(project, items) {
-  const header = projectContext(project)
-  const list = items.map((it, i) => `${i + 1}. ${it.text}`).join('\n')
-  const body = `Here's everything I want you to do:\n\n${list}`
-  return header ? `${header}\n\n${body}` : body
-}
-function hasContext(project) {
-  return !!(project?.why || project?.context || project?.liveUrl || project?.repoUrl)
-}
-
 /* AI-arbeidsflyt: hvor i Claude-loopen et steg er. */
 const AI_NEXT = { idea: 'asked', asked: 'built', built: 'verified', verified: 'idea' }
 

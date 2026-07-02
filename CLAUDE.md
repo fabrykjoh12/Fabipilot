@@ -22,6 +22,8 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   DB-URL er hardkodet i `db.js`. `dexie-cloud.key` er hemmelig og er i `.gitignore` (committes aldri).
   Nye web-origins (f.eks. Vercel-URL) må whitelistes: `npx dexie-cloud whitelist <url>`.
 - vite-plugin-pwa
+- Vitest for enhetstester på rene funksjoner (`src/lib/*.test.js`). GitHub Actions (`.github/workflows/ci.yml`)
+  kjører lint + test + build på push/PR.
 - Deploy: Vercel (auto fra `main`), ingen env-variabler
 
 ## 4. Designsystem (Any.do-inspirert — rent, lyst, luftig)
@@ -104,12 +106,24 @@ Alle stores er med i JSON-eksport/import (se §8).
   og egendefinert Dexie Cloud auth-dialog (e-post + engangskode)
 - `src/index.css` — global reset/bakgrunn
 - `src/db.js` — Dexie + Dexie Cloud-config: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
+  (re-eksporterer `todayKey`/`tomorrowKey`/`nextDate` fra `lib/dates.js` så kall-steder er uendret)
+- `src/lib/dates.js` — rene datohjelpere: `todayKey`, `tomorrowKey`, `nextDate` (testet i `dates.test.js`)
+- `src/lib/migrations.js` — rene migrerings-mappinger: `legacyTodoToTask` (delt av v10-migreringen og
+  `importAll`s eldre-backup-gren; testet i `migrations.test.js`)
+- `src/lib/prompts.js` — Claude-prompt-bygging: `projectContext`, `buildPrompt`, `buildAllPrompts`, `hasContext`
+  (brukt av Prosjekter; testet i `prompts.test.js`)
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
-- `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`, `PageTransition`,
-  `Reveal`, `toast` (sonner-wrapper). Bygd på `motion`; respekterer `prefers-reduced-motion`.
+- `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`/`ScreenSkeleton`, `PageTransition`,
+  `Reveal`, `toast` (sonner-wrapper), `useEscape` (lukk ark/dialoger på Escape). Bygd på `motion`; respekterer
+  `prefers-reduced-motion`.
+- `src/lib/search.jsx` — søkeindeks på tvers av modulene (`useSearchIndex`, `SEARCH_TYPES`, `Highlight`),
+  brukt av ⌘K-paletten i `Capture.jsx`
 - `src/lib/notify.js` — påminnelser: permission, daglig «planlegg dagen»-varsel via Notification Triggers
   (best-effort, lukket app der støttet), `fireTest`, app-ikon-badge (`setBadge`). Prefs i localStorage per enhet.
-- `src/lib/parse.js` — `parseEntry(text)`: tolker norsk dato/tid + typehint for hurtiglagring → `{title, type, dueDate, time}`.
+- `src/lib/parse.js` — `parseEntry(text)`: tolker norsk dato/tid + typehint for hurtiglagring → `{title, type, dueDate, time}`
+  (testet i `parse.test.js`)
+- `src/components/ErrorBoundary.jsx` — fanger renderfeil (rot + rundt aktiv modul): rolig fallback med
+  Prøv igjen + Last ned backup i stedet for hvit skjerm
 - `src/components/`
   - `Capture.jsx` / `Capture.css` — universell hurtiglagring (⌘K + flytende «+»): tolker fritekst og ruter til riktig modul
   - `MorningFlow.jsx` / `MorningFlow.css` — «Start dagen»-rituale øverst på Oversikt (én gang/dag via `ritual:<dato>`)
