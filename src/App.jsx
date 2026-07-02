@@ -24,7 +24,6 @@ import Calendar from './components/Calendar.jsx'
 import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
-import Projects from './components/Projects.jsx'
 import SharedList from './components/SharedList.jsx'
 import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
@@ -42,8 +41,10 @@ import {
 } from './lib/notify.js'
 import { db, exportAll, importAll, pushAllToCloud, todayKey } from './db.js'
 
-/* Penger drar inn recharts — last den modulen først når den åpnes. */
+/* Tunge moduler lastes først når de åpnes (Penger drar inn recharts,
+   Prosjekter er den største modulen). */
 const Money = lazy(() => import('./components/Money.jsx'))
+const Projects = lazy(() => import('./components/Projects.jsx'))
 
 function ScreenFallback() {
   return <ScreenSkeleton />
