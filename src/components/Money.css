@@ -483,7 +483,7 @@
   padding: 16px;
   box-shadow: var(--shadow);
 }
-.goal.reached { border-color: rgba(79, 157, 91, 0.4); background: #f0f5ef; }
+.goal.reached { border-color: var(--forest-soft); background: var(--forest-soft); }
 .goal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .goal-name { font-size: 16px; font-weight: 600; color: var(--ink); }
 .goal-del { border: 0; background: none; color: var(--faint); font-size: 17px; cursor: pointer; line-height: 1; }
@@ -501,7 +501,7 @@
   background: linear-gradient(90deg, var(--forest), #6fa877);
   transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.goal.reached .goal-bar > i { background: #4f9d5b; }
+.goal.reached .goal-bar > i { background: var(--forest); }
 .goal-foot {
   display: flex;
   align-items: center;

@@ -12,19 +12,20 @@ import {
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
 import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
+import { SWATCH } from '../lib/palette.js'
 import './Money.css'
 
 const CATEGORIES = [
-  { k: 'mat', label: 'Mat', emoji: '🍔', color: '#cc882b' },
-  { k: 'transport', label: 'Transport', emoji: '🚗', color: '#5f86b0' },
-  { k: 'bolig', label: 'Bolig', emoji: '🏠', color: '#42634a' },
-  { k: 'helse', label: 'Helse', emoji: '💊', color: '#b4574a' },
-  { k: 'klar', label: 'Klær', emoji: '👕', color: '#9c7a98' },
-  { k: 'moro', label: 'Moro', emoji: '🎉', color: '#e8a53d' },
-  { k: 'strømming', label: 'Strømming', emoji: '📺', color: '#6b8cba' },
-  { k: 'musikk', label: 'Musikk', emoji: '🎵', color: '#7ba07c' },
-  { k: 'software', label: 'Software', emoji: '💻', color: '#a07b9c' },
-  { k: 'annet', label: 'Annet', emoji: '📦', color: '#737b6e' },
+  { k: 'mat', label: 'Mat', emoji: '🍔', color: SWATCH.amber },
+  { k: 'transport', label: 'Transport', emoji: '🚗', color: SWATCH.blue },
+  { k: 'bolig', label: 'Bolig', emoji: '🏠', color: SWATCH.forest },
+  { k: 'helse', label: 'Helse', emoji: '💊', color: SWATCH.rose },
+  { k: 'klar', label: 'Klær', emoji: '👕', color: SWATCH.plum },
+  { k: 'moro', label: 'Moro', emoji: '🎉', color: SWATCH.coral },
+  { k: 'strømming', label: 'Strømming', emoji: '📺', color: SWATCH.teal },
+  { k: 'musikk', label: 'Musikk', emoji: '🎵', color: SWATCH.moss },
+  { k: 'software', label: 'Software', emoji: '💻', color: SWATCH.violet },
+  { k: 'annet', label: 'Annet', emoji: '📦', color: SWATCH.slate },
 ]
 const catMeta = (k) => CATEGORIES.find((c) => c.k === k) || CATEGORIES[CATEGORIES.length - 1]
 const catKey = (k) => (CATEGORIES.some((c) => c.k === k) ? k : 'annet')
@@ -33,9 +34,9 @@ const MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'au
 const pad = (n) => String(n).padStart(2, '0')
 
 function barColor(ratio) {
-  if (ratio > 1) return '#b4574a'
-  if (ratio >= 0.8) return '#cc882b'
-  return '#4f9d5b'
+  if (ratio > 1) return 'var(--danger)'
+  if (ratio >= 0.8) return SWATCH.amber
+  return 'var(--forest)'
 }
 
 /** Dager til neste trekk på en gitt dag i måneden (1–31). */

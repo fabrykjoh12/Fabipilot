@@ -32,7 +32,8 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   CSS-tokens i `:root` — bruk `var(--…)`, aldri hardkodede hex i komponenter.
 - Aksent = blå `#2f6dff` (fokus, primær-CTA, valgt, lenker, interaktivt). Semantisk grønn `#16a37b`
   (`--forest`) kun for positiv status (aktivt prosjekt, vane gjort). Kategori-farger (prosjekt/hendelse/
-  penger) er egne valgbare swatcher og påvirkes ikke av aksenten.
+  penger/vaner) er egne valgbare swatcher fra `SWATCH` (`src/lib/palette.js`) — en muset pastell-familie
+  avledet fra aksenten (samme metning/lyshet, ulik fargetone), ikke direkte bundet til aksentfargen.
 - Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver); luftige hvite
   kort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
 - Fonter: Plus Jakarta Sans (variabel) for både display og brødtekst, via tokens `--font-display`/`--font-body`.
@@ -108,6 +109,10 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/components/NavIcon.jsx` — nav-ikon-komponent (deles av App-navigasjonen og Login); ikonkartet ligger i `src/lib/icons.js`
 - `src/lib/icons.js` — `ICONS`-kartet (modul → Lucide-ikon)
 - `src/lib/sync.js` — `syncLabel`/`syncLed`: sky-sync-status → norsk etikett/farge-LED (delt av nav og BackupSheet)
+- `src/lib/palette.js` — `SWATCH`: muset pastell-fargefamilie avledet fra aksenten (samme HSL S/L,
+  ulik hue). Delt av `PROJECT_COLORS` (projects/shared.jsx), `EVENT_COLORS` (Calendar.jsx), `CATEGORIES`
+  (Money.jsx), `HABIT_COLORS` (Habits.jsx) og Hagens `habitHex` (Garden.jsx) — kun fargeverdier, nøklene
+  (`k`) som lagres i databasen er uendret
 - `src/index.css` — global reset/bakgrunn
 - `src/db.js` — Dexie + Dexie Cloud-config: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
   (re-eksporterer `todayKey`/`tomorrowKey`/`nextDate` fra `lib/dates.js` så kall-steder er uendret)

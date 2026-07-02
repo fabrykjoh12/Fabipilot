@@ -4,6 +4,7 @@ import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star
 import { db, todayKey, tomorrowKey, monthlyCost, setTaskDone, setTaskDate } from '../db.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
+import { SWATCH } from '../lib/palette.js'
 import MorningFlow from './MorningFlow.jsx'
 import { useGardenData, GardenScene } from './Garden.jsx'
 import './Overview.css'
@@ -289,7 +290,7 @@ export default function Overview({ onNav }) {
     money: (
       <OvCard
         icon={ICONS.money}
-        color="#6b8cba"
+        color={SWATCH.blue}
         title="Penger"
         sub={`${subs.length} abonnement · per måned`}
         onClick={editing ? undefined : () => onNav('money')}

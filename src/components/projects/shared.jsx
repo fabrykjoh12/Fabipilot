@@ -1,18 +1,19 @@
 // Delte konstanter, ikoner og små rene hjelpere for prosjekt-verkstedet.
 // Ingen React-state her — bare det StepSheet/SpineCard/StageBlock/PromptQueue/
 // PromptComposer/Roadmap/ProjectsList har felles.
+import { SWATCH } from '../../lib/palette.js'
 
 export const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
 export const NEXT_STATUS = { active: 'onice', onice: 'done', done: 'active' }
 export const ENERGY_NEXT = { '': 'lav', lav: 'hoy', hoy: '' }
 
 export const PROJECT_COLORS = [
-  { k: 'forest', val: '#42634a' },
-  { k: 'amber', val: '#cc882b' },
-  { k: 'blue', val: '#5f86b0' },
-  { k: 'rose', val: '#b4574a' },
-  { k: 'plum', val: '#9c7a98' },
-  { k: 'slate', val: '#5e6b6f' },
+  { k: 'forest', val: SWATCH.forest },
+  { k: 'amber', val: SWATCH.amber },
+  { k: 'blue', val: SWATCH.blue },
+  { k: 'rose', val: SWATCH.rose },
+  { k: 'plum', val: SWATCH.plum },
+  { k: 'slate', val: SWATCH.slate },
 ]
 export const colorVal = (k) => (PROJECT_COLORS.find((c) => c.k === k) || PROJECT_COLORS[0]).val
 export const PROJECT_EMOJIS = ['🗂️', '🚀', '🏡', '💪', '🎨', '📚', '💻', '🎸', '🌱', '💰', '✈️', '🧩', '🎯', '🔧', '📷', '🍳', '🎬', '🏃']

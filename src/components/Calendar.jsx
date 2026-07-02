@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, addEvent, updateEvent, deleteWithRestore, restoreRecord, setTaskDone } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
 import { toast, useEscape } from '../lib/ui.jsx'
+import { SWATCH } from '../lib/palette.js'
 import './Calendar.css'
 
 const WEEKDAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -13,11 +14,11 @@ const MONTHS = [
 const WEEKDAYS_LONG = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag']
 
 const EVENT_COLORS = [
-  { k: 'amber', val: '#cc882b' },
-  { k: 'forest', val: '#42634a' },
-  { k: 'blue', val: '#5f86b0' },
-  { k: 'rose', val: '#b4574a' },
-  { k: 'plum', val: '#9c7a98' },
+  { k: 'amber', val: SWATCH.amber },
+  { k: 'forest', val: SWATCH.forest },
+  { k: 'blue', val: SWATCH.blue },
+  { k: 'rose', val: SWATCH.rose },
+  { k: 'plum', val: SWATCH.plum },
 ]
 const colorVal = (k) => (EVENT_COLORS.find((c) => c.k === k) || EVENT_COLORS[0]).val
 

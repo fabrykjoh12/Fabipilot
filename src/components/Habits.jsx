@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { listHabits, addHabit, updateHabit, deleteWithRestore, restoreRecord, toggleHabitDay, todayKey, db } from '../db.js'
 import { vibrate } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
+import { SWATCH } from '../lib/palette.js'
 
 const CHECK = (
   <svg viewBox="0 0 24 24">
@@ -11,12 +12,12 @@ const CHECK = (
 )
 
 const HABIT_COLORS = [
-  { k: 'forest', val: '#42634a' },
-  { k: 'amber', val: '#cc882b' },
-  { k: 'blue', val: '#5f86b0' },
-  { k: 'rose', val: '#b4574a' },
-  { k: 'plum', val: '#9c7a98' },
-  { k: 'slate', val: '#5e6b6f' },
+  { k: 'forest', val: SWATCH.forest },
+  { k: 'amber', val: SWATCH.amber },
+  { k: 'blue', val: SWATCH.blue },
+  { k: 'rose', val: SWATCH.rose },
+  { k: 'plum', val: SWATCH.plum },
+  { k: 'slate', val: SWATCH.slate },
 ]
 const habitColor = (k) => (HABIT_COLORS.find((c) => c.k === k) || HABIT_COLORS[0]).val
 const HABIT_EMOJIS = ['🌿', '💧', '📚', '🏃', '🧘', '💊', '🛏️', '🦷', '🎸', '✍️', '☀️', '🥗', '📵', '🚶', '💪', '🧹']

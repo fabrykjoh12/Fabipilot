@@ -2,6 +2,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, monthlyCost } from '../db.js'
 import { ScreenSkeleton } from '../lib/ui.jsx'
+import { SWATCH } from '../lib/palette.js'
 import './Garden.css'
 
 /* Hagen din — en rolig, levende scene som speiler uka.
@@ -11,11 +12,7 @@ import './Garden.css'
    penger på stell = klar himmel vs. en mild sky.
    Ingen skam: ingenting visner eller dør. */
 
-const HABIT_HEX = {
-  forest: '#42634a', amber: '#cc882b', blue: '#5f86b0',
-  rose: '#b4574a', plum: '#9c7a98', slate: '#5e6b6f',
-}
-const habitHex = (k) => HABIT_HEX[k] || HABIT_HEX.forest
+const habitHex = (k) => SWATCH[k] || SWATCH.forest
 
 function lastNKeys(n) {
   return [...Array(n)].map((_, i) => {
