@@ -3035,3 +3035,16 @@ label.backup-action {
   word-break: break-word;
   font-family: ui-monospace, monospace;
 }
+
+/* ===== Sync-status-prikk (vises kun ved feil/frakoblet) ===== */
+.sync-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.nav-brand .sync-dot { margin-left: 8px; vertical-align: middle; }
+.nav-more .sync-dot { position: absolute; top: 7px; right: 10px; }
+.sync-dot.red { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+.sync-dot.grey { background: var(--faint); }

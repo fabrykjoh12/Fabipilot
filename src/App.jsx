@@ -330,6 +330,37 @@ export default function App() {
   const [perm, setPerm] = useState(notifPermission())
   const [captureOpen, setCaptureOpen] = useState(false)
   const navRef = useRef(null)
+  const syncErrNotified = useRef(false)
+
+  // Ny app-versjon: service workeren venter til brukeren sier ja (registerType: 'prompt').
+  useEffect(() => {
+    let updateSW
+    import('virtual:pwa-register')
+      .then(({ registerSW }) => {
+        updateSW = registerSW({
+          onNeedRefresh() {
+            toast.message('Ny versjon klar ✨', {
+              description: 'Oppdater for å få de siste endringene.',
+              duration: Infinity,
+              action: { label: 'Oppdater', onClick: () => updateSW?.(true) },
+            })
+          },
+        })
+      })
+      .catch(() => {}) // dev uten SW-støtte — helt ok
+  }, [])
+
+  // Sync-feil: si fra én gang (ikke mas), nullstill når vi er i synk igjen.
+  const led = syncLed(syncState)
+  useEffect(() => {
+    if (led === 'red' && !syncErrNotified.current) {
+      syncErrNotified.current = true
+      toast.error('Synkronisering feiler', {
+        description: 'Endringene dine lagres trygt lokalt. Sjekk nett — eller prøv igjen fra Mer → Synk nå.',
+      })
+    }
+    if (led === 'green') syncErrNotified.current = false
+  }, [led])
 
   const itemCount = useLiveQuery(async () => {
     const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'expenses', 'budgets', 'incomes', 'goals']
@@ -488,7 +519,12 @@ export default function App() {
     <div className="app">
       <LoginInteraction />
       <nav className="nav" ref={navRef}>
-        <div className="nav-brand">Fabipilot</div>
+        <div className="nav-brand">
+          Fabipilot
+          {(led === 'red' || led === 'grey') && (
+            <span className={'sync-dot ' + led} title={syncLabel(syncState)} aria-label={syncLabel(syncState)} />
+          )}
+        </div>
         {MODULES.map((m) => {
           const on = active === m.k
           return (
@@ -528,6 +564,7 @@ export default function App() {
         >
           <NavIcon name="more" />
           Mer
+          {(led === 'red' || led === 'grey') && <span className={'sync-dot ' + led} aria-hidden="true" />}
         </button>
       </nav>
 
