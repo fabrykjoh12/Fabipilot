@@ -72,9 +72,24 @@
   to { transform: scaleY(1); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .g-sunglow, .g-flower, .g-tree, .g-butterfly, .g-dew, .g-bud, .g-star, .g-cloud, .g-sprout {
+  .g-sunglow, .g-flower, .g-tree, .g-butterfly, .g-dew, .g-bud, .g-star, .g-cloud, .g-sprout, .g-tooltip {
     animation: none !important;
   }
+}
+
+/* ---- trykk for navnelapp (kun full visning, ikke kompakt-kortet) ---- */
+.g-interactive { cursor: pointer; }
+.g-interactive:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.g-flower.g-selected, .g-tree.g-selected { filter: brightness(1.1); }
+.g-tooltip { animation: g-pop 0.16s ease both; pointer-events: none; }
+.g-tooltip rect { fill: var(--ink); opacity: 0.92; }
+.g-tooltip text {
+  fill: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  text-anchor: middle;
+  dominant-baseline: middle;
 }
 
 /* ---- legende ---- */

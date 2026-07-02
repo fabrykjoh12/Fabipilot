@@ -2,6 +2,13 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-02 — **Fase 4D: Hage-interaktivitet** (fra produktgjennomgangen, siste punkt i fase 4). Trykk på
+  en blomst eller et tre i Hagens SVG-scene viser nå en liten navnelapp (vanens/prosjektets navn) —
+  samme trykk igjen, Escape, eller trykk utenfor lukker den. Kun i full visning (`GardenScene`s `compact`-
+  modus på Oversikt-mini-kortet er uendret/ikke-interaktiv, siden hele kortet allerede er en lenke til
+  Hage-fanen). Tastatur-tilgjengelig (`role="button"`, `tabIndex`, Enter/Mellomrom, `:focus-visible`-ring).
+  Respekterer `prefers-reduced-motion` (tooltip-animasjonen slås av sammen med resten av scenen).
+  Verifisert med skjermbilder av trykk/toggle/Escape/utenfor-trykk.
 - 2026-07-02 — **Fase 4C: Kategori-swatcher inn i den blå familien** (fra produktgjennomgangen). Ny
   `src/lib/palette.js` med `SWATCH` — en muset pastell-fargefamilie (10 valører: blue/teal/forest/moss/
   amber/coral/rose/plum/violet/slate) avledet fra aksenten `#2f6dff` (samme HSL metning/lyshet ~S46/L48,

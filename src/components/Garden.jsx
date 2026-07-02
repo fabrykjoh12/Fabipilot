@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, monthlyCost } from '../db.js'
-import { ScreenSkeleton } from '../lib/ui.jsx'
+import { ScreenSkeleton, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
 import './Garden.css'
 
@@ -29,13 +30,32 @@ function skyFor(hour) {
   return { top: '#e7cdb0', bot: '#f1e6d6', sun: '#e7973f', night: false } // kveld
 }
 
-function Flower({ x, ground, scale, color, bloom }) {
+/* Deles av Flower/Tree: gjør SVG-gruppa tastatur- og trykk-tilgjengelig når
+   scenen er interaktiv (ikke i kompakt-visning på Oversikt-kortet). */
+function tapProps(interactive, name, onSelect, x, anchorY) {
+  if (!interactive) return {}
+  return {
+    role: 'button',
+    tabIndex: 0,
+    'aria-label': name,
+    onClick: (e) => { e.stopPropagation(); onSelect(x, anchorY) },
+    onKeyDown: (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSelect(x, anchorY) }
+    },
+  }
+}
+
+function Flower({ x, ground, scale, color, bloom, name, interactive, selected, onSelect }) {
   const h = 46 * scale // stilkhøyde
   const headY = ground - h
   const petalR = (bloom ? 7 : 5.4) * scale
   const petals = bloom ? 6 : 5
   return (
-    <g className={'g-flower' + (bloom ? ' bloom' : '')} style={{ transformOrigin: `${x}px ${ground}px` }}>
+    <g
+      className={'g-flower' + (bloom ? ' bloom' : '') + (interactive ? ' g-interactive' : '') + (selected ? ' g-selected' : '')}
+      style={{ transformOrigin: `${x}px ${ground}px` }}
+      {...tapProps(interactive, name, onSelect, x, headY)}
+    >
       <path d={`M${x} ${ground} Q ${x - 3} ${ground - h / 2} ${x} ${headY}`} stroke="#5c7d54" strokeWidth={2.2 * scale} fill="none" strokeLinecap="round" />
       <path d={`M${x} ${ground - h * 0.45} q -9 -3 -13 4 q 9 4 13 -4`} fill="#6f9462" opacity="0.9" />
       {[...Array(petals)].map((_, i) => {
@@ -48,10 +68,14 @@ function Flower({ x, ground, scale, color, bloom }) {
   )
 }
 
-function Tree({ x, ground, hasBud }) {
+function Tree({ x, ground, hasBud, name, interactive, selected, onSelect }) {
   const top = ground - 70
+  const anchorY = top - 6
   return (
-    <g className="g-tree">
+    <g
+      className={'g-tree' + (interactive ? ' g-interactive' : '') + (selected ? ' g-selected' : '')}
+      {...tapProps(interactive, name, onSelect, x, anchorY)}
+    >
       <rect x={x - 3} y={top + 26} width="6" height="46" rx="3" fill="#7a5b3f" />
       <circle cx={x} cy={top + 20} r="26" fill="#5a7f50" />
       <circle cx={x - 16} cy={top + 30} r="18" fill="#69906a" />
@@ -59,6 +83,17 @@ function Tree({ x, ground, hasBud }) {
       {hasBud && [[-10, 14], [12, 22], [0, 30]].map(([dx, dy], i) => (
         <circle key={i} className="g-bud" cx={x + dx} cy={top + dy} r="3.2" fill="#e7973f" />
       ))}
+    </g>
+  )
+}
+
+function Tooltip({ x, y, text, viewW }) {
+  const w = Math.min(160, Math.max(46, text.length * 6.4 + 18))
+  const cx = Math.min(viewW - w / 2 - 4, Math.max(w / 2 + 4, x))
+  return (
+    <g className="g-tooltip">
+      <rect x={cx - w / 2} y={y - 30} width={w} height={22} rx="11" />
+      <text x={cx} y={y - 15}>{text}</text>
     </g>
   )
 }
@@ -122,7 +157,7 @@ export function gardenCaption(data) {
   ].filter(Boolean).join(' · ') || 'Rolig dag. Hagen hviler.'
 }
 
-/* Selve SVG-scenen. `compact` brukes på mini-kortet (litt færre detaljer). */
+/* Selve SVG-scenen. `compact` brukes på mini-kortet (litt færre detaljer, ikke interaktiv). */
 export function GardenScene({ data, compact = false }) {
   const hour = new Date().getHours()
   const sky = skyFor(hour)
@@ -140,8 +175,22 @@ export function GardenScene({ data, compact = false }) {
   const butterflies = Math.min(doneToday, compact ? 3 : 6)
   const uid = compact ? 'c' : 'f'
 
+  // Trykk på en blomst/et tre viser en liten navnelapp — kun i full visning.
+  const [selected, setSelected] = useState(null)
+  useEscape(() => setSelected(null), !compact && selected !== null)
+  function select(kind, i, name, x, y) {
+    setSelected((cur) => (cur?.kind === kind && cur.i === i ? null : { kind, i, name, x, y }))
+  }
+
   return (
-    <svg className={'g-svg' + (sky.night ? ' night' : '')} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Hagen din" preserveAspectRatio="xMidYMax slice">
+    <svg
+      className={'g-svg' + (sky.night ? ' night' : '')}
+      viewBox={`0 0 ${W} ${H}`}
+      role="img"
+      aria-label="Hagen din"
+      preserveAspectRatio="xMidYMax slice"
+      onClick={() => selected && setSelected(null)}
+    >
       <defs>
         <linearGradient id={`g-sky-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={sky.top} />
@@ -173,15 +222,40 @@ export function GardenScene({ data, compact = false }) {
       <path d={`M0 ${ground} Q 120 ${ground - 46} 240 ${ground - 8} T ${W} ${ground - 20} L ${W} ${H} L 0 ${H} Z`} fill="#9cc08f" opacity="0.55" />
       <path d={`M0 ${ground + 6} Q 160 ${ground - 14} ${W} ${ground + 10} L ${W} ${H} L 0 ${H} Z`} fill="#7aa46f" />
 
-      {tShown.map((t, i) => (
-        <Tree key={i} x={tShown.length === 1 ? 300 : 70 + i * (260 / Math.max(1, tShown.length - 1))} ground={ground - 4} hasBud={t.hasBud} />
-      ))}
+      {tShown.map((t, i) => {
+        const x = tShown.length === 1 ? 300 : 70 + i * (260 / Math.max(1, tShown.length - 1))
+        return (
+          <Tree
+            key={i}
+            x={x}
+            ground={ground - 4}
+            hasBud={t.hasBud}
+            name={t.name}
+            interactive={!compact}
+            selected={selected?.kind === 'tree' && selected.i === i}
+            onSelect={(px, py) => select('tree', i, t.name, px, py)}
+          />
+        )
+      })}
 
       {fShown.map((f, i) => {
         const n = fShown.length
         const x = n === 1 ? W / 2 : 36 + i * ((W - 72) / (n - 1))
         const scale = 0.62 + f.consistency * 0.7
-        return <Flower key={i} x={x} ground={ground + 40} scale={scale} color={f.color} bloom={f.bloom} />
+        return (
+          <Flower
+            key={i}
+            x={x}
+            ground={ground + 40}
+            scale={scale}
+            color={f.color}
+            bloom={f.bloom}
+            name={f.name}
+            interactive={!compact}
+            selected={selected?.kind === 'flower' && selected.i === i}
+            onSelect={(px, py) => select('flower', i, f.name, px, py)}
+          />
+        )
       })}
 
       {[...Array(butterflies)].map((_, i) => (
@@ -195,6 +269,8 @@ export function GardenScene({ data, compact = false }) {
           <path d={`M${W / 2} ${ground + 22} q 12 -6 16 4 q -12 5 -16 -4`} fill="#7aa46f" />
         </g>
       )}
+
+      {selected && <Tooltip x={selected.x} y={selected.y} text={selected.name} viewW={W} />}
     </svg>
   )
 }
