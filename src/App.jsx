@@ -30,7 +30,8 @@ import Search from './components/Search.jsx'
 import SharedList from './components/SharedList.jsx'
 import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
-import { PageTransition, toast, SkeletonCard } from './lib/ui.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { PageTransition, toast, ScreenSkeleton } from './lib/ui.jsx'
 import {
   permission as notifPermission,
   requestPermission as requestNotifPermission,
@@ -47,15 +48,7 @@ import { db, exportAll, importAll, pushAllToCloud, todayKey } from './db.js'
 const Money = lazy(() => import('./components/Money.jsx'))
 
 function ScreenFallback() {
-  return (
-    <div className="screen">
-      <div className="screen-scroll">
-        <SkeletonCard lines={2} />
-        <SkeletonCard lines={3} />
-        <SkeletonCard lines={2} />
-      </div>
-    </div>
-  )
+  return <ScreenSkeleton />
 }
 
 /* Lucide-ikoner per modul (konsistent, premium ikonsett). */
@@ -266,7 +259,7 @@ function LoginScreen() {
             <span className="login-brand-mark">
               <GridMark />
             </span>
-            Dashboard
+            Fabipilot
           </div>
           <h2 className="login-headline">
             Alt på ett sted.<br />
@@ -434,7 +427,7 @@ export default function App() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `dashboard-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `fabipilot-backup-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
     setBackupOpen(false)
@@ -495,7 +488,7 @@ export default function App() {
     <div className="app">
       <LoginInteraction />
       <nav className="nav" ref={navRef}>
-        <div className="nav-brand">Dashboard</div>
+        <div className="nav-brand">Fabipilot</div>
         {MODULES.map((m) => {
           const on = active === m.k
           return (
@@ -540,9 +533,12 @@ export default function App() {
 
       <main className="content">
         <PageTransition id={active}>
-          <Suspense fallback={<ScreenFallback />}>
-            <ActiveComp onNav={setActive} />
-          </Suspense>
+          {/* key={active}: bytter du fane etter et krasj, prøver den nye skjermen automatisk på nytt */}
+          <ErrorBoundary key={active}>
+            <Suspense fallback={<ScreenFallback />}>
+              <ActiveComp onNav={setActive} />
+            </Suspense>
+          </ErrorBoundary>
         </PageTransition>
       </main>
 

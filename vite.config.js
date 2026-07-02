@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Dashboard',
-        short_name: 'Dashboard',
-        description: 'Personlig ADHD-vennlig dashboard — lokal-først.',
+        name: 'Fabipilot',
+        short_name: 'Fabipilot',
+        description: 'Fabipilot — ADHD-vennlig cockpit for deg som bygger med AI. Lokal-først.',
         lang: 'nb',
         theme_color: '#2f6dff',
         background_color: '#ffffff',

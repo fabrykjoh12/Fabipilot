@@ -62,6 +62,22 @@ export function SkeletonCard({ lines = 2 }) {
   )
 }
 
+/* Hel skjerm-skeleton — brukes mens en modul venter på første data,
+   i stedet for et blankt glimt. */
+export function ScreenSkeleton() {
+  return (
+    <div className="screen">
+      <div className="screen-scroll">
+        <Skeleton w="38%" h={28} />
+        <div style={{ height: 18 }} />
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={2} />
+      </div>
+    </div>
+  )
+}
+
 /* ============================================================
    Sideovergang — myk fade + løft når aktiv modul byttes.
    ============================================================ */

@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, monthlyCost } from '../db.js'
+import { ScreenSkeleton } from '../lib/ui.jsx'
 import './Garden.css'
 
 /* Hagen din — en rolig, levende scene som speiler uka.
@@ -203,7 +204,7 @@ export function GardenScene({ data, compact = false }) {
 
 export default function Garden({ onNav }) {
   const data = useGardenData()
-  if (!data) return <div className="screen" />
+  if (!data) return <ScreenSkeleton />
 
   const { flowers, trees, totalToday } = data
   const empty = flowers.length === 0 && trees.length === 0 && totalToday === 0

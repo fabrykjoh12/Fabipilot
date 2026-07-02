@@ -28,7 +28,7 @@ import {
   todayKey,
 } from '../db.js'
 import { vibrate } from '../lib/fx.js'
-import { toast } from '../lib/ui.jsx'
+import { toast, ScreenSkeleton } from '../lib/ui.jsx'
 import './Projects.css'
 
 const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
@@ -800,7 +800,7 @@ function Roadmap({ projectId, onBack }) {
   const [liveVal, setLiveVal] = useState('')
   const [repoVal, setRepoVal] = useState('')
 
-  if (!project) return <div className="screen" />
+  if (!project) return <ScreenSkeleton />
 
   function openLinksEdit() {
     setLiveVal(project.liveUrl || '')

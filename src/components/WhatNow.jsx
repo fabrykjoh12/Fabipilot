@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, addTask } from '../db.js'
 import { burst, vibrate } from '../lib/fx.js'
+import { ScreenSkeleton } from '../lib/ui.jsx'
 
 const TYPE_META = {
   task:    { label: 'Oppgave',  color: 'var(--accent)',  icon: '✓' },
@@ -96,7 +97,7 @@ export default function WhatNow() {
     return suggestions
   }, [today], null)
 
-  if (allItems === null) return <div className="screen" />
+  if (allItems === null) return <ScreenSkeleton />
 
   let items = energy === 'alle'
     ? allItems

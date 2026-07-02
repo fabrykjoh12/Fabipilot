@@ -2974,3 +2974,64 @@ label.backup-action {
 .share-state { flex: 0 0 auto; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); }
 .share-remove { flex: 0 0 auto; border: none; background: none; color: var(--muted); font-size: 19px; line-height: 1; cursor: pointer; }
 .share-hint { margin: 12px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+/* ===== Krasj-skjerm (ErrorBoundary) ===== */
+.crash {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  min-height: 60vh;
+}
+.crash-panel {
+  max-width: 420px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-3);
+  padding: 28px 24px;
+  text-align: center;
+}
+.crash-glyph { font-size: 40px; }
+.crash-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 12px 0 8px;
+}
+.crash-text { font-size: 14.5px; color: var(--muted); line-height: 1.55; margin: 0 0 20px; }
+.crash-actions { display: flex; gap: 10px; justify-content: center; }
+.crash-retry {
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 20px;
+  cursor: pointer;
+  box-shadow: var(--sh-accent);
+}
+.crash-retry:hover { background: var(--accent-deep); }
+.crash-backup {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 16px;
+  cursor: pointer;
+}
+.crash-backup:hover { border-color: var(--accent); color: var(--accent); }
+.crash-detail {
+  margin: 18px 0 0;
+  font-size: 11.5px;
+  color: var(--faint);
+  word-break: break-word;
+  font-family: ui-monospace, monospace;
+}

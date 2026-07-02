@@ -10,7 +10,7 @@ import {
 } from '../db.js'
 import { burst, vibrate } from '../lib/fx.js'
 import { parseEntry } from '../lib/parse.js'
-import { toast } from '../lib/ui.jsx'
+import { toast, ScreenSkeleton } from '../lib/ui.jsx'
 import './Tasks.css'
 
 const CHECK = (<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>)
@@ -289,7 +289,7 @@ export default function Tasks() {
 
   const parsed = useMemo(() => parseEntry(val), [val])
 
-  if (allTasks === null) return <div className="screen" />
+  if (allTasks === null) return <ScreenSkeleton />
 
   const open = allTasks.filter((t) => !t.isDone)
   const focus = open.filter((t) => t.isFocus)
