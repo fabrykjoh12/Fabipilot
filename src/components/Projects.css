@@ -1681,3 +1681,93 @@
   margin-bottom: 16px;
 }
 .step-wip.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
+
+/* ===================================================================
+   RESULTAT PÅ STEG — lukk Claude-løkka (idé → spurt → bygd → verifisert)
+   =================================================================== */
+.roadmap .rm-result-dot {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--r-xs);
+}
+.roadmap .rm-result-dot:hover { background: var(--canvas-2); }
+.roadmap .rm-result { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.roadmap .rm-result-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.roadmap .rm-result-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  outline: 0;
+  resize: vertical;
+}
+.roadmap .rm-result-input:focus { border-color: var(--accent); background: var(--surface); }
+.roadmap .rm-result-link {
+  align-self: flex-start;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-full);
+  padding: 4px 11px;
+}
+.roadmap .rm-result-link:hover { background: var(--accent-soft); }
+
+/* resultat i kø-modusen */
+.pq-result { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.pq-result-input {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--surface);
+  outline: 0;
+  resize: vertical;
+}
+.pq-result-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.pq-result-save {
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  background: var(--surface-focus);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px;
+  cursor: pointer;
+}
+.pq-result-save:disabled { opacity: 0.4; cursor: default; }
+.pq-result-toggle {
+  margin-top: 12px;
+  width: 100%;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+}
+.pq-result-toggle:hover { border-color: var(--accent); color: var(--accent); }

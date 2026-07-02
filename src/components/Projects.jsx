@@ -403,6 +403,7 @@ function SpineCard({ item, onActions, project }) {
   const subs = item.subtasks || []
   const subsDone = subs.filter((s) => s.done).length
   const ai = item.aiStatus || 'idea'
+  const resultUrl = (item.result || '').match(/https?:\/\/\S+/)?.[0] || null
 
   function startEdit(e) { e.stopPropagation(); setEditVal(item.text); setEditing(true) }
   function saveEdit() {
@@ -462,6 +463,11 @@ function SpineCard({ item, onActions, project }) {
         <button type="button" className={'ai-pill ai-' + ai} onClick={cycleAi} title="Bytt status i Claude-loopen">
           {AI_LABEL[ai]}
         </button>
+        {item.result ? (
+          <button type="button" className="rm-result-dot" title="Har resultat — trykk for å se" onClick={() => setExpanded((e) => !e)}>
+            📎
+          </button>
+        ) : null}
         <button
           type="button"
           className={'rm-subchip' + (subs.length ? '' : ' empty')}
@@ -492,6 +498,23 @@ function SpineCard({ item, onActions, project }) {
           <div className="subadd">
             <input placeholder="Nytt delpunkt…" value={subVal} onChange={(e) => setSubVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSub()} />
             <button type="button" disabled={!subVal.trim()} onClick={addSub} aria-label="Legg til delpunkt">+</button>
+          </div>
+
+          <div className="rm-result">
+            <span className="rm-result-lbl">Resultat / svar</span>
+            <textarea
+              className="rm-result-input"
+              rows={2}
+              placeholder="Lim inn Claude-svaret, PR-lenken eller et notat om hva som skjedde…"
+              defaultValue={item.result || ''}
+              onBlur={(e) => {
+                const v = e.target.value.trim()
+                if (v !== (item.result || '')) updateProjectItem(item, { result: v })
+              }}
+            />
+            {resultUrl && (
+              <a className="rm-result-link" href={resultUrl} target="_blank" rel="noreferrer">↗ Åpne lenke</a>
+            )}
           </div>
         </div>
       )}
@@ -576,6 +599,8 @@ function StageBlock({ stage, label, note, items, onAdd, onActions, onDropTo, pro
 function PromptQueue({ items, project, onClose }) {
   useEscape(onClose)
   const [idx, setIdx] = useState(0)
+  const [resOpen, setResOpen] = useState(false)
+  const [resVal, setResVal] = useState('')
   const atEnd = idx >= items.length
   const item = items[idx]
 
@@ -588,9 +613,22 @@ function PromptQueue({ items, project, onClose }) {
     copy()
     window.open('https://claude.ai/new', '_blank', 'noopener')
   }
+  function next() {
+    setResOpen(false)
+    setResVal('')
+    setIdx((i) => i + 1)
+  }
   function markAsked() {
     updateProjectItem(item, { aiStatus: 'asked' })
-    setIdx((i) => i + 1)
+    next()
+  }
+  function saveResult() {
+    const v = resVal.trim()
+    if (!v) return
+    updateProjectItem(item, { result: v, aiStatus: 'built' })
+    vibrate(8)
+    toast.success('Resultat lagret — steget er «Bygd»')
+    next()
   }
 
   return (
@@ -615,11 +653,32 @@ function PromptQueue({ items, project, onClose }) {
               <button type="button" className="pq-copy" onClick={copy}>⧉ Kopier prompt</button>
             </div>
             <div className="pq-nav">
-              <button type="button" className="pq-skip" onClick={() => setIdx((i) => i + 1)}>Hopp over →</button>
+              <button type="button" className="pq-skip" onClick={next}>Hopp over →</button>
               <button type="button" className="pq-mark" onClick={markAsked}>✓ Spurt — neste</button>
             </div>
+
+            {resOpen ? (
+              <div className="pq-result">
+                <textarea
+                  className="pq-result-input"
+                  rows={3}
+                  autoFocus
+                  placeholder="Lim inn svaret, PR-lenken eller hva som skjedde…"
+                  value={resVal}
+                  onChange={(e) => setResVal(e.target.value)}
+                />
+                <button type="button" className="pq-result-save" disabled={!resVal.trim()} onClick={saveResult}>
+                  Lagre resultat — «Bygd» ✓
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="pq-result-toggle" onClick={() => setResOpen(true)}>
+                📎 Lim inn resultat…
+              </button>
+            )}
+
             {idx > 0 && (
-              <button type="button" className="pq-prev" onClick={() => setIdx((i) => Math.max(0, i - 1))}>‹ Forrige</button>
+              <button type="button" className="pq-prev" onClick={() => { setResOpen(false); setResVal(''); setIdx((i) => Math.max(0, i - 1)) }}>‹ Forrige</button>
             )}
           </>
         )}

@@ -512,7 +512,8 @@ export async function addProjectItem(projectId, text, stage = 'next') {
   return item
 }
 export async function setItemStage(item, stage) {
-  await db.projectItems.update(item.id, { stage })
+  // doneAt stemples når steget fullføres (brukes av «Denne uka»-oppsummeringen)
+  await db.projectItems.update(item.id, { stage, doneAt: stage === 'done' ? now() : null })
   await touch(item.projectId)
 }
 const FORWARD = { later: 'next', next: 'now', now: 'done', done: 'done' }
@@ -553,7 +554,7 @@ export async function moveItemToStage(item, stage) {
   const all = await listProjectItems(item.projectId)
   const inStage = all.filter((i) => i.stage === stage && i.id !== item.id)
   const maxOrder = inStage.length ? Math.max(...inStage.map((i) => i.sortOrder || 0)) : now()
-  await db.projectItems.update(item.id, { stage, sortOrder: maxOrder + 1000 })
+  await db.projectItems.update(item.id, { stage, sortOrder: maxOrder + 1000, doneAt: stage === 'done' ? now() : null })
   await touch(item.projectId)
 }
 
