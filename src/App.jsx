@@ -417,12 +417,16 @@ export default function App() {
     if (el) el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [active])
 
-  // ⌘K / Ctrl+K åpner hurtiglagring fra hvor som helst.
+  // ⌘K / Ctrl+K åpner hurtiglagring fra hvor som helst; Escape lukker skallets ark.
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault()
         setCaptureOpen((o) => !o)
+      }
+      if (e.key === 'Escape') {
+        setMoreOpen(false)
+        setBackupOpen(false)
       }
     }
     window.addEventListener('keydown', onKey)

@@ -11,7 +11,7 @@ import {
   deleteWithRestore, restoreRecord,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
-import { AnimatedNumber, toast } from '../lib/ui.jsx'
+import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
 import './Money.css'
 
 const CATEGORIES = [
@@ -153,6 +153,7 @@ const TABS = [
 
 /* ============ bunn-sheet: legg til / rediger forbruk ============ */
 function ExpenseSheet({ initial, onClose }) {
+  useEscape(onClose)
   const editing = !!initial
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
   const [category, setCategory] = useState(initial?.category || 'mat')
@@ -233,6 +234,7 @@ function ExpenseSheet({ initial, onClose }) {
 
 /* ============ bunn-sheet: sett budsjett ============ */
 function BudgetSheet({ initialCat, budgetByCat, onClose }) {
+  useEscape(onClose)
   const [category, setCategory] = useState(initialCat || 'mat')
   const [amount, setAmount] = useState(initialCat && budgetByCat[initialCat] ? String(budgetByCat[initialCat]) : '')
 
@@ -405,6 +407,7 @@ function SubCard({ sub, onAsk }) {
 /* ============ hovedmodul ============ */
 /* Gjenbrukbart tall-/tekst-ark — erstatter window.prompt. */
 function AmountSheet({ cfg, onClose }) {
+  useEscape(onClose)
   const [val, setVal] = useState(cfg.initial == null || cfg.initial === '' ? '' : String(cfg.initial))
   const ref = useRef(null)
   useEffect(() => {

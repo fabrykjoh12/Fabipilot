@@ -155,7 +155,13 @@ function TaskRow({ task, today, tom, focusCount }) {
               onChange={(e) => setEditVal(e.target.value)} onBlur={saveEdit}
               onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(false) }} />
           ) : (
-            <div className="ttl" onClick={onTitleClick}>{task.title}</div>
+            <div
+              className="ttl"
+              role={done ? undefined : 'button'}
+              tabIndex={done ? undefined : 0}
+              onClick={onTitleClick}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTitleClick() } }}
+            >{task.title}</div>
           )}
           {!done && !open && (dLabel || subs.length > 0) && (
             <div className="taskU-quiet">

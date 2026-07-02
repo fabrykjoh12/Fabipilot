@@ -28,7 +28,7 @@ import {
   todayKey,
 } from '../db.js'
 import { vibrate } from '../lib/fx.js'
-import { toast, ScreenSkeleton } from '../lib/ui.jsx'
+import { toast, ScreenSkeleton, useEscape } from '../lib/ui.jsx'
 import './Projects.css'
 
 const STATUS_LABEL = { active: 'Aktiv', onice: 'På is', done: 'Ferdig' }
@@ -336,6 +336,7 @@ const PRIO_LABEL = { now: 'Høy prioritet', next: 'Medium', later: 'Lav' }
 
 /* Handlingssheet for ett steg: flytt fritt mellom faser, omroker, fullfør, slett. */
 function StepSheet({ item, onClose }) {
+  useEscape(onClose)
   function move(stage) {
     if (stage !== item.stage) moveItemToStage(item, stage)
     onClose()
@@ -573,6 +574,7 @@ function StageBlock({ stage, label, note, items, onAdd, onActions, onDropTo, pro
 /* Kø-/fokusmodus: jobb gjennom prompts én om gangen — kopier, åpne Claude,
    marker «spurt», neste. Jobber på et øyeblikksbilde av køen (stabil rekkefølge). */
 function PromptQueue({ items, project, onClose }) {
+  useEscape(onClose)
   const [idx, setIdx] = useState(0)
   const atEnd = idx >= items.length
   const item = items[idx]
@@ -629,6 +631,7 @@ function PromptQueue({ items, project, onClose }) {
 /* Mal-komposer: velg mal, fyll inn enkle felt (med hint), se live
    forhåndsvisning, velg prioritet, legg til. */
 function PromptComposer({ template, onSwitch, onAdd, onClose }) {
+  useEscape(onClose)
   const [vals, setVals] = useState({})
   const [stage, setStage] = useState('next')
   const preview = template.build(vals).trim()
@@ -715,6 +718,7 @@ function PromptComposer({ template, onSwitch, onAdd, onClose }) {
 
 /* Del et helt prosjekt via e-post (Dexie Cloud realm). */
 function ShareSheet({ project, onClose }) {
+  useEscape(onClose)
   const members = useLiveQuery(() => listProjectMembers(project.id).catch(() => []), [project.id], [])
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')

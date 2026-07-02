@@ -7,6 +7,16 @@ import { motion, AnimatePresence } from 'motion/react'
 import { toast as sonner } from 'sonner'
 import { reduceMotion } from './fx.js'
 
+/* Escape lukker overlays/ark — samme oppførsel overalt. */
+export function useEscape(onClose, active = true) {
+  useEffect(() => {
+    if (!active) return
+    const h = (e) => { if (e.key === 'Escape') onClose?.() }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [onClose, active])
+}
+
 /* ============================================================
    Animerte tall — teller mykt opp/ned mot målverdien.
    `format` formaterer det viste tallet (f.eks. kr).

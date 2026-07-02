@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, todayKey, addEvent, updateEvent, deleteWithRestore, restoreRecord, setTaskDone } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
-import { toast } from '../lib/ui.jsx'
+import { toast, useEscape } from '../lib/ui.jsx'
 import './Calendar.css'
 
 const WEEKDAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -56,6 +56,7 @@ function prettyDate(key) {
 
 /* ============ Bunn-sheet: legg til / rediger hendelse ============ */
 function EventSheet({ initial, defaultDate, onClose }) {
+  useEscape(onClose)
   const editing = !!initial
   const [title, setTitle] = useState(initial?.title || '')
   const [date, setDate] = useState(initial?.date || defaultDate)
