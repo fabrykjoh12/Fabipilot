@@ -465,3 +465,12 @@
   flex: 0 0 auto;
   font-size: 15px;
 }
+
+/* «Neste opp»-ekko fra Oppgaver-heroen: første rad løftes lett frem */
+.ov-task-row.ov-next-up {
+  background: var(--surface-focus);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-sm);
+  padding: 7px 9px;
+  margin: -2px -4px 0;
+}

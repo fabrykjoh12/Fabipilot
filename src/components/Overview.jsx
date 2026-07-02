@@ -80,16 +80,18 @@ function OvCard({ icon, color, title, sub, onClick, children }) {
   )
 }
 
-function ProgressCircle({ pct }) {
+/* Samme språk som TodayHero på Oppgaver: gjort/totalt, ikke prosent. */
+function ProgressCircle({ done, total }) {
   const r = 20
   const circ = 2 * Math.PI * r
-  const dash = circ * (pct / 100)
+  const pct = total ? done / total : 0
+  const dash = circ * pct
   return (
     <svg className="ov-prog-circle" viewBox="0 0 52 52">
       <circle cx="26" cy="26" r={r} className="ov-prog-bg" />
       <circle cx="26" cy="26" r={r} className="ov-prog-fill" strokeDasharray={`${dash} ${circ}`} />
-      <text x="26" y="26" className="ov-prog-pct">{pct}%</text>
-      <text x="26" y="36" className="ov-prog-lbl">FERDIG</text>
+      <text x="26" y="26" className="ov-prog-pct">{total ? `${done}/${total}` : '–'}</text>
+      <text x="26" y="36" className="ov-prog-lbl">GJORT</text>
     </svg>
   )
 }
@@ -140,7 +142,6 @@ export default function Overview({ onNav }) {
   const nextTasks = [...todayTasks.filter((t) => t.isFocus), ...todayTasks.filter((t) => !t.isFocus)].slice(0, 3)
   const doneTasks = tasks.filter((t) => t.isDone)
   const total = tasks.length
-  const pct = total ? Math.round((doneTasks.length / total) * 100) : 0
 
   const habitsDoneToday = habits.filter((h) => (h.history || []).includes(today)).length
 
@@ -165,7 +166,7 @@ export default function Overview({ onNav }) {
         onClick={editing ? undefined : () => onNav('today')}
       >
         <div className="ov-today-body">
-          <ProgressCircle pct={pct} />
+          <ProgressCircle done={doneTasks.length} total={total} />
           <div className="ov-today-right">
             {nextTasks.length === 0 ? (
               <p className="ov-today-msg">
@@ -173,8 +174,8 @@ export default function Overview({ onNav }) {
               </p>
             ) : (
               <div className="ov-tasklist">
-                {nextTasks.map((t) => (
-                  <div key={t.id} className="ov-task-row">
+                {nextTasks.map((t, i) => (
+                  <div key={t.id} className={'ov-task-row' + (i === 0 ? ' ov-next-up' : '')}>
                     <span
                       className="ov-check"
                       role="checkbox"

@@ -238,7 +238,7 @@ function Section({ label, count, sub, collapsible, open, onToggle, children }) {
 }
 
 /* ---------- «I dag»-panel: gjør dagen til hovedsaken ---------- */
-function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onCompleteNext }) {
+function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onCompleteNext, onSuggest }) {
   const pct = total ? Math.round((done / total) * 100) : 0
   const R = 24
   const C = 2 * Math.PI * R
@@ -263,6 +263,11 @@ function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onComplet
               {overdue} henger igjen → ta med i dag
             </button>
           )}
+          {total === 0 && onSuggest && (
+            <button type="button" className="th-carry" onClick={onSuggest}>
+              💡 Foreslå noe fra listene mine
+            </button>
+          )}
         </div>
       </div>
       {nextUp && (
@@ -276,7 +281,7 @@ function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onComplet
   )
 }
 
-export default function Tasks() {
+export default function Tasks({ onNav }) {
   const today = todayKey()
   const tom = tomorrowKey()
   const allTasks = useLiveQuery(() => db.tasks.orderBy('sortOrder').reverse().toArray(), [], null)
@@ -343,6 +348,7 @@ export default function Tasks() {
             nextUp={nextUp}
             onCarry={carryOverdue}
             onCompleteNext={completeNext}
+            onSuggest={onNav ? () => onNav('whatnow') : undefined}
           />
         )}
 
