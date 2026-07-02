@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star } from 'lucide-react'
-import { db, todayKey, monthlyCost, setTaskDone } from '../db.js'
+import { db, todayKey, tomorrowKey, monthlyCost, setTaskDone, setTaskDate } from '../db.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
 import MorningFlow from './MorningFlow.jsx'
@@ -35,6 +35,65 @@ function greeting() {
 
 function fmtDate() {
   return new Intl.DateTimeFormat('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
+}
+
+/* Mandag i inneværende uke (nøkkel + ms) — for «Denne uka» og Ukeslutt. */
+function weekStartKey() {
+  const d = new Date()
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return todayKey(d)
+}
+
+/* Ukens tall: oppgaver gjort, vane-avhukinger, prosjektsteg ferdig. */
+function useWeekStats() {
+  return useLiveQuery(async () => {
+    const ws = weekStartKey()
+    const wsMs = new Date(ws + 'T00:00').getTime()
+    const [tasksAll, habitsAll, steps] = await Promise.all([
+      db.tasks.toArray(),
+      db.habits.toArray(),
+      db.projectItems.toArray(),
+    ])
+    return {
+      tasksDone: tasksAll.filter((t) => t.isDone && t.completedAt && t.completedAt >= wsMs).length,
+      habitTicks: habitsAll.reduce((n, h) => n + (h.history || []).filter((k) => k >= ws).length, 0),
+      stepsDone: steps.filter((i) => i.doneAt && i.doneAt >= wsMs).length,
+    }
+  }, [], null)
+}
+
+/* Ukeslutt — rolig søndagsoppsummering: feir uka, ta med det som henger, klar for ny uke. */
+function Ukeslutt({ stats, overdue, onDone }) {
+  const parts = [
+    stats.tasksDone > 0 && `${stats.tasksDone} ${stats.tasksDone === 1 ? 'oppgave' : 'oppgaver'} gjort`,
+    stats.habitTicks > 0 && `${stats.habitTicks} vane-avhukinger`,
+    stats.stepsDone > 0 && `${stats.stepsDone} prosjektsteg ferdig`,
+  ].filter(Boolean)
+  async function carry(e) {
+    const mon = tomorrowKey() // søndag + 1 = mandag
+    for (const t of overdue) await setTaskDate(t.id, mon)
+    vibrate(8)
+    if (e?.currentTarget) burst(e.currentTarget)
+  }
+  return (
+    <div className="ov-ukeslutt">
+      <p className="ov-uke-tag">Ukeslutt 🌙</p>
+      <h2 className="ov-uke-ttl">
+        {parts.length ? `Denne uka: ${parts.join(' · ')}.` : 'En rolig uke. Det er også en uke.'}
+      </h2>
+      <p className="ov-uke-sub">Ingen skam — bare en myk overgang til ny uke.</p>
+      <div className="ov-uke-actions">
+        {overdue.length > 0 && (
+          <button type="button" className="ov-uke-carry" onClick={carry}>
+            {overdue.length} henger igjen → ta med til mandag
+          </button>
+        )}
+        <button type="button" className="ov-uke-done" onClick={onDone}>
+          Klar for ny uke ✓
+        </button>
+      </div>
+    </div>
+  )
 }
 
 const PEPTALK = [
@@ -101,6 +160,16 @@ export default function Overview({ onNav }) {
   const [cfg, setCfg] = useState(loadCfg)
   const [editing, setEditing] = useState(false)
   const [showRitual, setShowRitual] = useState(() => !localStorage.getItem(`ritual:${today}`))
+  const [showUkeslutt, setShowUkeslutt] = useState(
+    () => new Date().getDay() === 0 && !localStorage.getItem(`ukeslutt:${weekStartKey()}`),
+  )
+  const weekStats = useWeekStats()
+
+  function dismissUkeslutt() {
+    localStorage.setItem(`ukeslutt:${weekStartKey()}`, '1')
+    vibrate([10, 24, 10])
+    setShowUkeslutt(false)
+  }
 
   function dismissRitual(e) {
     localStorage.setItem(`ritual:${today}`, '1')
@@ -296,11 +365,27 @@ export default function Overview({ onNav }) {
               <p className="ov-date">{fmtDate()}</p>
               <h1 className="ov-greeting">{greeting()}, Fabi</h1>
               <p className="ov-peptalk">{peptalk()}</p>
+              {weekStats && weekStats.tasksDone + weekStats.habitTicks + weekStats.stepsDone > 0 && (
+                <div className="ov-week">
+                  <span className="ov-week-lbl">Denne uka</span>
+                  {weekStats.tasksDone > 0 && <span className="ov-week-chip">✅ {weekStats.tasksDone}</span>}
+                  {weekStats.habitTicks > 0 && <span className="ov-week-chip">🌿 {weekStats.habitTicks}</span>}
+                  {weekStats.stepsDone > 0 && <span className="ov-week-chip">🧩 {weekStats.stepsDone}</span>}
+                </div>
+              )}
             </div>
             <button type="button" className={'ov-edit-btn' + (editing ? ' on' : '')} onClick={() => setEditing((e) => !e)}>
               {editing ? 'Ferdig' : 'Tilpass'}
             </button>
           </div>
+        )}
+
+        {!showRitual && showUkeslutt && weekStats && (
+          <Ukeslutt
+            stats={weekStats}
+            overdue={tasks.filter((t) => !t.isDone && t.dueDate && t.dueDate < today)}
+            onDone={dismissUkeslutt}
+          />
         )}
 
         {visible.length === 0 && !editing && (

@@ -80,6 +80,8 @@ Synces via Dexie Cloud (se §3).
   `stage` = `'now' | 'next' | 'later' | 'done'` (prioritet Høy/Medium/Lav på PC-tavla). `energy` = `'lav' | 'hoy' | null`.
   `aiStatus` = `'idea' | 'asked' | 'built' | 'verified'` (Claude-loop, uindeksert; default `'idea'`), `subtasks[]`.
   `wip` = `true` når steget er «pågående» (vises i egen full-bredde-lane øverst på tavla, ut av prioritetskolonnen; uindeksert).
+  `result` = fritekst/lenke med hva Claude svarte (uindeksert; redigeres i utvidet kort + kø-modus, søkbar via ⌘K).
+  `doneAt` = ms-tidsstempel når steget ble fullført (settes av `setItemStage`/`moveItemToStage`; brukes av «Denne uka»).
   «Neste steg» = første item med `stage='now'` (etter `sortOrder`). Ingen egen flagg-kolonne.
 - **events** (Kalender) — `id, title, date, time, note, color, createdAt`
   `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).

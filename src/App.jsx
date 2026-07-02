@@ -39,7 +39,7 @@ import {
   triggersSupported,
   setBadge,
 } from './lib/notify.js'
-import { db, exportAll, importAll, pushAllToCloud, todayKey } from './db.js'
+import { db, exportAll, importAll, pushAllToCloud, seedStarterPack, todayKey } from './db.js'
 
 /* Tunge moduler lastes først når de åpnes (Penger drar inn recharts,
    Prosjekter er den største modulen). */
@@ -347,6 +347,28 @@ export default function App() {
       .catch(() => {}) // dev uten SW-støtte — helt ok
   }, [])
 
+  // Startpakke: tilby eksempler første gang en helt tom konto er i synk.
+  const [starterOpen, setStarterOpen] = useState(false)
+  useEffect(() => {
+    if (!isLoggedIn || localStorage.getItem('starterOffered')) return
+    if (itemCount === 0 && (led === 'green' || led === 'grey')) {
+      // liten pause så synken får satt seg før vi tilbyr eksempler
+      const id = setTimeout(() => setStarterOpen(true), 400)
+      return () => clearTimeout(id)
+    }
+  }, [isLoggedIn, itemCount, led])
+
+  async function chooseStarter(withExamples) {
+    localStorage.setItem('starterOffered', '1')
+    setStarterOpen(false)
+    if (withExamples) {
+      await seedStarterPack()
+      toast.success('Eksempler lagt inn ✨', {
+        description: 'Et lite prosjekt, tre oppgaver og to vaner — alt kan slettes.',
+      })
+    }
+  }
+
   // Mild backup-påminnelse: >30 dager siden sist (eller siden første besøk),
   // og aldri oftere enn ukentlig. Ett trykk åpner backup-panelet.
   useEffect(() => {
@@ -613,6 +635,25 @@ export default function App() {
       )}
 
       <Capture open={captureOpen} onClose={() => setCaptureOpen(false)} onNav={setActive} />
+
+      {starterOpen && (
+        <div className="backup-overlay" role="dialog" aria-modal="true">
+          <div className="backup-card starter-card">
+            <div className="starter-glyph" aria-hidden="true">🌱</div>
+            <h2 className="backup-title">Vil du starte med eksempler?</h2>
+            <p className="backup-text">
+              Jeg kan legge inn et lite demo-prosjekt, tre oppgaver og to vaner, så du ser
+              hvordan alt henger sammen. Alt kan slettes etterpå.
+            </p>
+            <button type="button" className="btn backup-action" onClick={() => chooseStarter(true)}>
+              Ja, vis meg med eksempler
+            </button>
+            <button type="button" className="btn btn-ghost backup-action" onClick={() => chooseStarter(false)}>
+              Start blankt
+            </button>
+          </div>
+        </div>
+      )}
 
       <Toaster
         position="bottom-center"

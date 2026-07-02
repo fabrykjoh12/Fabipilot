@@ -600,6 +600,23 @@ export const updateEvent = (id, patch) => db.events.update(id, patch)
 export const deleteEvent = (id) => db.events.delete(id)
 
 /* =========================================================
+   STARTPAKKE — eksempeldata for helt ferske brukere.
+   Vanlige rader (slettbare); viser flyten uten å forplikte.
+   ========================================================= */
+export async function seedStarterPack() {
+  await addTask('Prøv å hake av meg ✓')
+  await addTask('Trykk på tittelen min for å se detaljer')
+  await addTask('Uten dato havner ting i «Når som helst»', { dueDate: null })
+  await addHabit('Drikke vann')
+  await addHabit('5 min rydding')
+  const p = await addProject({ name: 'Min første nettside', why: 'Lære Fabipilot-flyten', status: 'active' })
+  await updateProject(p.id, { emoji: '🚀', color: 'blue', context: 'React + Vite, deployes på Vercel.' })
+  await addProjectItem(p.id, 'Build a landing page with a hero section', 'now')
+  await addProjectItem(p.id, 'Add a contact form with validation', 'next')
+  await addProjectItem(p.id, 'Improve the design of the navbar', 'later')
+}
+
+/* =========================================================
    DELING — delt liste med én annen person (Dexie Cloud realm)
    ---------------------------------------------------------
    Alt i `sharedItems` legges i ÉT delt realm. Den andre personen

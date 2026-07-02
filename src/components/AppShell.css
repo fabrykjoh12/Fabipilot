@@ -3048,3 +3048,7 @@ label.backup-action {
 .nav-more .sync-dot { position: absolute; top: 7px; right: 10px; }
 .sync-dot.red { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
 .sync-dot.grey { background: var(--faint); }
+
+/* ===== Startpakke-kort ===== */
+.starter-card { text-align: center; }
+.starter-glyph { font-size: 38px; margin-bottom: 4px; }
