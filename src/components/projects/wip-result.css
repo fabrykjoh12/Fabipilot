@@ -1,0 +1,136 @@
+/* ===================================================================
+   «PÅGÅENDE»-LANE — det jeg fikser nå (over prioritetskolonnene)
+   =================================================================== */
+.roadmap .rm-wip {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-lg);
+  background: var(--surface-focus);
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.roadmap .rm-wip.drag-over { border-color: var(--accent); background: var(--accent-soft); }
+.roadmap .rm-wip-head { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.roadmap .rm-wip-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent); flex: 0 0 auto;
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.roadmap .rm-wip-head .nm { font-size: 12.5px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent); }
+.roadmap .rm-wip-head .ct { font-size: 12px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.roadmap .rm-wip-head .note { font-size: 12px; color: var(--muted); font-style: italic; margin-left: auto; }
+.roadmap .rm-wip.empty .rm-wip-head { margin-bottom: 8px; }
+.roadmap .rm-wip-empty { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.roadmap .rm-wip-cards { display: flex; flex-direction: column; gap: 9px; }
+.roadmap .rm-wip-cards .rm-card { margin-bottom: 0; }
+@media (min-width: 1000px) {
+  .rm-board .rm-wip-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  /* korta i lanen står på hvit flate mot den blå bakgrunnen */
+  .rm-board .rm-wip .rm-card { background: var(--surface); }
+}
+
+/* «Pågående»-veksleknapp i handlingsarket */
+.step-wip {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.step-wip.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
+
+/* ===================================================================
+   RESULTAT PÅ STEG — lukk Claude-løkka (idé → spurt → bygd → verifisert)
+   =================================================================== */
+.roadmap .rm-result-dot {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--r-xs);
+}
+.roadmap .rm-result-dot:hover { background: var(--canvas-2); }
+.roadmap .rm-result { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.roadmap .rm-result-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.roadmap .rm-result-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  outline: 0;
+  resize: vertical;
+}
+.roadmap .rm-result-input:focus { border-color: var(--accent); background: var(--surface); }
+.roadmap .rm-result-link {
+  align-self: flex-start;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-full);
+  padding: 4px 11px;
+}
+.roadmap .rm-result-link:hover { background: var(--accent-soft); }
+
+/* resultat i kø-modusen */
+.pq-result { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.pq-result-input {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--surface);
+  outline: 0;
+  resize: vertical;
+}
+.pq-result-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.pq-result-save {
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  background: var(--surface-focus);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px;
+  cursor: pointer;
+}
+.pq-result-save:disabled { opacity: 0.4; cursor: default; }
+.pq-result-toggle {
+  margin-top: 12px;
+  width: 100%;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+}
+.pq-result-toggle:hover { border-color: var(--accent); color: var(--accent); }

@@ -102,8 +102,12 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `index.html`, `vite.config.js` (PWA-manifest + ikoner), `eslint.config.js`
 - `public/` — `favicon.svg`, `pwa-192x192.png`, `pwa-512x512.png`, `maskable-512x512.png`, `apple-touch-icon.png`
 - `src/main.jsx` — entry
-- `src/App.jsx` — app-skall: navigasjon (sidemeny på PC / bunnfaner på mobil) + backup-modal + innloggings-gate
-  og egendefinert Dexie Cloud auth-dialog (e-post + engangskode)
+- `src/App.jsx` — app-skall: navigasjon (sidemeny på PC / bunnfaner på mobil), innloggings-gate, moduler
+- `src/components/Login.jsx` — innloggingsskjerm + egendefinert Dexie Cloud auth-dialog (e-post + engangskode)
+- `src/components/BackupSheet.jsx` — sky-sync & backup-panelet (tema, daglig påminnelse, sync-diagnostikk, JSON-eksport/import)
+- `src/components/NavIcon.jsx` — nav-ikon-komponent (deles av App-navigasjonen og Login); ikonkartet ligger i `src/lib/icons.js`
+- `src/lib/icons.js` — `ICONS`-kartet (modul → Lucide-ikon)
+- `src/lib/sync.js` — `syncLabel`/`syncLed`: sky-sync-status → norsk etikett/farge-LED (delt av nav og BackupSheet)
 - `src/index.css` — global reset/bakgrunn
 - `src/db.js` — Dexie + Dexie Cloud-config: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
   (re-eksporterer `todayKey`/`tomorrowKey`/`nextDate` fra `lib/dates.js` så kall-steder er uendret)
@@ -135,11 +139,18 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
   - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget) / Faste (abonnement)
-  - `Projects.jsx` / `Projects.css` — «Prosjekter»: oversikt (kort-rutenett på PC) + prosjektside som
-    Claude-prompt-verksted. PC = to-spalte arbeidsbenk: info-skinne (hvorfor, lenker, Claude-kontekst,
-    fremdrift, statistikk, «Viktigst nå») + kanban-tavle (Høy/Medium/Lav). Hvert steg er en prompt:
-    «kopier som prompt» (limer prosjektkontekst foran via `buildPrompt`), AI-status-pille (Idé→Spurt→
-    Bygd→Verifisert), og «Kjør prompts»-kø (`PromptQueue`: én prompt om gangen → kopier/åpne Claude → neste)
+  - `Projects.jsx` — «Prosjekter»: tynn ruter (liste ↔ arbeidsbenk). Selve komponentene bor i
+    `src/components/projects/`: `shared.jsx` (konstanter/ikoner, ingen state), `ProjectsList.jsx`
+    (kort-rutenett på PC), `Roadmap.jsx` (prosjektside — Claude-prompt-verksted; PC = to-spalte
+    arbeidsbenk: info-skinne (hvorfor, lenker, Claude-kontekst, fremdrift, statistikk) + kanban-tavle
+    Høy/Medium/Lav), `SpineCard.jsx` (ett steg — energi, delpunkter, resultat, AI-status-pille,
+    dra-håndtak), `WipLane.jsx` («Pågående»-lane øverst), `StageBlock.jsx` (én prioritetskolonne),
+    `StepSheet.jsx` (handlings-ark for ett steg), `PromptQueue.jsx` («Kjør prompts»-kø: én prompt om
+    gangen → kopier/åpne Claude → neste, med «Lim inn resultat»), `PromptComposer.jsx` (mal-basert
+    prompt-bygger), `ShareSheet.jsx` (del prosjekt via e-post). CSS delt tilsvarende i samme mappe
+    (`list.css`, `roadmap.css`, `workspace.css`, `prompts.css`, `composer.css`, `wip-result.css`),
+    importert i original rekkefølge for uendret cascade. «Kopier som prompt» limer prosjektkontekst
+    foran via `buildPrompt` (`src/lib/prompts.js`)
   - `SharedList.jsx` — «Delt»: én delt liste med kjæresten (Dexie Cloud realm + e-postinvitasjon). Kun denne lista deles
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
   - `Garden.jsx` / `Garden.css` — «Hage»: rolig, levende SVG-scene som speiler uka (vaner=blomster, prosjekter=trær, gjort i dag=sommerfugler, fokus=sol, penger=vær). Kun lesing over eksisterende stores, ingen skam/visning

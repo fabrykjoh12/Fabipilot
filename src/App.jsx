@@ -2,21 +2,7 @@ import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useObservable, useLiveQuery } from 'dexie-react-hooks'
 import { Toaster } from 'sonner'
 import { motion } from 'motion/react'
-import {
-  LayoutGrid,
-  Sun,
-  CalendarDays,
-  Compass,
-  Lightbulb,
-  Repeat,
-  Wallet,
-  FolderKanban,
-  Users,
-  CloudUpload,
-  MoreHorizontal,
-  Plus,
-  Flower2,
-} from 'lucide-react'
+import { Plus } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Tasks from './components/Tasks.jsx'
@@ -28,7 +14,11 @@ import SharedList from './components/SharedList.jsx'
 import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
+import NavIcon from './components/NavIcon.jsx'
+import LoginScreen, { LoginInteraction } from './components/Login.jsx'
+import BackupSheet from './components/BackupSheet.jsx'
 import { PageTransition, toast, ScreenSkeleton } from './lib/ui.jsx'
+import { syncLabel, syncLed } from './lib/sync.js'
 import {
   permission as notifPermission,
   requestPermission as requestNotifPermission,
@@ -36,7 +26,6 @@ import {
   setReminderPrefs,
   scheduleDailyReminder,
   fireTest,
-  triggersSupported,
   setBadge,
 } from './lib/notify.js'
 import { db, exportAll, importAll, pushAllToCloud, seedStarterPack, todayKey } from './db.js'
@@ -48,22 +37,6 @@ const Projects = lazy(() => import('./components/Projects.jsx'))
 
 function ScreenFallback() {
   return <ScreenSkeleton />
-}
-
-/* Lucide-ikoner per modul (konsistent, premium ikonsett). */
-const ICONS = {
-  overview: LayoutGrid,
-  today: Sun,
-  calendar: CalendarDays,
-  whatnow: Compass,
-  ideas: Lightbulb,
-  habits: Repeat,
-  money: Wallet,
-  projects: FolderKanban,
-  shared: Users,
-  garden: Flower2,
-  backup: CloudUpload,
-  more: MoreHorizontal,
 }
 
 /* Faste faner nederst på mobil. Resten ligger i «Mer» (og i sidemenyen på PC). */
@@ -85,230 +58,6 @@ const MODULES = [
   { k: 'garden', label: 'Hage', Comp: Garden },
 ]
 
-/* Sky-sync-status → norsk etikett + farge-LED. */
-function syncLabel(s) {
-  if (!s) return 'Kobler til…'
-  if (s.status === 'offline' || s.phase === 'offline') return 'Frakoblet (jobber lokalt)'
-  if (s.status === 'error' || s.phase === 'error') return 'Sync-feil'
-  if (s.phase === 'pushing') return 'Laster opp…'
-  if (s.phase === 'pulling') return 'Henter…'
-  if (s.status === 'connecting') return 'Kobler til…'
-  if (s.phase === 'in-sync') return 'Synket ✓'
-  if (s.status === 'connected') return 'Tilkoblet'
-  return 'Ikke synket enda'
-}
-function syncLed(s) {
-  if (!s) return 'amber'
-  if (s.status === 'error' || s.phase === 'error') return 'red'
-  if (s.status === 'offline' || s.phase === 'offline') return 'grey'
-  if (s.phase === 'in-sync') return 'green'
-  return 'amber'
-}
-
-function NavIcon({ name }) {
-  const Ic = ICONS[name] || ICONS.more
-  return <Ic aria-hidden="true" strokeWidth={2} />
-}
-
-const GridMark = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-  </svg>
-)
-
-const LOGIN_FEATURES = [
-  { k: 'today', label: 'I dag', desc: 'Maks tre ting i fokus' },
-  { k: 'habits', label: 'Vaner', desc: 'Små ting, gjentatt' },
-  { k: 'projects', label: 'Prosjekter', desc: 'Det du jobber mot' },
-  { k: 'money', label: 'Penger', desc: 'Faste utgifter, samlet' },
-]
-
-/* Norske tekster for de vanlige innloggings-stegene (Dexie sender engelsk). */
-const NO_TITLE = {
-  email: 'Logg inn',
-  otp: 'Sjekk e-posten din',
-}
-const NO_SUBMIT = {
-  email: 'Send meg en kode',
-  otp: 'Logg inn',
-}
-const NO_ALERT = {
-  OTP_SENT: 'Vi sendte en engangskode til e-posten din. Lim den inn her.',
-  INVALID_OTP: 'Feil eller utløpt kode. Prøv igjen.',
-  INVALID_EMAIL: 'Sjekk at e-postadressen er riktig.',
-  USER_NOT_REGISTERED: 'Denne e-posten er ikke registrert på databasen.',
-  NO_SEATS_AVAILABLE: 'Ingen ledige plasser på databasen akkurat nå.',
-  GENERIC_ERROR: 'Noe gikk galt. Prøv igjen.',
-}
-const NO_PLACEHOLDER = { email: 'din@epost.no', otp: 'Engangskode' }
-
-/* Egendefinert innloggings-dialog (e-post + engangskode) — matcher designet
-   i stedet for Dexies grå standard-GUI. Drives av db.cloud.userInteraction.
-   Indre skjema remountes (via key) hver gang interaksjonen endres, så feltene
-   nullstilles uten en setState-i-effect. */
-function LoginInteraction() {
-  const ui = useObservable(db.cloud.userInteraction)
-  if (!ui) return null
-  const key = `${ui.type}|${ui.title || ''}|${ui.alerts?.length || 0}`
-  return <InteractionForm key={key} ui={ui} />
-}
-
-function InteractionForm({ ui }) {
-  const [values, setValues] = useState({})
-  const [submitting, setSubmitting] = useState(false)
-
-  const fields = Object.entries(ui.fields || {})
-  const onlyAlert = ui.type === 'message-alert'
-  const title = NO_TITLE[ui.type] || ui.title
-  const submitLabel = NO_SUBMIT[ui.type] || ui.submitLabel || 'OK'
-
-  function submit(e) {
-    e?.preventDefault()
-    setSubmitting(true)
-    const payload = {}
-    for (const [name] of fields) {
-      let v = values[name] ?? ''
-      // E-post må normaliseres — ellers blir «Fabrik…» og «fabrik…» to ulike kontoer.
-      if (name === 'email') v = v.trim().toLowerCase()
-      payload[name] = v
-    }
-    ui.onSubmit(payload)
-  }
-
-  return (
-    <div className="lia-overlay" role="dialog" aria-modal="true">
-      <form className="lia-card" onSubmit={submit}>
-        <h2 className="lia-title">{title}</h2>
-
-        {(ui.alerts || []).map((a, i) => (
-          <p key={i} className={'lia-alert ' + a.type}>{NO_ALERT[a.messageCode] || a.message}</p>
-        ))}
-
-        {fields.map(([name, f]) => (
-          <label key={name} className="lia-field">
-            {f.label && <span className="lia-label">{f.label}</span>}
-            <input
-              type={f.type === 'password' ? 'password' : 'text'}
-              inputMode={f.type === 'otp' || name === 'otp' ? 'numeric' : name === 'email' ? 'email' : undefined}
-              autoComplete={name === 'email' ? 'email' : name === 'otp' ? 'one-time-code' : 'off'}
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              enterKeyHint="go"
-              placeholder={NO_PLACEHOLDER[name] || f.placeholder || ''}
-              value={values[name] ?? ''}
-              autoFocus={fields[0][0] === name}
-              onChange={(e) => setValues((v) => ({ ...v, [name]: e.target.value }))}
-            />
-          </label>
-        ))}
-
-        {(ui.options || []).length > 0 && (
-          <div className="lia-options">
-            {ui.options.map((o) => (
-              <button
-                key={o.name + o.value}
-                type="button"
-                className="lia-opt"
-                onClick={() => ui.onSubmit({ [o.name]: o.value })}
-              >
-                {o.displayName}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <button type="submit" className="lia-submit" disabled={submitting}>
-          {submitting ? <span className="login-btn-spin" /> : submitLabel}
-        </button>
-
-        {ui.cancelLabel && !onlyAlert && (
-          <button type="button" className="lia-cancel" onClick={() => ui.onCancel()}>
-            Avbryt
-          </button>
-        )}
-      </form>
-    </div>
-  )
-}
-
-function LoginScreen() {
-  const [busy, setBusy] = useState(false)
-
-  async function login() {
-    setBusy(true)
-    try {
-      await db.cloud.login()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="login-screen">
-      <LoginInteraction />
-      <div className="login-panel">
-        <aside className="login-showcase">
-          <div className="login-brand">
-            <span className="login-brand-mark">
-              <GridMark />
-            </span>
-            Fabipilot
-          </div>
-          <h2 className="login-headline">
-            Alt på ett sted.<br />
-            På alle enhetene dine.
-          </h2>
-          <ul className="login-features">
-            {LOGIN_FEATURES.map((f) => (
-              <li key={f.k} className="login-feature">
-                <span className="lf-icon">
-                  <NavIcon name={f.k} />
-                </span>
-                <span className="lf-text">
-                  <b>{f.label}</b>
-                  <i>{f.desc}</i>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="login-showglow" aria-hidden="true" />
-        </aside>
-
-        <div className="login-action">
-          <div className="login-glyph" aria-hidden="true">
-            <GridMark />
-          </div>
-          <h1 className="login-title">Velkommen</h1>
-          <p className="login-text">
-            Logg inn for å hente dataene dine — eller starte friskt. Alt synces
-            automatisk mellom mobil og laptop.
-          </p>
-
-          <button type="button" className="login-btn" onClick={login} disabled={busy}>
-            {busy ? (
-              <>
-                <span className="login-btn-spin" />
-                Åpner innlogging…
-              </>
-            ) : (
-              'Logg inn med e-post'
-            )}
-          </button>
-
-          <p className="login-foot">
-            Ingen passord — du får en engangskode på e-post. Dataene ligger
-            lokalt og fungerer offline.
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function App() {
   const [active, setActive] = useState('overview')
   const [backupOpen, setBackupOpen] = useState(false)
@@ -321,6 +70,13 @@ export default function App() {
   const currentUser = useObservable(db.cloud.currentUser)
   const syncState = useObservable(db.cloud.syncState)
   const isLoggedIn = !!currentUser?.isLoggedIn
+  const led = syncLed(syncState)
+  const itemCount = useLiveQuery(async () => {
+    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'expenses', 'budgets', 'incomes', 'goals']
+    let n = 0
+    for (const t of tabs) n += await db.table(t).count()
+    return n
+  }, [], null)
   const [pushing, setPushing] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [reminder, setReminder] = useState(getReminderPrefs)
@@ -389,7 +145,6 @@ export default function App() {
   }, [isLoggedIn])
 
   // Sync-feil: si fra én gang (ikke mas), nullstill når vi er i synk igjen.
-  const led = syncLed(syncState)
   useEffect(() => {
     if (led === 'red' && !syncErrNotified.current) {
       syncErrNotified.current = true
@@ -399,13 +154,6 @@ export default function App() {
     }
     if (led === 'green') syncErrNotified.current = false
   }, [led])
-
-  const itemCount = useLiveQuery(async () => {
-    const tabs = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'expenses', 'budgets', 'incomes', 'goals']
-    let n = 0
-    for (const t of tabs) n += await db.table(t).count()
-    return n
-  }, [], null)
 
   // Antall ting igjen i dag (åpne oppgaver med forfall i dag eller før) → app-ikon-badge.
   const todayRemaining = useLiveQuery(
@@ -702,133 +450,25 @@ export default function App() {
       )}
 
       {backupOpen && (
-        <div
-          className="backup-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setBackupOpen(false)}
-        >
-          <div className="backup-card" onClick={(e) => e.stopPropagation()}>
-            <h2 className="backup-title">Sky-sync & backup</h2>
-
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-            >
-              <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
-              {theme === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus'}
-            </button>
-
-            <div className="rem-box">
-              <div className="rem-head">
-                <div>
-                  <span className="rem-title">Daglig påminnelse</span>
-                  <span className="rem-sub">En vennlig dytt om å planlegge dagen.</span>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={reminder.enabled}
-                  className={'rem-switch' + (reminder.enabled ? ' on' : '')}
-                  onClick={toggleReminder}
-                >
-                  <span className="rem-knob" />
-                </button>
-              </div>
-
-              {reminder.enabled && (
-                <div className="rem-time-row">
-                  <label className="rem-time-lbl" htmlFor="rem-time">Tidspunkt</label>
-                  <input
-                    id="rem-time"
-                    type="time"
-                    className="rem-time"
-                    value={reminder.time}
-                    onChange={(e) => changeReminderTime(e.target.value)}
-                  />
-                </div>
-              )}
-
-              <button type="button" className="rem-test" onClick={testNotif}>
-                Test varsel nå
-              </button>
-
-              <p className="rem-note">
-                {perm === 'unsupported'
-                  ? 'Enheten din støtter ikke varsler.'
-                  : !triggersSupported()
-                  ? 'På denne enheten (f.eks. iPhone) kan ikke appen sende varsler når den er helt lukket. Du blir minnet på ved neste åpning — og app-ikonet viser hvor mye som gjenstår.'
-                  : 'Varselet kan komme selv når appen er lukket. Hold appen installert på hjemskjermen.'}
-              </p>
-            </div>
-
-            <div className="sync-box">
-              <div className="sync-row">
-                <span className={'sync-led ' + syncLed(syncState)} />
-                <span className="sync-status">{syncLabel(syncState)}</span>
-              </div>
-
-              <dl className="sync-diag">
-                <div><dt>Ting her nå</dt><dd>{itemCount ?? '…'}</dd></div>
-                <div><dt>E-post</dt><dd>{currentUser?.email || '—'}</dd></div>
-                <div><dt>Bruker-ID</dt><dd className="mono">{currentUser?.userId || '—'}</dd></div>
-              </dl>
-
-              <button
-                type="button"
-                className="btn backup-action sync-push"
-                disabled={pushing}
-                onClick={handlePush}
-              >
-                {pushing ? 'Laster opp…' : 'Last opp alt til skyen'}
-              </button>
-              <button
-                type="button"
-                className="btn backup-action sync-now"
-                disabled={syncing}
-                onClick={handleSyncNow}
-              >
-                {syncing ? 'Synker…' : 'Synk nå (hent fra skyen)'}
-              </button>
-              <p className="sync-hint">
-                Last opp på enheten som har dataen. På de andre enhetene: logg inn med samme
-                e-post og trykk «Synk nå». Bruker-ID må være lik på alle enhetene.
-              </p>
-              <button
-                type="button"
-                className="sync-logout"
-                onClick={() => db.cloud.logout({ force: true })}
-              >
-                Logg ut
-              </button>
-            </div>
-
-            <p className="backup-text">
-              Vil du ha en kopi på fil i tillegg? Eksporter en JSON og legg den i iCloud/Drive.
-              {(() => {
-                const t = Number(localStorage.getItem('lastBackup') || 0)
-                return t
-                  ? ` Sist backup: ${new Intl.DateTimeFormat('nb-NO', { day: 'numeric', month: 'long' }).format(new Date(t))}.`
-                  : ' Ingen backup tatt ennå.'
-              })()}
-            </p>
-            <button type="button" className="btn backup-action" onClick={handleExport}>
-              Eksporter alt (last ned JSON)
-            </button>
-            <label className="btn backup-action">
-              Importer fra fil…
-              <input type="file" accept="application/json,.json" hidden onChange={handleImport} />
-            </label>
-            <button
-              type="button"
-              className="btn btn-ghost backup-action"
-              onClick={() => setBackupOpen(false)}
-            >
-              Lukk
-            </button>
-          </div>
-        </div>
+        <BackupSheet
+          theme={theme}
+          onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+          reminder={reminder}
+          onToggleReminder={toggleReminder}
+          onChangeReminderTime={changeReminderTime}
+          onTestNotif={testNotif}
+          perm={perm}
+          syncState={syncState}
+          currentUser={currentUser}
+          itemCount={itemCount}
+          pushing={pushing}
+          onPush={handlePush}
+          syncing={syncing}
+          onSyncNow={handleSyncNow}
+          onExport={handleExport}
+          onImport={handleImport}
+          onClose={() => setBackupOpen(false)}
+        />
       )}
     </div>
   )

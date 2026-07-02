@@ -1,0 +1,31 @@
+import {
+  LayoutGrid,
+  Sun,
+  CalendarDays,
+  Compass,
+  Lightbulb,
+  Repeat,
+  Wallet,
+  FolderKanban,
+  Users,
+  CloudUpload,
+  MoreHorizontal,
+  Flower2,
+} from 'lucide-react'
+
+/* Lucide-ikoner per modul (konsistent, premium ikonsett). Delt mellom
+   hovednavigasjonen og innloggingsskjermens funksjonsliste. */
+export const ICONS = {
+  overview: LayoutGrid,
+  today: Sun,
+  calendar: CalendarDays,
+  whatnow: Compass,
+  ideas: Lightbulb,
+  habits: Repeat,
+  money: Wallet,
+  projects: FolderKanban,
+  shared: Users,
+  garden: Flower2,
+  backup: CloudUpload,
+  more: MoreHorizontal,
+}
