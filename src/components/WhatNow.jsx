@@ -7,7 +7,7 @@ import { ScreenSkeleton } from '../lib/ui.jsx'
 const TYPE_META = {
   task:    { label: 'Oppgave',  color: 'var(--accent)',  icon: '✓' },
   project: { label: 'Prosjekt', color: 'var(--forest)', icon: '→' },
-  habit:   { label: 'Vane',     color: '#7ba07c',        icon: '↻' },
+  habit:   { label: 'Vane',     color: 'var(--forest)',        icon: '↻' },
 }
 
 const ENERGY_OPTS = [

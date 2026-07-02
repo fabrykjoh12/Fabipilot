@@ -103,7 +103,7 @@
 }
 .sub-day.unset {
   border-style: dashed;
-  color: #a8b09e;
+  color: var(--faint);
 }
 
 /* måned-nav */
@@ -330,14 +330,14 @@
 /* ===== bunn-sheet (forbruk + budsjett) ===== */
 .msheet-overlay {
   position: fixed; inset: 0; z-index: 90;
-  background: rgba(34, 40, 31, 0.45); backdrop-filter: blur(3px);
+  background: rgba(15, 17, 22, 0.5); backdrop-filter: blur(3px);
   display: flex; align-items: flex-end; justify-content: center;
 }
 .msheet {
   width: 100%; max-width: 560px;
   background: var(--canvas); border-radius: 24px 24px 0 0;
   padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
-  box-shadow: 0 -12px 40px rgba(34, 40, 31, 0.22);
+  box-shadow: 0 -12px 40px rgba(15, 17, 22, 0.22);
   animation: cal-sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   max-height: 92vh; overflow-y: auto;
 }
@@ -438,7 +438,7 @@
 .income-del {
   border: 0;
   background: none;
-  color: #c3caba;
+  color: var(--faint);
   font-size: 16px;
   cursor: pointer;
   line-height: 1;
@@ -486,7 +486,7 @@
 .goal.reached { border-color: rgba(79, 157, 91, 0.4); background: #f0f5ef; }
 .goal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .goal-name { font-size: 16px; font-weight: 600; color: var(--ink); }
-.goal-del { border: 0; background: none; color: #c3caba; font-size: 17px; cursor: pointer; line-height: 1; }
+.goal-del { border: 0; background: none; color: var(--faint); font-size: 17px; cursor: pointer; line-height: 1; }
 .goal-bar {
   height: 9px;
   border-radius: 99px;

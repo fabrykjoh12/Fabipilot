@@ -28,7 +28,7 @@
   outline: 0;
 }
 .ideabank .searchwrap input::placeholder {
-  color: #9aa394;
+  color: var(--faint);
 }
 
 /* filter chips */
@@ -128,7 +128,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
-  background: #eef0ea;
+  background: var(--surface-2);
   border-radius: 7px;
   padding: 3px 8px;
   cursor: pointer;
@@ -141,7 +141,7 @@
 }
 .ideabank .date {
   font-size: 12px;
-  color: #9aa394;
+  color: var(--faint);
   font-weight: 500;
 }
 .ideabank .fav {
@@ -153,7 +153,7 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: #c3caba;
+  color: var(--faint);
   border-radius: 50%;
   margin: -4px -6px 0 0;
 }
@@ -252,7 +252,7 @@
 /* ===== Tagger ===== */
 .tag-chip {
   border: 0;
-  background: #eef0ea;
+  background: var(--surface-2);
   color: var(--muted);
   font-family: inherit;
   font-size: 11.5px;

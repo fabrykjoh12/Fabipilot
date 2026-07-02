@@ -60,7 +60,7 @@
   flex: 0 0 auto;
 }
 .plist-empty {
-  color: #9aa394;
+  color: var(--faint);
   font-style: italic;
 }
 
@@ -77,11 +77,11 @@
 }
 .st-active {
   color: var(--forest);
-  background: #e5ebe4;
+  background: var(--forest-soft);
 }
 .st-onice {
   color: var(--muted);
-  background: #eef0ea;
+  background: var(--surface-2);
 }
 .st-done {
   color: #fff;
@@ -201,7 +201,7 @@
   text-underline-offset: 3px;
 }
 .roadmap .pwhy-placeholder {
-  color: #a0a895;
+  color: var(--faint);
   font-style: italic;
 }
 .roadmap .pwhy-edit {
@@ -220,7 +220,7 @@
 }
 .roadmap .ptouch {
   font-size: 12.5px;
-  color: #9aa394;
+  color: var(--faint);
   margin: 6px 0 0;
   font-weight: 500;
 }
@@ -263,46 +263,6 @@
   padding-left: 30px;
   padding-bottom: 8px;
 }
-.roadmap .stage::before {
-  content: '';
-  position: absolute;
-  left: 9px;
-  top: 6px;
-  bottom: -8px;
-  width: 2px;
-  background: var(--forest);
-  opacity: 0.55;
-}
-.roadmap .stage.later::before {
-  background: none;
-  border-left: 2px dashed #b9c2b2;
-  opacity: 0.8;
-}
-.roadmap .stage:last-child::before {
-  bottom: auto;
-  height: 34px;
-}
-.roadmap .node {
-  position: absolute;
-  left: 2px;
-  top: 3px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 3px solid var(--forest);
-  z-index: 2;
-}
-.roadmap .stage.now .node {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.roadmap .stage.later .node {
-  border-color: #b9c2b2;
-  border-style: dashed;
-  width: 15px;
-  height: 15px;
-}
 .roadmap .stage-head {
   display: flex;
   align-items: center;
@@ -327,7 +287,7 @@
 }
 .roadmap .stage-head .note {
   font-size: 12px;
-  color: #a0a895;
+  color: var(--faint);
   font-style: italic;
   margin-left: auto;
 }
@@ -344,7 +304,7 @@
   animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .roadmap .stage.later .rm-card {
-  background: rgba(251, 252, 249, 0.6);
+  background: var(--surface-2);
   box-shadow: none;
   border: 1px solid var(--line);
 }
@@ -366,7 +326,7 @@
   box-shadow: inset 0 0 0 1.5px var(--line);
 }
 .roadmap .energy.lav {
-  background: #7ba07c;
+  background: var(--forest);
   box-shadow: none;
 }
 .roadmap .energy.hoy {
@@ -395,7 +355,7 @@
   min-width: 0;
 }
 .roadmap .ctxt.muted {
-  color: #9aa394;
+  color: var(--faint);
   font-weight: 400;
 }
 .roadmap .stage.later .ctxt {
@@ -432,7 +392,7 @@
   height: 28px;
   border: 0;
   background: none;
-  color: #c3caba;
+  color: var(--faint);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -468,7 +428,7 @@
   outline: 0;
 }
 .roadmap .addrow input::placeholder {
-  color: #9aa394;
+  color: var(--faint);
 }
 .roadmap .addrow input:focus {
   border-color: var(--forest);
@@ -710,7 +670,7 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  color: #b0b8a8;
+  color: var(--faint);
 }
 .roadmap .rm-more svg { width: 20px; height: 20px; }
 .roadmap .rm-more:hover { background: var(--canvas); color: var(--muted); }
@@ -744,7 +704,7 @@
 .roadmap .stage-add input {
   flex: 1;
   border: 1px solid transparent;
-  background: rgba(251, 252, 249, 0.5);
+  background: var(--surface-2);
   border-radius: 12px;
   padding: 10px 13px;
   font-family: inherit;
@@ -752,7 +712,7 @@
   color: var(--ink);
   outline: 0;
 }
-.roadmap .stage-add input::placeholder { color: #a8b09e; }
+.roadmap .stage-add input::placeholder { color: var(--faint); }
 .roadmap .stage-add input:focus { border-color: var(--line); background: var(--surface); }
 .roadmap .stage-add button {
   flex: 0 0 auto;
@@ -782,7 +742,7 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(34, 40, 31, 0.45);
+  background: rgba(15, 17, 22, 0.5);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-end;
@@ -794,7 +754,7 @@
   background: var(--canvas);
   border-radius: 24px 24px 0 0;
   padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
-  box-shadow: 0 -12px 40px rgba(34, 40, 31, 0.22);
+  box-shadow: 0 -12px 40px rgba(15, 17, 22, 0.22);
   animation: sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -840,7 +800,7 @@
   color: var(--muted);
   cursor: pointer;
 }
-.step-reorder button:hover { border-color: var(--forest); color: var(--forest); }
+.step-reorder button:hover { border-color: var(--accent); color: var(--accent); }
 .step-done {
   width: 100%;
   background: var(--forest);
@@ -875,9 +835,6 @@
   padding-left: 0;
   padding-bottom: 16px;
 }
-.roadmap .prio-list .stage::before {
-  display: none; /* fjern tidslinje-streken */
-}
 .roadmap .prio-list .stage-head {
   margin-bottom: 12px;
 }
@@ -890,12 +847,12 @@
 }
 .roadmap .stage.now .prio-dot { background: var(--accent); }
 .roadmap .stage.next .prio-dot { background: var(--forest); }
-.roadmap .stage.later .prio-dot { background: #b0b8a8; }
+.roadmap .stage.later .prio-dot { background: var(--faint); }
 
 /* prioritets-piller i handlingssheet */
 .step-stage.prio-now.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
-.step-stage.prio-next.on { border-color: var(--forest); background: #eef2ec; color: var(--forest); }
-.step-stage.prio-later.on { border-color: #aab09f; background: #eef0ea; color: var(--muted); }
+.step-stage.prio-next.on { border-color: var(--forest); background: var(--forest-soft); color: var(--forest); }
+.step-stage.prio-later.on { border-color: var(--line-strong); background: var(--surface-2); color: var(--muted); }
 
 /* ===== Prosjekt: frist + notat ===== */
 .roadmap .pmeta-row {
@@ -916,8 +873,8 @@
   cursor: pointer;
   padding: 3px 9px;
   border-radius: 7px;
-  border: 1px solid rgba(66, 99, 74, 0.3);
-  background: #eef2ec;
+  border: 1px solid var(--forest-soft);
+  background: var(--forest-soft);
 }
 .roadmap .pdeadline input[type='date'] {
   position: absolute;
@@ -929,7 +886,7 @@
   cursor: pointer;
 }
 .roadmap .pdeadline.unset {
-  color: #a0a895;
+  color: var(--faint);
   border-style: dashed;
   border-color: var(--line);
   background: none;
@@ -965,7 +922,7 @@
   text-underline-offset: 3px;
 }
 .roadmap .pnotes-placeholder {
-  color: #a0a895;
+  color: var(--faint);
   font-style: italic;
 }
 .roadmap .pnotes-input {
@@ -1013,7 +970,7 @@
 }
 .roadmap .rm-subchip.empty {
   border-style: dashed;
-  color: #a8b09e;
+  color: var(--faint);
 }
 .roadmap .rm-subs {
   margin: 11px 0 2px;

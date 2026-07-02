@@ -80,7 +80,7 @@
   padding: 4px 0;
 }
 .cal-weekdays .weekend {
-  color: #b0b7a6;
+  color: var(--faint);
 }
 
 /* rutenett */
@@ -127,7 +127,7 @@
   box-shadow: none;
 }
 .cal-cell.out .cal-num {
-  color: #b8bfae;
+  color: var(--faint);
   font-weight: 500;
 }
 .cal-cell.today {
@@ -139,14 +139,14 @@
 }
 .cal-cell.sel {
   background: var(--accent);
-  box-shadow: 0 4px 12px rgba(204, 136, 43, 0.32);
+  box-shadow: var(--sh-accent);
 }
 .cal-cell.sel .cal-num {
   color: #fff;
   font-weight: 700;
 }
 .cal-cell.sel.today {
-  box-shadow: 0 4px 12px rgba(204, 136, 43, 0.32);
+  box-shadow: var(--sh-accent);
 }
 
 /* prikker */
@@ -220,7 +220,7 @@
 .cal-empty-glyph {
   display: block;
   font-size: 30px;
-  color: #c3caba;
+  color: var(--faint);
   margin-bottom: 10px;
 }
 .cal-empty p {
@@ -262,7 +262,7 @@
   font-weight: 700;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
-  background: #eef0ea;
+  background: var(--surface-2);
   padding: 3px 7px;
   border-radius: 7px;
 }
@@ -320,7 +320,7 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(34, 40, 31, 0.45);
+  background: rgba(15, 17, 22, 0.5);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-end;
@@ -332,7 +332,7 @@
   background: var(--canvas);
   border-radius: 24px 24px 0 0;
   padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
-  box-shadow: 0 -12px 40px rgba(34, 40, 31, 0.22);
+  box-shadow: 0 -12px 40px rgba(15, 17, 22, 0.22);
   animation: cal-sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   max-height: 92vh;
   overflow-y: auto;
