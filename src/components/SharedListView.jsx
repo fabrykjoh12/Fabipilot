@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   listSharedItems, addSharedItem, setSharedItemDone, deleteSharedItem, updateSharedItem,
-  listSharedMembers, inviteToShared, removeSharedMember, db,
+  listSharedMembers, inviteToShared, removeSharedMember, ensureSharedRealm, db,
 } from '../db.js'
 import { vibrate, burst } from '../lib/fx.js'
 
@@ -56,6 +56,7 @@ function Item({ item }) {
 export default function SharedListView({ list, title, placeholder, emptyGlyph, emptyTitle, emptyHint }) {
   const items = useLiveQuery(() => listSharedItems(list), [list], [])
   const members = useLiveQuery(() => listSharedMembers().catch(() => []), [], [])
+  const realmId = useLiveQuery(() => ensureSharedRealm().catch(() => null), [], null)
   const [val, setVal] = useState('')
   const [email, setEmail] = useState('')
   const [inviteMsg, setInviteMsg] = useState('')
@@ -133,6 +134,9 @@ export default function SharedListView({ list, title, placeholder, emptyGlyph, e
             <p className="share-hint">
               Begge må være innlogget med hver sin e-post. Personen får en invitasjon i appen neste gang
               hun logger inn. «Delt liste» og «Handleliste» deles med de samme personene — alt annet er privat.
+            </p>
+            <p className="share-hint">
+              Realm-ID (for feilsøking — bør være likt på begge enheter): <code>{realmId || '…'}</code>
             </p>
           </div>
         )}
