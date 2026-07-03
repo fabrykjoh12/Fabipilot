@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, todayKey, addEvent, updateEvent, deleteWithRestore, restoreRecord, setTaskDone } from '../db.js'
+import { Users } from 'lucide-react'
+import { db, todayKey, addEvent, updateEvent, setEventShared, isPrivateRealm, deleteWithRestore, restoreRecord, setTaskDone } from '../db.js'
 import { burst, vibrate, reduceMotion } from '../lib/fx.js'
 import { toast, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
@@ -65,6 +66,7 @@ function EventSheet({ initial, defaultDate, onClose }) {
   const [color, setColor] = useState(initial?.color || 'amber')
   const [note, setNote] = useState(initial?.note || '')
   const [repeat, setRepeat] = useState(initial?.repeat || 'none')
+  const [shared, setShared] = useState(editing ? !isPrivateRealm(initial.realmId) : false)
   const saveRef = useRef(null)
 
   async function save() {
@@ -72,8 +74,9 @@ function EventSheet({ initial, defaultDate, onClose }) {
     if (!t) return
     if (editing) {
       await updateEvent(initial.id, { title: t, date, time, color, note: note.trim(), repeat })
+      await setEventShared(initial.id, shared)
     } else {
-      await addEvent({ title: t, date, time, color, note: note.trim(), repeat })
+      await addEvent({ title: t, date, time, color, note: note.trim(), repeat, shared })
     }
     vibrate([12, 30, 12])
     burst(saveRef.current)
@@ -145,6 +148,15 @@ function EventSheet({ initial, defaultDate, onClose }) {
             ))}
           </div>
         </div>
+
+        <button
+          type="button"
+          className={'cal-share-toggle' + (shared ? ' on' : '')}
+          onClick={() => setShared((s) => !s)}
+        >
+          <Users aria-hidden="true" />
+          {shared ? 'Delt med kjæresten' : 'Del med kjæresten'}
+        </button>
 
         <textarea
           className="cal-in cal-note"
@@ -338,6 +350,9 @@ export default function Calendar() {
               <span className="cal-row-txt">{ev.title}</span>
               {ev.repeat && ev.repeat !== 'none' && <span className="cal-note-mark" aria-label="Gjentar">↻</span>}
               {ev.note && <span className="cal-note-mark" aria-label="Har notat">≡</span>}
+              {!isPrivateRealm(ev.realmId) && (
+                <Users size={14} className="cal-note-mark" aria-label="Delt med kjæresten" />
+              )}
             </button>
           ))}
         </div>

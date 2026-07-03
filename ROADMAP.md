@@ -53,3 +53,6 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - Hagen: trykk på blomst/tre for navnelapp med vane-/prosjektnavn.
 - «Handleliste»: ny delt, avhukbar handleliste — samme delings-mekanisme (Dexie Cloud-realm) som «Delt»,
   begge lister deles med samme personer via én invitasjon.
+- Fiks: reelle sync-bugs i delte lister — ugyldig indeksert realm-oppslag (hindret all legg-til/inviter),
+  og manglende invitasjons-godkjenning (`InviteBanner.jsx`, hindret ensidig synk).
+- Delt kalender: hendelser kan merkes «Del med kjæresten», dukker opp i begges kalender.

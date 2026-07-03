@@ -557,9 +557,12 @@ export async function promoteIdeaToProject(idea) {
 
 /* =========================================================
    KALENDER (hendelser)
-   - events: id, title, date('YYYY-MM-DD'), time('HH:MM'|''), note, color, createdAt
+   - events: id, title, date('YYYY-MM-DD'), time('HH:MM'|''), note, color, repeat, realmId, createdAt
+   `realmId` er uindeksert; fraværende/`currentUserId` = privat, det delte realmet (samme som
+   «Delt»/«Handleliste», se `ensureSharedRealm`) = delt med kjæresten. Delte hendelser dukker
+   automatisk opp i kalenderen på begge enheter — ingen egen spørring nødvendig.
    ========================================================= */
-export async function addEvent({ title, date, time = '', note = '', color = 'amber', repeat = 'none' }) {
+export async function addEvent({ title, date, time = '', note = '', color = 'amber', repeat = 'none', shared = false }) {
   const ev = {
     id: uid(),
     title: title.trim(),
@@ -569,12 +572,18 @@ export async function addEvent({ title, date, time = '', note = '', color = 'amb
     color,
     repeat,
     createdAt: now(),
+    ...(shared ? { realmId: await ensureSharedRealm() } : {}),
   }
   await db.events.add(ev)
   return ev
 }
 export const updateEvent = (id, patch) => db.events.update(id, patch)
 export const deleteEvent = (id) => db.events.delete(id)
+/** Del/avslutt deling av en hendelse — bruker samme delte realm som «Delt»/«Handleliste». */
+export async function setEventShared(id, shared) {
+  const realmId = shared ? await ensureSharedRealm() : db.cloud.currentUserId
+  await db.events.update(id, { realmId })
+}
 
 /* =========================================================
    STARTPAKKE — eksempeldata for helt ferske brukere.
@@ -680,7 +689,7 @@ export const removeSharedMember = (memberId) => db.members.delete(memberId)
    `projectItems` flyttes dit (realmId), og den inviterte får full tilgang.
    --------------------------------------------------------- */
 /** Er dette realmet privat (mitt eget) eller udefinert? */
-const isPrivateRealm = (realmId) => !realmId || realmId === db.cloud.currentUserId
+export const isPrivateRealm = (realmId) => !realmId || realmId === db.cloud.currentUserId
 
 /** Del et prosjekt: flytt prosjekt + steg inn i et eget realm og inviter på e-post. */
 export async function shareProject(projectId, email) {

@@ -2,6 +2,16 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-03 — **Delt kalender** (ønske fra brukeren). Hendelser kan nå merkes «Del med kjæresten» i
+  hendelse-arket — gjenbruker samme delte Dexie Cloud-realm som «Delt»/«Handleliste» (ingen ny
+  invitasjon nødvendig, alt deles allerede med samme person). `events` fikk et uindeksert `realmId`-felt
+  (fraværende/`currentUserId` = privat); siden delte og private hendelser bor i samme tabell, dukker
+  delte hendelser automatisk opp i kalenderen på begge enheter — ingen egen sammenslåingslogikk
+  nødvendig. `isPrivateRealm` eksportert fra db.js for gjenbruk. Delte hendelser vises med et lite
+  personer-ikon i dag-agendaen. Verifisert i browser (måtte simulere en faktisk avvikende realm-ID
+  siden sandkassen mangler ekte Dexie Cloud-innlogging — «delt» og «privat» faller begge tilbake til
+  samme `unauthorized`-verdi uten det).
+
 - 2026-07-03 — **Fiks: ensidig sync i delte lister (manglet invitasjons-godkjenning)**. Etter forrige
   fiks (realm-oppslaget) kunne begge legge til, men bare den ene retningen synces: Saras varer dukket
   opp hos brukeren, men ikke omvendt — selv med samme realm-ID og «Synket»-status på begge. Rotårsak:

@@ -86,9 +86,13 @@ Synces via Dexie Cloud (se §3).
   `result` = fritekst/lenke med hva Claude svarte (uindeksert; redigeres i utvidet kort + kø-modus, søkbar via ⌘K).
   `doneAt` = ms-tidsstempel når steget ble fullført (settes av `setItemStage`/`moveItemToStage`; brukes av «Denne uka»).
   «Neste steg» = første item med `stage='now'` (etter `sortOrder`). Ingen egen flagg-kolonne.
-- **events** (Kalender) — `id, title, date, time, note, color, createdAt`
+- **events** (Kalender) — `id, title, date, time, note, color, repeat, realmId, createdAt`
   `date` = `YYYY-MM-DD`. `time` = `HH:MM` eller `''`. `color` = nøkkel i `EVENT_COLORS` (Calendar.jsx).
-  Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
+  `repeat` = `'none' | 'daily' | 'weekly' | 'monthly'`. `realmId` (uindeksert): fraværende/`currentUserId`
+  = privat, det delte realmet (samme som «Delt»/«Handleliste») = delt med kjæresten via «Del med
+  kjæresten»-bryteren i hendelse-arket — delte hendelser dukker automatisk opp i kalenderen på begge
+  enheter siden det bare er én tabell. Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte
+  i dag-agendaen).
 - **todos** (UTGÅTT) — slått sammen inn i `tasks` i v10. Storen beholdes tom for bakoverkompat;
   `importAll` mapper gamle backup-`todos` automatisk inn i `tasks`. Ikke i bruk i UI.
 - **sharedItems** (Delt / Handleliste) — `id, realmId, owner, text, list, isDone, completedAt, sortOrder, createdAt`
@@ -146,7 +150,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `AppShell.css` — design-tokens (`:root`-skalaer) + skall + delte komponentstiler + skeleton/toast + innloggingsskjerm + auth-dialog
   - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
   - `Tasks.jsx` / `Tasks.css` — «Oppgaver»: ÉN samlet liste (erstatter «I dag» + «Liste»). Seksjoner Fokus/I dag/Henger igjen/Kommende/Når som helst/Fullført, naturlig-språk-innlegging (`parseEntry`), smarte dato-chips, delpunkter, sveip (fullfør/utsett), fokus maks 3
-  - `Calendar.jsx` / `Calendar.css` — «Kalender»: månedsvisning + dag-agenda + hendelse-sheet
+  - `Calendar.jsx` / `Calendar.css` — «Kalender»: månedsvisning + dag-agenda + hendelse-sheet.
+    Hendelser kan deles med kjæresten («Del med kjæresten»-bryter i arket) — gjenbruker samme delte
+    realm som «Delt»/«Handleliste» (`ensureSharedRealm`/`isPrivateRealm` i db.js), vises med et
+    lite personer-ikon i agendaen
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)

@@ -435,6 +435,32 @@
   resize: none;
   line-height: 1.4;
 }
+.cal-share-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.cal-share-toggle svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.cal-share-toggle.on {
+  border-color: var(--accent);
+  background: var(--surface-focus);
+  color: var(--accent);
+}
 .cal-save {
   width: 100%;
   margin-top: 18px;
