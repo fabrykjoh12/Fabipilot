@@ -91,9 +91,12 @@ Synces via Dexie Cloud (se §3).
   Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte i dag-agendaen).
 - **todos** (UTGÅTT) — slått sammen inn i `tasks` i v10. Storen beholdes tom for bakoverkompat;
   `importAll` mapper gamle backup-`todos` automatisk inn i `tasks`. Ikke i bruk i UI.
-- **sharedItems** (Delt) — `id, realmId, owner, text, isDone, completedAt, sortOrder, createdAt`
-  Delt liste i ÉT Dexie Cloud-realm (`SHARED_REALM_NAME = 'Delt liste'`). `realmId` settes via `ensureSharedRealm()`;
-  `owner` = `db.cloud.currentUserId`. Invitasjon på e-post via `inviteToShared(email)` (legger rad i `db.members`
+- **sharedItems** (Delt / Handleliste) — `id, realmId, owner, text, list, isDone, completedAt, sortOrder, createdAt`
+  Delte lister i ÉT Dexie Cloud-realm (`SHARED_REALM_NAME = 'Delt liste'`). `realmId` settes via `ensureSharedRealm()`;
+  `owner` = `db.cloud.currentUserId`. `list` (uindeksert, default `'general'` når fraværende — eldre rader uten
+  feltet regnes som `'general'`) skiller «Delt» (`'general'`) fra «Handleliste» (`'handleliste'`); begge er bare
+  filtrerte visninger av samme store/realm, så de deles automatisk med de(n) samme personen(e) — én invitasjon
+  gir tilgang til begge listene. Invitasjon på e-post via `inviteToShared(email)` (legger rad i `db.members`
   med `permissions:{manage:'*'}`). Bruker auto-tabellene `realms`/`members` fra dexie-cloud-addon. IKKE i JSON-eksport
   (deles via sky-realmet, ikke lokal backup).
 
@@ -156,7 +159,10 @@ Alle stores er med i JSON-eksport/import (se §8).
     (`list.css`, `roadmap.css`, `workspace.css`, `prompts.css`, `composer.css`, `wip-result.css`),
     importert i original rekkefølge for uendret cascade. «Kopier som prompt» limer prosjektkontekst
     foran via `buildPrompt` (`src/lib/prompts.js`)
-  - `SharedList.jsx` — «Delt»: én delt liste med kjæresten (Dexie Cloud realm + e-postinvitasjon). Kun denne lista deles
+  - `SharedListView.jsx` — motoren bak delte, avhukbare lister (Dexie Cloud realm + e-postinvitasjon),
+    parametrisert på `list`-nøkkel + tekst/tomvisning. `SharedList.jsx` («Delt», `list='general'`) og
+    `ShoppingList.jsx` («Handleliste», `list='handleliste'`) er tynne wrappere rundt den — samme realm/
+    medlemmer, så én invitasjon deler begge listene
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
   - `Garden.jsx` / `Garden.css` — «Hage»: rolig, levende SVG-scene som speiler uka (vaner=blomster, prosjekter=trær, gjort i dag=sommerfugler, fokus=sol, penger=vær). Kun lesing over eksisterende stores, ingen skam/visning.
     Trykk på en blomst/et tre i full visning (ikke kompakt-kortet på Oversikt) viser en navnelapp

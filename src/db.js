@@ -594,12 +594,14 @@ export async function seedStarterPack() {
 }
 
 /* =========================================================
-   DELING — delt liste med én annen person (Dexie Cloud realm)
+   DELING — delte lister med én annen person (Dexie Cloud realm)
    ---------------------------------------------------------
-   Alt i `sharedItems` legges i ÉT delt realm. Den andre personen
-   inviteres på e-post og får full tilgang til lista. Krever at begge
-   er innlogget (samme Dexie Cloud-database). Personlige stores røres
-   ikke — kun denne ene lista deles.
+   Alt i `sharedItems` legges i ÉT delt realm, uansett hvilken liste
+   (`list`) et item hører til — «Delt» og «Handleliste» er begge bare
+   filtrerte visninger av samme store/realm, så de deles automatisk med
+   de(n) samme personen(e). Den andre personen inviteres på e-post og
+   får full tilgang. Krever at begge er innlogget (samme Dexie Cloud-
+   database). Personlige stores røres ikke — kun disse listene deles.
    ========================================================= */
 const SHARED_REALM_NAME = 'Delt liste'
 
@@ -618,11 +620,11 @@ export async function listSharedRealms() {
   return db.realms.toArray()
 }
 
-export async function listSharedItems() {
-  return db.sharedItems.orderBy('sortOrder').toArray()
+export async function listSharedItems(list = 'general') {
+  return db.sharedItems.orderBy('sortOrder').filter((i) => (i.list || 'general') === list).toArray()
 }
 
-export async function addSharedItem(text) {
+export async function addSharedItem(text, list = 'general') {
   const t = text.trim()
   if (!t) return
   const realmId = await ensureSharedRealm()
@@ -631,6 +633,7 @@ export async function addSharedItem(text) {
     realmId,
     owner: db.cloud.currentUserId,
     text: t,
+    list,
     isDone: false,
     completedAt: null,
     sortOrder: now(),

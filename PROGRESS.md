@@ -2,6 +2,17 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-03 — **Handleliste** (ønske fra brukeren, ikke fra roadmapen). Ny delt, avhukbar handleliste —
+  gjenbruker hele delings-mekanismen fra «Delt» i stedet for å bygge en ny: `sharedItems` fikk et
+  uindeksert `list`-felt (`'general'` default, eldre rader uten feltet regnes fortsatt som `'general'` —
+  ingen migrering), og `listSharedItems`/`addSharedItem` tar nå en valgfri `list`-parameter. Selve
+  UI-en er trukket ut til `SharedListView.jsx` (generisk, parametrisert på tittel/tomvisning/placeholder);
+  `SharedList.jsx` («Delt») og nye `ShoppingList.jsx` («Handleliste») er tynne wrappere rundt den. Begge
+  lister deler samme Dexie Cloud-realm/medlemmer — én e-postinvitasjon gir tilgang til begge (nevnt
+  eksplisitt i del-panelets hint-tekst). Ny modul i nav (sekundær/«Mer»), eget `ShoppingCart`-ikon.
+  Fant og fikset i samme slengen at «Delt» manglet i `HAS_COMPOSER` (viste både flytende «+»-knapp OG
+  egen legg-til-linje samtidig) — lagt til «Handleliste» der òg. Verifisert med skjermbilder: filtrering
+  riktig på begge lister, gamle rader uten `list`-felt havner riktig i «Delt».
 - 2026-07-02 — **Fase 4D: Hage-interaktivitet** (fra produktgjennomgangen, siste punkt i fase 4). Trykk på
   en blomst eller et tre i Hagens SVG-scene viser nå en liten navnelapp (vanens/prosjektets navn) —
   samme trykk igjen, Escape, eller trykk utenfor lukker den. Kun i full visning (`GardenScene`s `compact`-

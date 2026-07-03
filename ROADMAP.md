@@ -50,3 +50,6 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
   (`src/components/projects/`, `src/lib/`) for å holde monolittene under kontroll.
 - Kategori-/fargeswatcher (prosjekter, hendelser, penger, vaner) samlet i én muset pastell-familie
   avledet fra aksentfargen, i stedet for en tilfeldig sammensatt jordfargepalett.
+- Hagen: trykk på blomst/tre for navnelapp med vane-/prosjektnavn.
+- «Handleliste»: ny delt, avhukbar handleliste — samme delings-mekanisme (Dexie Cloud-realm) som «Delt»,
+  begge lister deles med samme personer via én invitasjon.

@@ -11,6 +11,7 @@ import WhatNow from './components/WhatNow.jsx'
 import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
 import SharedList from './components/SharedList.jsx'
+import ShoppingList from './components/ShoppingList.jsx'
 import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
@@ -43,7 +44,7 @@ function ScreenFallback() {
 const PRIMARY = ['overview', 'today', 'calendar', 'projects']
 
 /* Moduler med egen «legg til»-linje nederst — der skjuler vi den flytende capture-knappen. */
-const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow'])
+const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow', 'shared', 'shopping'])
 
 const MODULES = [
   { k: 'overview', label: 'Oversikt', Comp: Overview },
@@ -55,6 +56,7 @@ const MODULES = [
   { k: 'money', label: 'Penger', Comp: Money },
   { k: 'projects', label: 'Prosjekter', Comp: Projects },
   { k: 'shared', label: 'Delt', Comp: SharedList },
+  { k: 'shopping', label: 'Handleliste', Comp: ShoppingList },
   { k: 'garden', label: 'Hage', Comp: Garden },
 ]
 
