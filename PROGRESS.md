@@ -2,6 +2,16 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-03 — **Fiks: kunne ikke legge til i «Delt»/«Handleliste»** (rapportert av brukeren rett etter
+  at Handleliste ble skipa — men bugen var faktisk gammel, den traff aldri før). `ensureSharedRealm()`
+  gjorde `db.realms.where({ name: SHARED_REALM_NAME })`, men dexie-cloud-addons `realms`-tabell
+  indekserer kun `@realmId` — `name` er ikke en indeksert keyPath, så kallet kastet «KeyPath name on
+  object store realms is not indexed» hver eneste gang (bekreftet via feilmelding brukeren fikk ved
+  invitering, som bruker samme funksjon som å legge til). Fikset ved å hente alle realms og filtrere i
+  minnet i stedet for en ugyldig indeksert `.where()`. Rammet både «Delt» og «Handleliste» likt siden
+  begge går via samme funksjon. Verifisert i browser: legg-til fungerer nå (flere rekkefølge-kall også,
+  altså både opprette og gjenfinne et eksisterende realm).
+
 - 2026-07-03 — **Handleliste** (ønske fra brukeren, ikke fra roadmapen). Ny delt, avhukbar handleliste —
   gjenbruker hele delings-mekanismen fra «Delt» i stedet for å bygge en ny: `sharedItems` fikk et
   uindeksert `list`-felt (`'general'` default, eldre rader uten feltet regnes fortsatt som `'general'` —

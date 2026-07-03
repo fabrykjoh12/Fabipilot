@@ -605,9 +605,13 @@ export async function seedStarterPack() {
    ========================================================= */
 const SHARED_REALM_NAME = 'Delt liste'
 
-/** Finn (eller lag) det delte realmet og returner realmId. */
+/** Finn (eller lag) det delte realmet og returner realmId.
+    `realms`-tabellen fra dexie-cloud-addon indekserer kun `@realmId` — `name`
+    er ikke en indeksert keyPath, så vi må filtrere i minnet i stedet for
+    `.where({ name })` (som kaster «KeyPath name … is not indexed»). */
 export async function ensureSharedRealm() {
-  const mine = await db.realms.where({ name: SHARED_REALM_NAME }).toArray()
+  const all = await db.realms.toArray()
+  const mine = all.filter((r) => r.name === SHARED_REALM_NAME)
   // Bruk det realmet jeg eier hvis det finnes.
   const owned = mine.find((r) => r.owner === db.cloud.currentUserId) || mine[0]
   if (owned) return owned.realmId
