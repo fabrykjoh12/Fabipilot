@@ -2540,6 +2540,32 @@ label.backup-action {
   color: var(--ink);
 }
 
+/* ---- invitasjons-banner (godta/avslå delt liste/prosjekt) ---- */
+.invite-row + .invite-row {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.invite-text {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0;
+}
+.invite-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.invite-actions .lia-submit {
+  margin-top: 0;
+  flex: 1;
+  min-height: 46px;
+}
+.invite-actions .lia-cancel {
+  margin-top: 0;
+}
+
 /* ---- mobil: stable kolonne ---- */
 @media (max-width: 720px) {
   .login-panel {

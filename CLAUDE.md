@@ -136,6 +136,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   (testet i `parse.test.js`)
 - `src/components/ErrorBoundary.jsx` — fanger renderfeil (rot + rundt aktiv modul): rolig fallback med
   Prøv igjen + Last ned backup i stedet for hvit skjerm
+- `src/components/InviteBanner.jsx` — viser ubehandlede realm-invitasjoner (`db.cloud.invites`) med
+  Godta/Avslå, uansett hvilken fane du står på. Uten dette blir et medlemskap værende «invitert» for
+  alltid — Dexie Cloud krever et eksplisitt `invite.accept()` før realmet faktisk synces til enheten
+  (påvirker «Delt», «Handleliste» og delte prosjekter likt, siden alle bruker samme medlemskapsmodell)
 - `src/components/`
   - `Capture.jsx` / `Capture.css` — universell hurtiglagring (⌘K + flytende «+»): tolker fritekst og ruter til riktig modul
   - `MorningFlow.jsx` / `MorningFlow.css` — «Start dagen»-rituale øverst på Oversikt (én gang/dag via `ritual:<dato>`)

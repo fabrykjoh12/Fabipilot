@@ -2,6 +2,19 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-03 — **Fiks: ensidig sync i delte lister (manglet invitasjons-godkjenning)**. Etter forrige
+  fiks (realm-oppslaget) kunne begge legge til, men bare den ene retningen synces: Saras varer dukket
+  opp hos brukeren, men ikke omvendt — selv med samme realm-ID og «Synket»-status på begge. Rotårsak:
+  Dexie Cloud krever et eksplisitt `invite.accept()`-kall før et medlemskap går fra «invitert» til
+  aktivt (bekreftet ved at Saras medlemskap sto som «invitert» i del-panelet) — usynkede endringer
+  pushes ut fint, men blir ikke *pushet ned* til et medlem som aldri har godtatt. Appen hadde aldri
+  bygget UI for dette (`db.cloud.invites` ble ikke brukt noe sted). Ny `InviteBanner.jsx` — abonnerer på
+  `db.cloud.invites`, viser Godta/Avslå-kort uansett hvilken fane man står på. Rammer «Delt»,
+  «Handleliste» OG delte prosjekter likt, siden alle bruker samme medlemskapsmodell. Verifisert i
+  browser med en simulert invitasjon (Godta-knappen kaller faktisk `invite.accept()`).
+- 2026-07-03 — Lagt til Realm-ID i del-panelet (`SharedListView.jsx`) som feilsøkingshjelp — første steg
+  i å spore opp den ensidige synk-bugen over.
+
 - 2026-07-03 — **Fiks: kunne ikke legge til i «Delt»/«Handleliste»** (rapportert av brukeren rett etter
   at Handleliste ble skipa — men bugen var faktisk gammel, den traff aldri før). `ensureSharedRealm()`
   gjorde `db.realms.where({ name: SHARED_REALM_NAME })`, men dexie-cloud-addons `realms`-tabell

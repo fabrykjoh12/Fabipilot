@@ -18,6 +18,7 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import NavIcon from './components/NavIcon.jsx'
 import LoginScreen, { LoginInteraction } from './components/Login.jsx'
 import BackupSheet from './components/BackupSheet.jsx'
+import InviteBanner from './components/InviteBanner.jsx'
 import { PageTransition, toast, ScreenSkeleton } from './lib/ui.jsx'
 import { syncLabel, syncLed } from './lib/sync.js'
 import {
@@ -311,6 +312,7 @@ export default function App() {
   return (
     <div className="app">
       <LoginInteraction />
+      <InviteBanner />
       <nav className="nav" ref={navRef}>
         <div className="nav-brand">
           Fabipilot
