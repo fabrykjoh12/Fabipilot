@@ -57,3 +57,4 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
   og manglende invitasjons-godkjenning (`InviteBanner.jsx`, hindret ensidig synk).
 - Delt kalender: hendelser kan merkes «Del med kjæresten», dukker opp i begges kalender.
 - Rosa aksent: valgfri personlig enhets-preferanse (bytt i «Mer»/Backup), samme forhold som blå.
+- «Fyll inn hele måneden» i Penger/Forbruk: totalsum per kategori i ett skjema, raskere enn enkelt-logging.

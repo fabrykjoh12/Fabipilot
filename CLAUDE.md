@@ -67,8 +67,12 @@ Synces via Dexie Cloud (se §3).
 - **subscriptions** (Penger) — `id, name, amount, cycle, category, renewDay, createdAt`
   `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = nøkkel i `CATEGORIES` (Money.jsx).
   `renewDay` = dag i måneden (1–31) abonnementet trekkes, eller `null` (uindeksert).
-- **expenses** (Penger/Forbruk) — `id, amount, category, note, date, createdAt`
-  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES`.
+- **expenses** (Penger/Forbruk) — `id, amount, category, note, date, bulk, createdAt`
+  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES`. `bulk` (uindeksert,
+  valgfri): `true` for rader satt via «Fyll inn hele måneden» (`setMonthlyTotal`/`getMonthlyTotals`) i
+  stedet for enkeltregistrert kjøp — raskere alternativ til å logge hvert kjøp, én rad per kategori per
+  måned. Telles likt med vanlige rader i alle summeringer (bruk av begge for samme kategori/måned
+  dobbelttéller, med vilje ikke forhindret).
 - **budgets** (Penger/Budsjett) — `id, category, amount, createdAt`
   Én rad per kategori; `amount` = månedsbudsjett. `setBudget(cat, 0)` fjerner raden.
 - **incomes** (Penger/Inntekt) — `id, name, amount, createdAt`
@@ -160,7 +164,9 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
-  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget) / Faste (abonnement)
+  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget,
+    med «Fyll inn hele måneden» — rask totalsum per kategori i stedet for å logge hvert kjøp) / Faste
+    (abonnement) / Sparing
   - `Projects.jsx` — «Prosjekter»: tynn ruter (liste ↔ arbeidsbenk). Selve komponentene bor i
     `src/components/projects/`: `shared.jsx` (konstanter/ikoner, ingen state), `ProjectsList.jsx`
     (kort-rutenett på PC), `Roadmap.jsx` (prosjektside — Claude-prompt-verksted; PC = to-spalte

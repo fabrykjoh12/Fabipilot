@@ -2,6 +2,18 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — **«Fyll inn hele måneden» i Penger** (ønske fra brukeren, inspirert av et skjermbilde av
+  en bank-app med kategorisert forbruksoversikt). Ny knapp på Forbruk-fanen åpner et skjema med ett
+  tallfelt per kategori + en live oppdatert totalsum øverst (samme visuelle idé som referansen, men
+  redigerbar siden appen ikke har ekte bankintegrasjon). Lagrer én `expenses`-rad per kategori merket
+  `bulk: true` — raskere enn å logge hvert kjøp, men samme underliggende data, så alt (Oversikt,
+  kakediagram, budsjett-vs-forbruk) fungerer uendret. Å gjenåpne skjemaet for samme måned forhåndsutfyller
+  det som allerede er lagt inn (kun bulk-rader, ikke enkeltregistrerte kjøp) og oppdaterer i stedet for å
+  duplisere. Bevisst ikke bygget noen anti-dobbelttelling-logikk hvis man bruker både dette OG vanlig
+  enkeltregistrering for samme kategori/måned — det er opp til brukeren å velge én metode per måned.
+  Verifisert i browser: full flyt (fylle inn → lagre → riktig sum i Forbruk/Oversikt/kakediagram →
+  gjenåpne → riktig forhåndsutfylt).
+
 - 2026-07-04 — Byttet rosa aksent til eksakt hot pink `#FF69B4` (brukerens ønske) i stedet for den
   selvvalgte `#ff0066`. Hvit knappetekst på denne bakgrunnen gir kun ~2.65:1 kontrast (under AA selv for
   stor tekst) — bevisst latt stå siden ~45 steder i CSS-en hardkoder hvit tekst på `--accent`-bakgrunn,

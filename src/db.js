@@ -347,7 +347,10 @@ export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 :
 
 /* =========================================================
    PENGER — forbruk (expenses) + budsjett (budgets)
-   - expenses: id, amount, category, note, date('YYYY-MM-DD'), createdAt
+   - expenses: id, amount, category, note, date('YYYY-MM-DD'), bulk, createdAt
+     `bulk` (uindeksert, valgfri): true for rader satt via «Fyll inn måned»
+     (setMonthlyTotal) i stedet for enkeltregistrert kjøp — telles likt med
+     vanlige rader i alle summeringer, bare skilt ut for gjenfinning/redigering.
    - budgets:  id, category, amount, createdAt  (én rad per kategori; månedsbeløp)
    ========================================================= */
 export async function listExpenses() {
@@ -367,6 +370,30 @@ export async function addExpense({ amount, category = 'annet', note = '', date }
 }
 export const updateExpense = (id, patch) => db.expenses.update(id, patch)
 export const deleteExpense = (id) => db.expenses.delete(id)
+
+/** Nåværende månedstotaler (kun «Fyll inn måned»-rader) for `ym` ('YYYY-MM'), per
+    kategori — brukes til å forhåndsutfylle skjemaet. */
+export async function getMonthlyTotals(ym) {
+  const rows = await db.expenses.toArray()
+  const map = {}
+  for (const r of rows) if (r.bulk && (r.date || '').startsWith(ym)) map[r.category] = r.amount
+  return map
+}
+/** Setter (eller fjerner ved 0) totalt forbruk for én kategori i én måned — raskere
+    alternativ til å logge hvert enkelt kjøp. Ment som ENTEN/ELLER med vanlig
+    enkeltregistrering for samme kategori/måned (begge telles med, så bruk av begge
+    samtidig dobbelttéller). */
+export async function setMonthlyTotal(ym, category, amount) {
+  const amt = Number(amount) || 0
+  const rows = await db.expenses.toArray()
+  const existing = rows.find((e) => e.bulk && e.category === category && (e.date || '').startsWith(ym))
+  if (amt <= 0) {
+    if (existing) await db.expenses.delete(existing.id)
+    return
+  }
+  if (existing) await db.expenses.update(existing.id, { amount: amt })
+  else await db.expenses.add({ id: uid(), amount: amt, category, note: '', date: `${ym}-01`, bulk: true, createdAt: now() })
+}
 
 export async function listBudgets() {
   return db.budgets.toArray()

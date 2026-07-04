@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import {
   listSubscriptions, addSubscription, updateSubscription, monthlyCost,
   listExpenses, addExpense, updateExpense, deleteExpense, listBudgets, setBudget, todayKey,
+  getMonthlyTotals, setMonthlyTotal,
   listIncomes, addIncome, updateIncome, deleteIncome,
   listGoals, addGoal, updateGoal, addToGoal,
   deleteWithRestore, restoreRecord,
@@ -286,6 +287,71 @@ function BudgetSheet({ initialCat, budgetByCat, onClose }) {
         <button type="button" className="msheet-save" onClick={save}>
           {Number(amount) > 0 ? 'Lagre budsjett' : 'Fjern budsjett'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+/* ============ bunn-sheet: fyll inn hele måneden (totaler per kategori) ============ */
+function MonthlyTotalsSheet({ monthPrefix, monthLabel, onClose }) {
+  useEscape(onClose)
+  const [vals, setVals] = useState({})
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    getMonthlyTotals(monthPrefix).then((totals) => {
+      if (cancelled) return
+      const init = {}
+      for (const c of CATEGORIES) init[c.k] = totals[c.k] ? String(totals[c.k]) : ''
+      setVals(init)
+      setLoaded(true)
+    })
+    return () => { cancelled = true }
+  }, [monthPrefix])
+
+  const total = Object.values(vals).reduce((s, v) => s + (Number(v) || 0), 0)
+
+  async function save() {
+    for (const c of CATEGORIES) await setMonthlyTotal(monthPrefix, c.k, vals[c.k])
+    vibrate([12, 30, 12])
+    onClose()
+  }
+
+  return (
+    <div className="msheet-overlay" onClick={onClose}>
+      <div className="msheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="msheet-grip" />
+        <h2 className="msheet-title">Fyll inn {monthLabel.toLowerCase()}</h2>
+        <p className="msheet-hint">
+          Skriv inn totalt du brukte i hver kategori denne måneden — raskere enn å logge hvert kjøp.
+        </p>
+
+        <div className="mtotal-sum">
+          <span className="mtotal-lbl">Totalt</span>
+          <span className="mtotal-amt">{kr(total)}</span>
+        </div>
+
+        {loaded && (
+          <div className="mtotal-rows">
+            {CATEGORIES.map((c) => (
+              <label key={c.k} className="mtotal-row">
+                <span className="mtotal-emoji">{c.emoji}</span>
+                <span className="mtotal-name">{c.label}</span>
+                <input
+                  className="mtotal-in"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={vals[c.k] || ''}
+                  onChange={(e) => setVals((v) => ({ ...v, [c.k]: e.target.value }))}
+                />
+              </label>
+            ))}
+          </div>
+        )}
+
+        <button type="button" className="msheet-save" onClick={save}>Lagre</button>
       </div>
     </div>
   )
@@ -738,6 +804,10 @@ export default function Money() {
               <span className="bs-sub">{monthExpenses.length} kjøp</span>
             </div>
 
+            <button type="button" className="budget-add" onClick={() => setSheet({ type: 'monthlyTotals' })}>
+              📊 Fyll inn hele måneden
+            </button>
+
             {monthExpenses.length === 0 ? (
               <div className="empty">
                 <div className="glyph">🧾</div>
@@ -861,6 +931,9 @@ export default function Money() {
 
       {sheet?.type === 'expense' && <ExpenseSheet initial={sheet.expense} onClose={() => setSheet(null)} />}
       {sheet?.type === 'budget' && <BudgetSheet initialCat={sheet.cat} budgetByCat={budgetByCat} onClose={() => setSheet(null)} />}
+      {sheet?.type === 'monthlyTotals' && (
+        <MonthlyTotalsSheet monthPrefix={monthPrefix} monthLabel={monthLabel} onClose={() => setSheet(null)} />
+      )}
       {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
     </div>
   )
