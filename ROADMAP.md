@@ -63,3 +63,5 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - Penger/Oversikt: «vs forrige måned»-endringsmerke på totalen og på hver kategori (kr + %, rødt/grønt),
   så du ser om forbruket økte eller falt fra måned til måned — i tillegg til den eksisterende 6-måneders
   trendgrafen og «Fyll inn hele måneden».
+- «Fyll inn hele måneden»-arket har nå egen månedsvelger (‹ › + måned/år), så du kan fylle inn totaler
+  for en tidligere måned uten å måtte navigere Oversikt-fanen først.

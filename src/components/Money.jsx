@@ -307,10 +307,14 @@ function BudgetSheet({ initialCat, budgetByCat, onClose }) {
 }
 
 /* ============ bunn-sheet: fyll inn hele måneden (totaler per kategori) ============ */
-function MonthlyTotalsSheet({ monthPrefix, monthLabel, onClose }) {
+function MonthlyTotalsSheet({ y, m, onClose }) {
   useEscape(onClose)
-  const [vals, setVals] = useState({})
-  const [loaded, setLoaded] = useState(false)
+  const [cursor, setCursor] = useState({ y, m })
+  const [vals, setVals] = useState(null) // null = henter tall for valgt måned
+
+  const monthPrefix = `${cursor.y}-${pad(cursor.m + 1)}`
+  const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
+  const isCurrentMonth = monthPrefix === todayKey().slice(0, 7)
 
   useEffect(() => {
     let cancelled = false
@@ -319,14 +323,21 @@ function MonthlyTotalsSheet({ monthPrefix, monthLabel, onClose }) {
       const init = {}
       for (const c of CATEGORIES) init[c.k] = totals[c.k] ? String(totals[c.k]) : ''
       setVals(init)
-      setLoaded(true)
     })
     return () => { cancelled = true }
   }, [monthPrefix])
 
-  const total = Object.values(vals).reduce((s, v) => s + (Number(v) || 0), 0)
+  function shiftMonth(d) {
+    const dt = new Date(cursor.y, cursor.m + d, 1)
+    setCursor({ y: dt.getFullYear(), m: dt.getMonth() })
+    setVals(null)
+  }
+
+  const loaded = vals !== null
+  const total = loaded ? Object.values(vals).reduce((s, v) => s + (Number(v) || 0), 0) : 0
 
   async function save() {
+    if (!vals) return
     for (const c of CATEGORIES) await setMonthlyTotal(monthPrefix, c.k, vals[c.k])
     vibrate([12, 30, 12])
     onClose()
@@ -336,9 +347,18 @@ function MonthlyTotalsSheet({ monthPrefix, monthLabel, onClose }) {
     <div className="msheet-overlay" onClick={onClose}>
       <div className="msheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="msheet-grip" />
-        <h2 className="msheet-title">Fyll inn {monthLabel.toLowerCase()}</h2>
+        <h2 className="msheet-title">Fyll inn hele måneden</h2>
+        <div className="month-nav">
+          <button type="button" className="cal-arrow" aria-label="Forrige måned" onClick={() => shiftMonth(-1)}>
+            <ChevronLeft />
+          </button>
+          <span className="month-nav-lbl">{monthLabel}</span>
+          <button type="button" className="cal-arrow" aria-label="Neste måned" disabled={isCurrentMonth} onClick={() => shiftMonth(1)}>
+            <ChevronRight />
+          </button>
+        </div>
         <p className="msheet-hint">
-          Skriv inn totalt du brukte i hver kategori denne måneden — raskere enn å logge hvert kjøp.
+          Skriv inn totalt du brukte i hver kategori — raskere enn å logge hvert kjøp.
         </p>
 
         <div className="mtotal-sum">
@@ -365,7 +385,7 @@ function MonthlyTotalsSheet({ monthPrefix, monthLabel, onClose }) {
           </div>
         )}
 
-        <button type="button" className="msheet-save" onClick={save}>Lagre</button>
+        <button type="button" className="msheet-save" disabled={!loaded} onClick={save}>Lagre</button>
       </div>
     </div>
   )
@@ -968,7 +988,7 @@ export default function Money() {
       {sheet?.type === 'expense' && <ExpenseSheet initial={sheet.expense} onClose={() => setSheet(null)} />}
       {sheet?.type === 'budget' && <BudgetSheet initialCat={sheet.cat} budgetByCat={budgetByCat} onClose={() => setSheet(null)} />}
       {sheet?.type === 'monthlyTotals' && (
-        <MonthlyTotalsSheet monthPrefix={monthPrefix} monthLabel={monthLabel} onClose={() => setSheet(null)} />
+        <MonthlyTotalsSheet y={cursor.y} m={cursor.m} onClose={() => setSheet(null)} />
       )}
       {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
     </div>

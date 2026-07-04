@@ -2,6 +2,14 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — **Månedsvelger i «Fyll inn hele måneden»** (ønske fra brukeren: kunne velge hvilken måned
+  man fyller ut for). Arket hadde tidligere kun måneden man allerede stod på i Oversikt-fanen (fra delt
+  `cursor`-state); nå har `MonthlyTotalsSheet` sin egen ‹ ›-månednavigasjon (gjenbruker `.month-nav`/
+  `.cal-arrow` fra Oversikt), initiert fra måneden man åpnet arket fra, men fritt navigerbar bakover —
+  «neste måned»-pilen er sperret ved inneværende måned som ellers i appen. Hver gang måneden byttes
+  hentes lagrede totaler for den måneden på nytt fra `getMonthlyTotals`. Fikset en relatert lint-feil
+  (setState synkront i effekt) ved å nullstille verdiene i klikk-handleren i stedet for i effekten.
+  Verifisert i browser-harness: bytte to måneder tilbake henter riktig lagret totalsum (900 kr).
 - 2026-07-04 — **«Vs forrige måned»-endring i Penger** (ønske fra brukeren: legge inn forbruk for hele
   måneder, og kunne tracke per måned slik at man ser endring i bruk). «Fyll inn hele måneden» og
   månednavigasjonen fantes allerede — det som manglet var en tydelig endrings-indikator. Lagt til en
