@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { legacyTodoToTask } from './migrations.js'
+import { legacyTodoToTask, legacyMoneyCategory } from './migrations.js'
 
 describe('legacyTodoToTask', () => {
   it('maps text to title and trims it', () => {
@@ -42,5 +42,28 @@ describe('legacyTodoToTask', () => {
     expect(out.id).toBeUndefined()
     expect(out.sortOrder).toBeUndefined()
     expect(out.createdAt).toBeUndefined()
+  })
+})
+
+describe('legacyMoneyCategory', () => {
+  it('maps known legacy category keys to their new bank-matched category', () => {
+    expect(legacyMoneyCategory('mat')).toBe('dagligvarer')
+    expect(legacyMoneyCategory('transport')).toBe('kjoretoy')
+    expect(legacyMoneyCategory('bolig')).toBe('hjem')
+    expect(legacyMoneyCategory('moro')).toBe('fritid')
+    expect(legacyMoneyCategory('strømming')).toBe('fritid')
+    expect(legacyMoneyCategory('musikk')).toBe('fritid')
+  })
+  it('maps miscellaneous legacy keys to the catch-all øvrig bucket', () => {
+    expect(legacyMoneyCategory('klar')).toBe('ovrig')
+    expect(legacyMoneyCategory('software')).toBe('ovrig')
+    expect(legacyMoneyCategory('annet')).toBe('ovrig')
+  })
+  it('leaves helse unchanged (same meaning in the new taxonomy)', () => {
+    expect(legacyMoneyCategory('helse')).toBe('helse')
+  })
+  it('passes already-migrated or unknown keys through unchanged', () => {
+    expect(legacyMoneyCategory('dagligvarer')).toBe('dagligvarer')
+    expect(legacyMoneyCategory('some-future-key')).toBe('some-future-key')
   })
 })

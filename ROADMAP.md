@@ -65,3 +65,6 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
   trendgrafen og «Fyll inn hele måneden».
 - «Fyll inn hele måneden»-arket har nå egen månedsvelger (‹ › + måned/år), så du kan fylle inn totaler
   for en tidligere måned uten å måtte navigere Oversikt-fanen først.
+- Penger-kategoriene erstattet med brukerens faktiske bank-kategorier (Dagligvarer, Restaurant og
+  uteliv, Kjøretøy, Fritid, Helse og velvære, Hjem og hage, Øvrig forbruk) — v11-migrering remapper
+  gamle nøkler på eksisterende forbruk/budsjett/abonnement.

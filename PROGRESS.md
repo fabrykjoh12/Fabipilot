@@ -2,6 +2,19 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — **Penger-kategoriene matcher nå bank-appen** (brukeren la ved 5 skjermbilder av sin
+  bank-app sin «Daglige utgifter»-oversikt og ba om å bruke akkurat de kategoriene). Byttet ut den gamle,
+  frie 10-kategorien-listen (Mat/Transport/Bolig/Helse/Klær/Moro/Strømming/Musikk/Software/Annet) med de
+  7 kategoriene fra banken: Dagligvarer, Restaurant og uteliv, Kjøretøy, Fritid, Helse og velvære, Hjem og
+  hage, Øvrig forbruk (sist = felles utfallskurv, som gammel «Annet»). Siden dette er en ekte, allerede
+  synkende produksjonsdatabase, skrev jeg en ordentlig v11 Dexie-migrering (`db.js`) + en ren, testet
+  mappingfunksjon `legacyMoneyCategory` (`src/lib/migrations.js`, 5 nye tester) som remapper eksisterende
+  `expenses`/`budgets`/`subscriptions`-rader til nærmeste nye kategori (mat→dagligvarer, transport→
+  kjøretøy, bolig→hjem, moro/strømming/musikk→fritid, resten→øvrig; helse er uendret siden betydningen er
+  lik). Samme mapping kjøres på eldre JSON-backup-import (`importAll`) slik at gjenoppretting av en gammel
+  backup-fil også havner i riktig ny kategori. Verifisert i browser-harness at alle 7 kategoriene rendrer
+  riktig i kategori-plukkeren (inkl. den lengre «Restaurant og uteliv»-labelen) og at ikke-migrerte/ukjente
+  nøkler faller trygt tilbake til «Øvrig forbruk» i stedet for å krasje.
 - 2026-07-04 — **Månedsvelger i «Fyll inn hele måneden»** (ønske fra brukeren: kunne velge hvilken måned
   man fyller ut for). Arket hadde tidligere kun måneden man allerede stod på i Oversikt-fanen (fra delt
   `cursor`-state); nå har `MonthlyTotalsSheet` sin egen ‹ ›-månednavigasjon (gjenbruker `.month-nav`/

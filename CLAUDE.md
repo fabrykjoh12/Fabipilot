@@ -53,7 +53,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **10**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **11**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -65,16 +65,21 @@ Synces via Dexie Cloud (se §3).
 - **habits** (Vaner) — `id, name, history[], sortOrder, createdAt`
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
 - **subscriptions** (Penger) — `id, name, amount, cycle, category, renewDay, createdAt`
-  `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = nøkkel i `CATEGORIES` (Money.jsx).
+  `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = nøkkel i `CATEGORIES`
+  (Money.jsx): `dagligvarer | restaurant | kjoretoy | fritid | helse | hjem | ovrig` — matcher
+  kategoriene i brukerens bank-app 1:1 («Daglige utgifter»), `ovrig` sist = felles utfallskurv/fallback.
   `renewDay` = dag i måneden (1–31) abonnementet trekkes, eller `null` (uindeksert).
 - **expenses** (Penger/Forbruk) — `id, amount, category, note, date, bulk, createdAt`
-  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES`. `bulk` (uindeksert,
-  valgfri): `true` for rader satt via «Fyll inn hele måneden» (`setMonthlyTotal`/`getMonthlyTotals`) i
-  stedet for enkeltregistrert kjøp — raskere alternativ til å logge hvert kjøp, én rad per kategori per
-  måned. Telles likt med vanlige rader i alle summeringer (bruk av begge for samme kategori/måned
-  dobbelttéller, med vilje ikke forhindret).
+  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES` (se subscriptions over).
+  `bulk` (uindeksert, valgfri): `true` for rader satt via «Fyll inn hele måneden» (`setMonthlyTotal`/
+  `getMonthlyTotals`) i stedet for enkeltregistrert kjøp — raskere alternativ til å logge hvert kjøp, én
+  rad per kategori per måned. Telles likt med vanlige rader i alle summeringer (bruk av begge for samme
+  kategori/måned dobbelttéller, med vilje ikke forhindret). v11 remappet gamle kategori-nøkler
+  (mat/transport/bolig/klær/moro/strømming/musikk/software/annet) til de nye via `legacyMoneyCategory`
+  (`src/lib/migrations.js`) — samme mønster brukes i `importAll` for eldre JSON-backuper.
 - **budgets** (Penger/Budsjett) — `id, category, amount, createdAt`
-  Én rad per kategori; `amount` = månedsbudsjett. `setBudget(cat, 0)` fjerner raden.
+  Én rad per kategori (samme `CATEGORIES`-nøkler som over); `amount` = månedsbudsjett. `setBudget(cat, 0)`
+  fjerner raden.
 - **incomes** (Penger/Inntekt) — `id, name, amount, createdAt`
   Månedlig inntektskilde. Sum = «igjen å bruke» på Oversikt-fanen.
 - **goals** (Penger/Sparing) — `id, name, target, saved, createdAt`
@@ -132,7 +137,8 @@ Alle stores er med i JSON-eksport/import (se §8).
   (re-eksporterer `todayKey`/`tomorrowKey`/`nextDate` fra `lib/dates.js` så kall-steder er uendret)
 - `src/lib/dates.js` — rene datohjelpere: `todayKey`, `tomorrowKey`, `nextDate` (testet i `dates.test.js`)
 - `src/lib/migrations.js` — rene migrerings-mappinger: `legacyTodoToTask` (delt av v10-migreringen og
-  `importAll`s eldre-backup-gren; testet i `migrations.test.js`)
+  `importAll`s eldre-backup-gren) og `legacyMoneyCategory` (delt av v11-migreringen og `importAll` for
+  gamle Penger-kategori-nøkler); begge testet i `migrations.test.js`
 - `src/lib/prompts.js` — Claude-prompt-bygging: `projectContext`, `buildPrompt`, `buildAllPrompts`, `hasContext`
   (brukt av Prosjekter; testet i `prompts.test.js`)
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`

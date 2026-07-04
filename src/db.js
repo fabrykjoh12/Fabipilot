@@ -1,7 +1,7 @@
 import Dexie from 'dexie'
 import dexieCloud from 'dexie-cloud-addon'
 import { todayKey, tomorrowKey, nextDate } from './lib/dates.js'
-import { legacyTodoToTask } from './lib/migrations.js'
+import { legacyTodoToTask, legacyMoneyCategory } from './lib/migrations.js'
 
 export { todayKey, tomorrowKey, nextDate }
 
@@ -163,6 +163,37 @@ db.version(10)
     }))
     await tx.table('tasks').bulkPut(rows)
     await tx.table('todos').clear()
+  })
+
+// v11: Penger-kategoriene erstattet med brukerens faktiske bank-kategorier
+// (Dagligvarer/Restaurant og uteliv/Kjøretøy/Fritid/Helse og velvære/Hjem og hage/Øvrig
+// forbruk). Remapper gamle kategori-nøkler på expenses/budgets/subscriptions (se
+// legacyMoneyCategory) — ingen schema-endring, bare datavask.
+db.version(11)
+  .stores({
+    ideas: 'id, category, createdAt',
+    tasks: 'id, isDone, isFocus, dueDate, sortOrder, createdAt',
+    habits: 'id, sortOrder, createdAt',
+    subscriptions: 'id, createdAt',
+    projects: 'id, status, sortOrder, lastTouched, createdAt',
+    projectItems: 'id, projectId, stage, sortOrder, createdAt',
+    events: 'id, date, createdAt',
+    todos: 'id, isDone, sortOrder, createdAt',
+    expenses: 'id, date, category, createdAt',
+    budgets: 'id, category, createdAt',
+    incomes: 'id, createdAt',
+    goals: 'id, createdAt',
+    sharedItems: 'id, realmId, isDone, sortOrder, createdAt',
+  })
+  .upgrade(async (tx) => {
+    for (const name of ['expenses', 'budgets', 'subscriptions']) {
+      await tx
+        .table(name)
+        .toCollection()
+        .modify((row) => {
+          if (row.category) row.category = legacyMoneyCategory(row.category)
+        })
+    }
   })
 
 db.cloud.configure({
@@ -356,7 +387,7 @@ export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 :
 export async function listExpenses() {
   return db.expenses.orderBy('date').reverse().toArray()
 }
-export async function addExpense({ amount, category = 'annet', note = '', date }) {
+export async function addExpense({ amount, category = 'ovrig', note = '', date }) {
   const e = {
     id: uid(),
     amount: Number(amount) || 0,
@@ -782,6 +813,11 @@ export async function importAll(data) {
     const toAdd = incoming
       .filter((row) => row && typeof row === 'object')
       .map((row) => ({ ...row, id: typeof row.id === 'string' && row.id ? row.id : uid() }))
+      .map((row) => (
+        ['expenses', 'budgets', 'subscriptions'].includes(t) && row.category
+          ? { ...row, category: legacyMoneyCategory(row.category) }
+          : row
+      ))
       .filter((row) => !existing.has(row.id))
     if (toAdd.length) await db.table(t).bulkAdd(toAdd)
     added[t] = toAdd.length

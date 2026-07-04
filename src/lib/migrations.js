@@ -15,3 +15,21 @@ export function legacyTodoToTask(t) {
     subtasks: Array.isArray(t.subtasks) ? t.subtasks : [],
   }
 }
+
+/** v11: Penger-kategoriene ble erstattet med kategoriene fra brukerens bank-app
+ *  (Dagligvarer, Restaurant og uteliv, Kjøretøy, Fritid, Helse og velvære, Hjem og hage,
+ *  Øvrig forbruk). Mapper gamle kategori-nøkler (expenses/budgets/subscriptions) til nye
+ *  der det finnes et rimelig treff; ukjente/uspesifikke gamle nøkler (klær, strømming,
+ *  musikk, software, annet) havner i «øvrig». `helse` er uendret (samme betydning). */
+export const MONEY_CATEGORY_MIGRATION = {
+  mat: 'dagligvarer',
+  transport: 'kjoretoy',
+  bolig: 'hjem',
+  klar: 'ovrig',
+  moro: 'fritid',
+  strømming: 'fritid',
+  musikk: 'fritid',
+  software: 'ovrig',
+  annet: 'ovrig',
+}
+export const legacyMoneyCategory = (cat) => MONEY_CATEGORY_MIGRATION[cat] || cat

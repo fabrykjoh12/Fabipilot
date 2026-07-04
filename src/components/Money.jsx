@@ -16,20 +16,19 @@ import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
 import './Money.css'
 
+/* Matcher kategoriene i brukerens bank-app («Daglige utgifter») 1:1, så Penger-oversikten
+   kan sammenlignes direkte med den. «Øvrig forbruk» sist = felles utfallskurv. */
 const CATEGORIES = [
-  { k: 'mat', label: 'Mat', emoji: '🍔', color: SWATCH.amber },
-  { k: 'transport', label: 'Transport', emoji: '🚗', color: SWATCH.blue },
-  { k: 'bolig', label: 'Bolig', emoji: '🏠', color: SWATCH.forest },
-  { k: 'helse', label: 'Helse', emoji: '💊', color: SWATCH.rose },
-  { k: 'klar', label: 'Klær', emoji: '👕', color: SWATCH.plum },
-  { k: 'moro', label: 'Moro', emoji: '🎉', color: SWATCH.coral },
-  { k: 'strømming', label: 'Strømming', emoji: '📺', color: SWATCH.teal },
-  { k: 'musikk', label: 'Musikk', emoji: '🎵', color: SWATCH.moss },
-  { k: 'software', label: 'Software', emoji: '💻', color: SWATCH.violet },
-  { k: 'annet', label: 'Annet', emoji: '📦', color: SWATCH.slate },
+  { k: 'dagligvarer', label: 'Dagligvarer', emoji: '🛒', color: SWATCH.amber },
+  { k: 'restaurant', label: 'Restaurant og uteliv', emoji: '🍽️', color: SWATCH.coral },
+  { k: 'kjoretoy', label: 'Kjøretøy', emoji: '🚗', color: SWATCH.blue },
+  { k: 'fritid', label: 'Fritid', emoji: '🎮', color: SWATCH.teal },
+  { k: 'helse', label: 'Helse og velvære', emoji: '❤️', color: SWATCH.rose },
+  { k: 'hjem', label: 'Hjem og hage', emoji: '🌱', color: SWATCH.forest },
+  { k: 'ovrig', label: 'Øvrig forbruk', emoji: '📦', color: SWATCH.slate },
 ]
 const catMeta = (k) => CATEGORIES.find((c) => c.k === k) || CATEGORIES[CATEGORIES.length - 1]
-const catKey = (k) => (CATEGORIES.some((c) => c.k === k) ? k : 'annet')
+const catKey = (k) => (CATEGORIES.some((c) => c.k === k) ? k : 'ovrig')
 
 const MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember']
 const pad = (n) => String(n).padStart(2, '0')
@@ -172,7 +171,7 @@ function ExpenseSheet({ initial, onClose }) {
   useEscape(onClose)
   const editing = !!initial
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
-  const [category, setCategory] = useState(initial?.category || 'mat')
+  const [category, setCategory] = useState(initial?.category || 'dagligvarer')
   const [note, setNote] = useState(initial?.note || '')
   const [date, setDate] = useState(initial?.date || todayKey())
   const saveRef = useRef(null)
@@ -251,7 +250,7 @@ function ExpenseSheet({ initial, onClose }) {
 /* ============ bunn-sheet: sett budsjett ============ */
 function BudgetSheet({ initialCat, budgetByCat, onClose }) {
   useEscape(onClose)
-  const [category, setCategory] = useState(initialCat || 'mat')
+  const [category, setCategory] = useState(initialCat || 'dagligvarer')
   const [amount, setAmount] = useState(initialCat && budgetByCat[initialCat] ? String(budgetByCat[initialCat]) : '')
 
   function pick(k) {
@@ -394,7 +393,7 @@ function MonthlyTotalsSheet({ y, m, onClose }) {
 /* ============ abonnementskort (Faste) ============ */
 function SubCard({ sub, onAsk }) {
   const perMonth = monthlyCost(sub)
-  const cat = catMeta(catKey(sub.category || 'annet'))
+  const cat = catMeta(catKey(sub.category || 'ovrig'))
   const [editingName, setEditingName] = useState(false)
   const [nameVal, setNameVal] = useState('')
   const inputRef = useRef(null)
@@ -411,7 +410,7 @@ function SubCard({ sub, onAsk }) {
   }
   function nextCat() {
     const keys = CATEGORIES.map((c) => c.k)
-    const i = keys.indexOf(catKey(sub.category || 'annet'))
+    const i = keys.indexOf(catKey(sub.category || 'ovrig'))
     updateSubscription(sub.id, { category: keys[(i + 1) % keys.length] })
   }
   function setDay() {
@@ -588,14 +587,14 @@ export default function Money() {
   const spentByCat = {}
   for (const e of monthExpenses) spentByCat[e.category] = (spentByCat[e.category] || 0) + (e.amount || 0)
   for (const s of subs) {
-    const k = catKey(s.category || 'annet')
+    const k = catKey(s.category || 'ovrig')
     spentByCat[k] = (spentByCat[k] || 0) + monthlyCost(s)
   }
 
   const prevSpentByCat = {}
   for (const e of prevMonthExpenses) prevSpentByCat[e.category] = (prevSpentByCat[e.category] || 0) + (e.amount || 0)
   for (const s of subs) {
-    const k = catKey(s.category || 'annet')
+    const k = catKey(s.category || 'ovrig')
     prevSpentByCat[k] = (prevSpentByCat[k] || 0) + monthlyCost(s)
   }
 
