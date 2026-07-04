@@ -2,6 +2,14 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — **Rosa aksent** (ønske fra brukeren, til Sara). Ny personlig enhets-preferanse — «Mer»-
+  menyen og Backup-panelet fikk en «Rosa aksent»-bryter ved siden av lys/mørk-bryteren, lagret i
+  `localStorage` (`accent`, satt via `document.documentElement.dataset.accent`) akkurat som `theme`.
+  Rosa er dreid til samme H/S/L-forhold som den blå aksenten (kun fargetonen endrer seg), og påvirker
+  bare `--accent`-familien + `--surface-focus` i AppShell.css — kategori-swatchene (`SWATCH`) og
+  innloggingsskjermens (hardkodede) blå hero-gradient er upåvirket. Verifisert i browser i lys+mørk
+  modus.
+
 - 2026-07-03 — **Delt kalender** (ønske fra brukeren). Hendelser kan nå merkes «Del med kjæresten» i
   hendelse-arket — gjenbruker samme delte Dexie Cloud-realm som «Delt»/«Handleliste» (ingen ny
   invitasjon nødvendig, alt deles allerede med samme person). `events` fikk et uindeksert `realmId`-felt

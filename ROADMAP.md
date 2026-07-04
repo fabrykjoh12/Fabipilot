@@ -56,3 +56,4 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - Fiks: reelle sync-bugs i delte lister — ugyldig indeksert realm-oppslag (hindret all legg-til/inviter),
   og manglende invitasjons-godkjenning (`InviteBanner.jsx`, hindret ensidig synk).
 - Delt kalender: hendelser kan merkes «Del med kjæresten», dukker opp i begges kalender.
+- Rosa aksent: valgfri personlig enhets-preferanse (bytt i «Mer»/Backup), samme forhold som blå.

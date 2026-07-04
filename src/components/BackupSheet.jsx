@@ -7,6 +7,8 @@ import { triggersSupported } from '../lib/notify.js'
 export default function BackupSheet({
   theme,
   onToggleTheme,
+  accent,
+  onToggleAccent,
   reminder,
   onToggleReminder,
   onChangeReminderTime,
@@ -31,6 +33,11 @@ export default function BackupSheet({
         <button type="button" className="theme-toggle" onClick={onToggleTheme}>
           <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
           {theme === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus'}
+        </button>
+
+        <button type="button" className="theme-toggle" onClick={onToggleAccent}>
+          <span>{accent === 'pink' ? '💙' : '💗'}</span>
+          {accent === 'pink' ? 'Bytt til blå aksent' : 'Bytt til rosa aksent'}
         </button>
 
         <div className="rem-box">

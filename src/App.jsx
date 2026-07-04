@@ -70,6 +70,7 @@ export default function App() {
     if (saved) return saved
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
+  const [accent, setAccent] = useState(() => localStorage.getItem('accent') || 'blue')
   const currentUser = useObservable(db.cloud.currentUser)
   const syncState = useObservable(db.cloud.syncState)
   const isLoggedIn = !!currentUser?.isLoggedIn
@@ -230,6 +231,11 @@ export default function App() {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.dataset.accent = accent
+    localStorage.setItem('accent', accent)
+  }, [accent])
 
   const ActiveComp = MODULES.find((m) => m.k === active).Comp
 
@@ -448,6 +454,14 @@ export default function App() {
                 <span className="more-theme-glyph">{theme === 'dark' ? '☀️' : '🌙'}</span>
                 <span>{theme === 'dark' ? 'Lys modus' : 'Mørk modus'}</span>
               </button>
+              <button
+                type="button"
+                className="more-item"
+                onClick={() => setAccent((a) => (a === 'pink' ? 'blue' : 'pink'))}
+              >
+                <span className="more-theme-glyph">{accent === 'pink' ? '💙' : '💗'}</span>
+                <span>{accent === 'pink' ? 'Blå aksent' : 'Rosa aksent'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -457,6 +471,8 @@ export default function App() {
         <BackupSheet
           theme={theme}
           onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+          accent={accent}
+          onToggleAccent={() => setAccent((a) => (a === 'pink' ? 'blue' : 'pink'))}
           reminder={reminder}
           onToggleReminder={toggleReminder}
           onChangeReminderTime={changeReminderTime}

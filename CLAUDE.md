@@ -30,10 +30,13 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Lys palett: lerret `#ffffff`, kort `#ffffff`/dempet flate `#f6f7f9`, blekk `#1a1c22`, dempet `#8b909c`,
   linje `#ecedf1` / sterk linje `#dfe1e7`. Mørk modus = grafitt (`--canvas:#0f1116` osv.). Alle verdier er
   CSS-tokens i `:root` — bruk `var(--…)`, aldri hardkodede hex i komponenter.
-- Aksent = blå `#2f6dff` (fokus, primær-CTA, valgt, lenker, interaktivt). Semantisk grønn `#16a37b`
+- Aksent = blå `#2f6dff` som standard, med rosa som valgfri personlig enhets-preferanse (`[data-accent='pink']`
+  i AppShell.css, samme H/S/L-forhold som blå bare dreid til rosa — kun `--accent`-familien + `--surface-focus`
+  påvirkes). Lagres i `localStorage` og settes via `document.documentElement.dataset.accent`, akkurat som
+  `theme`. Byttes i «Mer»-menyen eller Backup-panelet (App.jsx/BackupSheet.jsx). Semantisk grønn `#16a37b`
   (`--forest`) kun for positiv status (aktivt prosjekt, vane gjort). Kategori-farger (prosjekt/hendelse/
   penger/vaner) er egne valgbare swatcher fra `SWATCH` (`src/lib/palette.js`) — en muset pastell-familie
-  avledet fra aksenten (samme metning/lyshet, ulik fargetone), ikke direkte bundet til aksentfargen.
+  avledet fra den BLÅ aksenten uansett, ikke direkte bundet til aksent-valget (uendret av rosa-bryteren).
 - Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver); luftige hvite
   kort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
 - Fonter: Plus Jakarta Sans (variabel) for både display og brødtekst, via tokens `--font-display`/`--font-body`.
