@@ -2,6 +2,14 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — **«Pågående nå» på prosjekt-listen** (ønske fra brukeren: «gjør sånt at projekter siden har
+  en in progress side hvor jeg kan dra tingene som er in progress inn»). Klargjorde først at det fantes en
+  eksisterende «Pågående»-lane INNI ett prosjekt (`WipLane.jsx`) — brukeren ville i stedet ha en samlet
+  oversikt på selve prosjekt-LISTEN, på tvers av alle prosjekter. Ny seksjon øverst på `ProjectsList.jsx`
+  viser alle steg merket `wip: true` fra alle prosjekter samtidig; hvert prosjektkorts «neste steg»-chip er
+  nå drag-and-drop-bart inn i denne sonen for å sette `wip: true` uten å åpne prosjektet (gjenbruker samme
+  `wip`-felt og markerings-logikk som den eksisterende per-prosjekt-laneN). Verifisert med Playwright-harness:
+  dra-og-slipp fungerer, kortet dukker opp i «Pågående nå» umiddelbart, ingen konsollfeil.
 - 2026-07-04 — **«Fyll inn hele måneden» i Penger** (ønske fra brukeren, inspirert av et skjermbilde av
   en bank-app med kategorisert forbruksoversikt). Ny knapp på Forbruk-fanen åpner et skjema med ett
   tallfelt per kategori + en live oppdatert totalsum øverst (samme visuelle idé som referansen, men

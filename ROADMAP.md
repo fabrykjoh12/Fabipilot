@@ -58,3 +58,5 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - Delt kalender: hendelser kan merkes «Del med kjæresten», dukker opp i begges kalender.
 - Rosa aksent: valgfri personlig enhets-preferanse (bytt i «Mer»/Backup), samme forhold som blå.
 - «Fyll inn hele måneden» i Penger/Forbruk: totalsum per kategori i ett skjema, raskere enn enkelt-logging.
+- «Pågående nå» på prosjekt-LISTEN: samlet oversikt på tvers av alle prosjekter, dra et «neste steg»-chip
+  fra et prosjektkort dit for å markere det som pågående uten å måtte åpne prosjektet.

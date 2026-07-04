@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, listProjects, addProject, moveProject } from '../../db.js'
+import { db, listProjects, addProject, moveProject, updateProjectItem } from '../../db.js'
 import { vibrate } from '../../lib/fx.js'
 import { STATUS_LABEL, colorVal } from './shared.jsx'
 import './list.css'
@@ -15,6 +15,7 @@ export default function ProjectsList({ onOpen }) {
   )
   const allItems = useLiveQuery(() => db.projectItems.toArray(), [], [])
   const [val, setVal] = useState('')
+  const [wipDragOver, setWipDragOver] = useState(false)
 
   const nextByProject = {}
   for (const it of nowItems) if (!nextByProject[it.projectId]) nextByProject[it.projectId] = it
@@ -26,6 +27,11 @@ export default function ProjectsList({ onOpen }) {
     if (it.stage === 'done') s.done++
   }
 
+  const projectById = {}
+  for (const p of projects) projectById[p.id] = p
+
+  const wipItems = allItems.filter((i) => i.wip && i.stage !== 'done')
+
   const active = projects.filter((p) => p.status === 'active')
   const onice = projects.filter((p) => p.status === 'onice')
   const done = projects.filter((p) => p.status === 'done')
@@ -36,6 +42,14 @@ export default function ProjectsList({ onOpen }) {
     await addProject({ name: v, status: 'active' })
     setVal('')
     vibrate(8)
+  }
+
+  async function markWip(itemId) {
+    const it = allItems.find((i) => i.id === itemId)
+    if (it && !it.wip) {
+      await updateProjectItem(it, { wip: true })
+      vibrate(10)
+    }
   }
 
   function Card({ p, idx, total }) {
@@ -73,7 +87,16 @@ export default function ProjectsList({ onOpen }) {
               <span className="plist-pct">{stat.done}/{stat.total}</span>
             </div>
           )}
-          <div className="plist-next">
+          <div
+            className={'plist-next' + (next ? ' draggable' : '')}
+            draggable={!!next}
+            onDragStart={(e) => {
+              if (!next) return
+              e.stopPropagation()
+              e.dataTransfer.setData('text/plain', next.id)
+              e.dataTransfer.effectAllowed = 'move'
+            }}
+          >
             {next ? (
               <>
                 <span className="plist-dot" style={{ background: col }} />
@@ -96,6 +119,51 @@ export default function ProjectsList({ onOpen }) {
           {active.length} {active.length === 1 ? 'aktivt' : 'aktive'}
           {onice.length ? ` · ${onice.length} på is` : ''}
         </p>
+
+        {projects.length > 0 && (
+          <div
+            className={'plist-wip' + (wipDragOver ? ' drag-over' : '') + (wipItems.length ? '' : ' empty')}
+            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
+            onDragEnter={() => setWipDragOver(true)}
+            onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setWipDragOver(false) }}
+            onDrop={(e) => {
+              e.preventDefault()
+              setWipDragOver(false)
+              const id = e.dataTransfer.getData('text/plain')
+              if (id) markWip(id)
+            }}
+          >
+            <div className="plist-wip-head">
+              <span className="plist-wip-dot" />
+              <span className="nm">Pågående nå</span>
+              <span className="ct">{wipItems.length}</span>
+              <span className="note">på tvers av alle prosjekter</span>
+            </div>
+            {wipItems.length === 0 ? (
+              <p className="plist-wip-empty">Dra et «neste steg» hit fra et prosjekt for å markere det som pågående.</p>
+            ) : (
+              <div className="plist-wip-cards">
+                {wipItems.map((i) => {
+                  const p = projectById[i.projectId]
+                  if (!p) return null
+                  const col = colorVal(p.color)
+                  return (
+                    <button
+                      key={i.id}
+                      type="button"
+                      className="plist-wip-card"
+                      style={{ '--pc': col }}
+                      onClick={() => onOpen(p.id)}
+                    >
+                      <span className="plist-wip-proj">{p.emoji || '🗂️'} {p.name}</span>
+                      <span className="plist-wip-txt">{i.text}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {projects.length === 0 && (
           <div className="empty">

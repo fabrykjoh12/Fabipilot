@@ -89,7 +89,7 @@ Synces via Dexie Cloud (se §3).
 - **projectItems** — `id, projectId, text, stage, energy, sortOrder, createdAt`
   `stage` = `'now' | 'next' | 'later' | 'done'` (prioritet Høy/Medium/Lav på PC-tavla). `energy` = `'lav' | 'hoy' | null`.
   `aiStatus` = `'idea' | 'asked' | 'built' | 'verified'` (Claude-loop, uindeksert; default `'idea'`), `subtasks[]`.
-  `wip` = `true` når steget er «pågående» (vises i egen full-bredde-lane øverst på tavla, ut av prioritetskolonnen; uindeksert).
+  `wip` = `true` når steget er «pågående» (vises i egen full-bredde-lane øverst på tavla, ut av prioritetskolonnen, OG i en samlet «Pågående nå»-seksjon på tvers av alle prosjekter øverst på prosjekt-LISTEN; uindeksert).
   `result` = fritekst/lenke med hva Claude svarte (uindeksert; redigeres i utvidet kort + kø-modus, søkbar via ⌘K).
   `doneAt` = ms-tidsstempel når steget ble fullført (settes av `setItemStage`/`moveItemToStage`; brukes av «Denne uka»).
   «Neste steg» = første item med `stage='now'` (etter `sortOrder`). Ingen egen flagg-kolonne.
@@ -169,10 +169,11 @@ Alle stores er med i JSON-eksport/import (se §8).
     (abonnement) / Sparing
   - `Projects.jsx` — «Prosjekter»: tynn ruter (liste ↔ arbeidsbenk). Selve komponentene bor i
     `src/components/projects/`: `shared.jsx` (konstanter/ikoner, ingen state), `ProjectsList.jsx`
-    (kort-rutenett på PC), `Roadmap.jsx` (prosjektside — Claude-prompt-verksted; PC = to-spalte
+    (kort-rutenett på PC + samlet «Pågående nå»-seksjon øverst på tvers av alle prosjekter — dra et
+    prosjekts «neste steg»-chip dit for å markere det som pågående uten å åpne prosjektet), `Roadmap.jsx` (prosjektside — Claude-prompt-verksted; PC = to-spalte
     arbeidsbenk: info-skinne (hvorfor, lenker, Claude-kontekst, fremdrift, statistikk) + kanban-tavle
     Høy/Medium/Lav), `SpineCard.jsx` (ett steg — energi, delpunkter, resultat, AI-status-pille,
-    dra-håndtak), `WipLane.jsx` («Pågående»-lane øverst), `StageBlock.jsx` (én prioritetskolonne),
+    dra-håndtak), `WipLane.jsx` («Pågående»-lane øverst på ett enkelt prosjekt), `StageBlock.jsx` (én prioritetskolonne),
     `StepSheet.jsx` (handlings-ark for ett steg), `PromptQueue.jsx` («Kjør prompts»-kø: én prompt om
     gangen → kopier/åpne Claude → neste, med «Lim inn resultat»), `PromptComposer.jsx` (mal-basert
     prompt-bygger), `ShareSheet.jsx` (del prosjekt via e-post). CSS delt tilsvarende i samme mappe
