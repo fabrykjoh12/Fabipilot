@@ -2,6 +2,10 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — Byttet rosa aksent til eksakt hot pink `#FF69B4` (brukerens ønske) i stedet for den
+  selvvalgte `#ff0066`. Hvit knappetekst på denne bakgrunnen gir kun ~2.65:1 kontrast (under AA selv for
+  stor tekst) — bevisst latt stå siden ~45 steder i CSS-en hardkoder hvit tekst på `--accent`-bakgrunn,
+  og en egen «tekst-på-aksent»-farge er en større omlegging enn det som ble spurt om. Notert i CSS-en.
 - 2026-07-04 — **Rosa aksent** (ønske fra brukeren, til Sara). Ny personlig enhets-preferanse — «Mer»-
   menyen og Backup-panelet fikk en «Rosa aksent»-bryter ved siden av lys/mørk-bryteren, lagret i
   `localStorage` (`accent`, satt via `document.documentElement.dataset.accent`) akkurat som `theme`.

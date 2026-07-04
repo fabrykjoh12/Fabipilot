@@ -108,25 +108,27 @@
 [data-theme='dark'] .search-meta mark { color: #171c15; }
 
 /* ===== Rosa aksent (valgfri, personlig enhets-preferanse — «Mer» / Backup-panelet) =====
-   Samme H/S/L-forhold som den blå aksenten, bare dreid til rosa fargetone. Påvirker kun
-   --accent-familien — kategori-swatchene (SWATCH) er uendret. */
+   Hot pink (#FF69B4) etter ønske. NB: hvit knappetekst på denne bakgrunnen gir kun ~2.65:1
+   kontrast (under AA selv for stor tekst) — urørt likevel siden appen bruker hvit tekst på
+   --accent-bakgrunn ~45 steder; en egen «tekst-på-aksent»-farge er ikke innført for dette.
+   Påvirker kun --accent-familien + --surface-focus — kategori-swatchene (SWATCH) er uendret. */
 [data-accent='pink'] {
-  --accent: #ff0066;
-  --accent-bright: #ff297e;
-  --accent-deep: #bd0f55;
-  --accent-soft: #ffebf3;
-  --accent-ring: rgba(255, 0, 102, 0.22);
-  --surface-focus: #fff0f6;
-  --sh-accent: 0 6px 18px rgba(255, 0, 102, 0.26);
-  --sh-accent-lg: 0 10px 26px rgba(255, 0, 102, 0.32);
+  --accent: #ff69b4;
+  --accent-bright: #ff94c9;
+  --accent-deep: #f23694;
+  --accent-soft: #ffebf5;
+  --accent-ring: rgba(255, 105, 180, 0.22);
+  --surface-focus: #fff0f7;
+  --sh-accent: 0 6px 18px rgba(255, 105, 180, 0.26);
+  --sh-accent-lg: 0 10px 26px rgba(255, 105, 180, 0.32);
 }
 [data-theme='dark'][data-accent='pink'] {
-  --accent: #ff5297;
-  --accent-bright: #ff75ac;
-  --accent-deep: #f42f7e;
-  --accent-soft: rgba(255, 82, 151, 0.16);
-  --accent-ring: rgba(255, 82, 151, 0.3);
-  --surface-focus: #3c1525;
+  --accent: #ff69b4;
+  --accent-bright: #ffb3d9;
+  --accent-deep: #f651a3;
+  --accent-soft: rgba(255, 105, 180, 0.16);
+  --accent-ring: rgba(255, 105, 180, 0.3);
+  --surface-focus: #3c1529;
 }
 
 * {
