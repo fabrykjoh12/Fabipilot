@@ -40,6 +40,20 @@ function barColor(ratio) {
   return 'var(--forest)'
 }
 
+/** Endring vs forrige måned — mer bruk = rødt, mindre = grønt. */
+function ChangeBadge({ cur, prev }) {
+  if (cur === 0 && prev === 0) return null
+  const diff = cur - prev
+  if (Math.abs(diff) < 1) return <span className="delta flat">uendret</span>
+  const up = diff > 0
+  const pct = prev > 0 ? Math.round((Math.abs(diff) / prev) * 100) : null
+  return (
+    <span className={'delta ' + (up ? 'up' : 'down')}>
+      {up ? '↑' : '↓'} {kr(Math.abs(diff))}{pct !== null ? ` · ${pct}%` : ''}
+    </span>
+  )
+}
+
 /** Dager til neste trekk på en gitt dag i måneden (1–31). */
 function daysUntilDay(day) {
   const now = new Date()
@@ -541,6 +555,13 @@ export default function Money() {
   const totalSpent = subTotal + expTotal
   const totalBudget = budgets.reduce((s, b) => s + (b.amount || 0), 0)
 
+  const prevDt = new Date(cursor.y, cursor.m - 1, 1)
+  const prevMonthPrefix = `${prevDt.getFullYear()}-${pad(prevDt.getMonth() + 1)}`
+  const prevMonthLabel = MONTHS[prevDt.getMonth()]
+  const prevMonthExpenses = expenses.filter((e) => (e.date || '').startsWith(prevMonthPrefix))
+  const prevExpTotal = prevMonthExpenses.reduce((s, x) => s + (x.amount || 0), 0)
+  const prevTotalSpent = subTotal + prevExpTotal
+
   const budgetByCat = {}
   for (const b of budgets) budgetByCat[b.category] = b.amount
 
@@ -551,8 +572,15 @@ export default function Money() {
     spentByCat[k] = (spentByCat[k] || 0) + monthlyCost(s)
   }
 
+  const prevSpentByCat = {}
+  for (const e of prevMonthExpenses) prevSpentByCat[e.category] = (prevSpentByCat[e.category] || 0) + (e.amount || 0)
+  for (const s of subs) {
+    const k = catKey(s.category || 'annet')
+    prevSpentByCat[k] = (prevSpentByCat[k] || 0) + monthlyCost(s)
+  }
+
   const catRows = CATEGORIES
-    .map((c) => ({ ...c, spent: spentByCat[c.k] || 0, budget: budgetByCat[c.k] || 0 }))
+    .map((c) => ({ ...c, spent: spentByCat[c.k] || 0, prevSpent: prevSpentByCat[c.k] || 0, budget: budgetByCat[c.k] || 0 }))
     .filter((c) => c.spent > 0 || c.budget > 0)
     .sort((a, b) => b.spent - a.spent)
 
@@ -639,6 +667,11 @@ export default function Money() {
               ) : (
                 <span className="bs-sub">Sett et budsjett nedenfor for å følge med.</span>
               )}
+              {(totalSpent > 0 || prevTotalSpent > 0) && (
+                <span className="bs-delta">
+                  <ChangeBadge cur={totalSpent} prev={prevTotalSpent} /> vs {prevMonthLabel}
+                </span>
+              )}
               {totalIncome > 0 && (
                 <span className="bs-income">
                   Inntekt {kr(totalIncome)} · {kr(totalIncome - totalSpent)} igjen å bruke
@@ -671,9 +704,12 @@ export default function Money() {
                       <div className="bc-main">
                         <div className="bc-top">
                           <span className="bc-name">{c.label}</span>
-                          <span className="bc-amt">
-                            {kr(c.spent)}{c.budget > 0 && <span className="bc-of"> / {kr(c.budget)}</span>}
-                          </span>
+                          <div className="bc-amt-wrap">
+                            <span className="bc-amt">
+                              {kr(c.spent)}{c.budget > 0 && <span className="bc-of"> / {kr(c.budget)}</span>}
+                            </span>
+                            <ChangeBadge cur={c.spent} prev={c.prevSpent} />
+                          </div>
                         </div>
                         <div className="bc-bar">
                           <i style={{ width: (c.budget > 0 ? Math.min(100, ratio * 100) : 0) + '%', background: barColor(ratio) }} />

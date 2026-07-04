@@ -2,6 +2,15 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-04 — **«Vs forrige måned»-endring i Penger** (ønske fra brukeren: legge inn forbruk for hele
+  måneder, og kunne tracke per måned slik at man ser endring i bruk). «Fyll inn hele måneden» og
+  månednavigasjonen fantes allerede — det som manglet var en tydelig endrings-indikator. Lagt til en
+  `ChangeBadge` (kr + prosent, rødt ved økt bruk/grønt ved redusert) på totalsummen («vs {forrige måned}»)
+  og på hver kategori-rad på Oversikt-fanen, beregnet mot samme måned-cursor som allerede styrer
+  trendgrafen/kalenderpilene. Ny kategori uten forbruk forrige måned viser bare kr-differansen (ingen
+  prosent, siden forrige verdi er 0). Faste abonnement telles likt begge måneder (samme forenkling som
+  den eksisterende trendgrafen), så endringen gjenspeiler kun forbruk, ikke faste utgifter. Verifisert i
+  browser-harness med forskjellig forbruk to måneder på rad.
 - 2026-07-04 — **«Pågående nå» på prosjekt-listen** (ønske fra brukeren: «gjør sånt at projekter siden har
   en in progress side hvor jeg kan dra tingene som er in progress inn»). Klargjorde først at det fantes en
   eksisterende «Pågående»-lane INNI ett prosjekt (`WipLane.jsx`) — brukeren ville i stedet ha en samlet

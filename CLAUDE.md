@@ -164,9 +164,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
-  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned) / Forbruk (logget,
-    med «Fyll inn hele måneden» — rask totalsum per kategori i stedet for å logge hvert kjøp) / Faste
-    (abonnement) / Sparing
+  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned, 6-måneders
+    trendgraf, «vs forrige måned»-endringsmerke på totalen og på hver kategori — rødt ved økt bruk,
+    grønt ved redusert) / Forbruk (logget, med «Fyll inn hele måneden» — rask totalsum per kategori i
+    stedet for å logge hvert kjøp) / Faste (abonnement) / Sparing
   - `Projects.jsx` — «Prosjekter»: tynn ruter (liste ↔ arbeidsbenk). Selve komponentene bor i
     `src/components/projects/`: `shared.jsx` (konstanter/ikoner, ingen state), `ProjectsList.jsx`
     (kort-rutenett på PC + samlet «Pågående nå»-seksjon øverst på tvers av alle prosjekter — dra et

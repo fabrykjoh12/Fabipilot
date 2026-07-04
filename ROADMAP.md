@@ -60,3 +60,6 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - «Fyll inn hele måneden» i Penger/Forbruk: totalsum per kategori i ett skjema, raskere enn enkelt-logging.
 - «Pågående nå» på prosjekt-LISTEN: samlet oversikt på tvers av alle prosjekter, dra et «neste steg»-chip
   fra et prosjektkort dit for å markere det som pågående uten å måtte åpne prosjektet.
+- Penger/Oversikt: «vs forrige måned»-endringsmerke på totalen og på hver kategori (kr + %, rødt/grønt),
+  så du ser om forbruket økte eller falt fra måned til måned — i tillegg til den eksisterende 6-måneders
+  trendgrafen og «Fyll inn hele måneden».
