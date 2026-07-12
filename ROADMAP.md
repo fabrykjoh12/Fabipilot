@@ -14,6 +14,12 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Reposisjonering til AI-prosjekt-cockpit: skarpere innloggings-copy + prosjekt-tomtilstand som lærer
+  flyten (Idé→Prosjekt→Roadmap→Prompt-kø→Levert), ordentlig produkt-README (erstattet Vite-malen),
+  `package.json` omdøpt til `fabipilot`. Avledet prosjekt-helse (`src/lib/projectHealth.js`:
+  Bygger/Står stille/Klar/Levert) på kort + prosjektside, og kontekst-rike prompt-oppskrifter
+  (`PROJECT_RECIPES` i `prompts.js`: brutal review, launch-sjekk, rydd koden, bug-jakt, datamodell,
+  refaktor, landingstekst, vekst) som kopierer ferdige prompts med full prosjektkontekst.
 - Vite + React 19 lokal-først scaffold, `CLAUDE.md`.
 - Idébank: Dexie lokal lagring, CRUD, søk, filter, gnist + vibrasjon, JSON eksport/import.
 - PWA: manifest «Dashboard», ikoner (192/512 + maskable + apple-touch), service worker, offline.

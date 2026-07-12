@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { projectContext, buildPrompt, buildAllPrompts, hasContext } from './prompts.js'
+import {
+  projectContext, buildPrompt, buildAllPrompts, hasContext,
+  projectBrief, buildRecipe, PROJECT_RECIPES,
+} from './prompts.js'
 
 describe('projectContext', () => {
   it('returns an empty string for a project with no context fields', () => {
@@ -64,5 +67,58 @@ describe('buildAllPrompts', () => {
   it('handles an empty item list', () => {
     const out = buildAllPrompts({}, [])
     expect(out).toContain('Here\'s everything I want you to do:')
+  })
+})
+
+describe('projectBrief', () => {
+  const project = { name: 'Site', why: 'Ship it', status: 'active', lastTouched: Date.now() }
+  const items = [{ text: 'Build hero', stage: 'now' }, { text: 'Add gallery', stage: 'later' }, { text: 'Setup', stage: 'done' }]
+
+  it('includes context, derived status and progress', () => {
+    const out = projectBrief(project, items)
+    expect(out).toContain('Project: Site')
+    expect(out).toContain('Goal: Ship it')
+    expect(out).toContain('Status: Building')
+    expect(out).toContain('Progress: 1/3 steps done')
+  })
+
+  it('lists only open steps, ordered by priority', () => {
+    const out = projectBrief(project, items)
+    expect(out).toContain('- [High] Build hero')
+    expect(out).toContain('- [Low] Add gallery')
+    // done steps are not listed as open
+    expect(out).not.toContain('Setup')
+    expect(out.indexOf('Build hero')).toBeLessThan(out.indexOf('Add gallery'))
+  })
+
+  it('omits the open-steps block when everything is done', () => {
+    const out = projectBrief(project, [{ text: 'x', stage: 'done' }])
+    expect(out).not.toContain('Open steps:')
+    expect(out).toContain('Status: Ready to ship')
+  })
+})
+
+describe('buildRecipe', () => {
+  const project = { name: 'Site', why: 'Ship it', status: 'active', lastTouched: Date.now() }
+  const items = [{ text: 'Build hero', stage: 'now' }]
+
+  it('returns empty string for an unknown recipe', () => {
+    expect(buildRecipe('nope', project, items)).toBe('')
+  })
+
+  it('prefixes the project brief before the recipe ask', () => {
+    const out = buildRecipe('review', project, items)
+    expect(out.startsWith('Project: Site')).toBe(true)
+    expect(out).toContain('---')
+    expect(out).toContain('brutally honest')
+  })
+
+  it('every recipe has a key, label, emoji and ask', () => {
+    for (const r of PROJECT_RECIPES) {
+      expect(r.key).toBeTruthy()
+      expect(r.label).toBeTruthy()
+      expect(r.emoji).toBeTruthy()
+      expect(r.ask.length).toBeGreaterThan(20)
+    }
   })
 })

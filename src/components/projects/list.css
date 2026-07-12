@@ -90,6 +90,33 @@
   background: var(--accent);
 }
 
+/* avledet helse-merke på prosjektkortet */
+.phealth-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 5px 9px;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+.phealth-badge .phb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+.phealth-badge.h-building { color: var(--forest); background: var(--forest-soft); }
+.phealth-badge.h-ready { color: var(--accent); background: var(--accent-soft); }
+.phealth-badge.h-stuck { color: var(--danger); background: var(--danger-soft); }
+.phealth-badge.h-shipped { color: #fff; background: var(--accent); }
+.phealth-badge.h-onice,
+.phealth-badge.h-empty { color: var(--muted); background: var(--surface-2); }
+
 /* ===== «Pågående nå» — samlet på tvers av alle prosjekter ===== */
 .plist-wip {
   margin-bottom: 20px;

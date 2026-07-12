@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, listProjects, addProject, moveProject, updateProjectItem } from '../../db.js'
 import { vibrate } from '../../lib/fx.js'
-import { STATUS_LABEL, colorVal } from './shared.jsx'
+import { colorVal } from './shared.jsx'
+import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
 import './list.css'
 
 /* ===================== PROSJEKTLISTE ===================== */
@@ -21,10 +22,12 @@ export default function ProjectsList({ onOpen }) {
   for (const it of nowItems) if (!nextByProject[it.projectId]) nextByProject[it.projectId] = it
 
   const statsByProject = {}
+  const itemsByProject = {}
   for (const it of allItems) {
     const s = (statsByProject[it.projectId] ||= { total: 0, done: 0 })
     s.total++
     if (it.stage === 'done') s.done++
+    ;(itemsByProject[it.projectId] ||= []).push(it)
   }
 
   const projectById = {}
@@ -57,6 +60,7 @@ export default function ProjectsList({ onOpen }) {
     const stat = statsByProject[p.id] || { total: 0, done: 0 }
     const pct = stat.total ? Math.round((stat.done / stat.total) * 100) : 0
     const col = colorVal(p.color)
+    const health = projectHealth(p, itemsByProject[p.id] || [])
     return (
       <div className="plist-card-wrap">
         <div className="plist-sort">
@@ -79,7 +83,9 @@ export default function ProjectsList({ onOpen }) {
           <div className="plist-top">
             <span className="plist-emoji" style={{ background: col + '22' }}>{p.emoji || '🗂️'}</span>
             <span className="plist-name">{p.name}</span>
-            <span className={'pstatus st-' + p.status}>{STATUS_LABEL[p.status]}</span>
+            <span className={'phealth-badge h-' + health.state}>
+              <span className="phb-dot" />{HEALTH_LABEL[health.state]}
+            </span>
           </div>
           {stat.total > 0 && (
             <div className="plist-prog">
@@ -167,9 +173,11 @@ export default function ProjectsList({ onOpen }) {
 
         {projects.length === 0 && (
           <div className="empty">
-            <div className="glyph">🗺️</div>
-            <p className="em-ttl">Ingen prosjekter enda</p>
-            <p>De større tingene du jobber mot. Legg til ett nederst — eller forfremm en idé fra idébanken.</p>
+            <div className="glyph">🛩️</div>
+            <p className="em-ttl">Start ditt første prosjekt</p>
+            <p>Et prosjekt samler alt: mål, repo- og live-lenker, Claude-kontekst, en roadmap og en prompt-kø.</p>
+            <p className="em-flow">Idé → Prosjekt → Roadmap → Prompt-kø → Levert</p>
+            <p>Legg til ett nederst — eller forfremm en idé fra idébanken.</p>
           </div>
         )}
 

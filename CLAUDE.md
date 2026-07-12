@@ -4,7 +4,10 @@ Slank styringsfil: kun varige regler + nåtilstand. Historikk hører hjemme i `P
 planer i `ROADMAP.md`.
 
 ## 1. Hva dette er
-Et privat ADHD-vennlig alt-i-ett-dashboard for én bruker (meg). Mobil-først, PWA, lokal-først.
+Et privat ADHD-vennlig **AI-prosjekt-cockpit** for én bruker (meg): fra rotete idé til levert prosjekt,
+med Prosjekter (roadmap + prompt-kø + kontekst + repo/live-lenker) som kjernen. De andre modulene
+(Oppgaver, Idébank, Kalender, Vaner, Penger, Hage) støtter bygge-flyten, ikke konkurrerer med den.
+Mobil-først, PWA, lokal-først.
 
 ## 2. Hvem jeg er
 Jeg er ikke koder — jeg bygger med AI. Forklar hva jeg skal lime inn og kjøre, ikke teori.
@@ -139,8 +142,14 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/lib/migrations.js` — rene migrerings-mappinger: `legacyTodoToTask` (delt av v10-migreringen og
   `importAll`s eldre-backup-gren) og `legacyMoneyCategory` (delt av v11-migreringen og `importAll` for
   gamle Penger-kategori-nøkler); begge testet i `migrations.test.js`
-- `src/lib/prompts.js` — Claude-prompt-bygging: `projectContext`, `buildPrompt`, `buildAllPrompts`, `hasContext`
+- `src/lib/prompts.js` — Claude-prompt-bygging: `projectContext`, `buildPrompt`, `buildAllPrompts`, `hasContext`,
+  `projectBrief` (kontekst + status + åpne steg) og `PROJECT_RECIPES`/`buildRecipe` (kontekst-rike ferdige
+  prompts: brutal review, launch-sjekk, rydd koden, bug-jakt, datamodell, refaktor, landingstekst, vekst)
   (brukt av Prosjekter; testet i `prompts.test.js`)
+- `src/lib/projectHealth.js` — `projectHealth(project, items)`: utledet helse-signal
+  (`building | stuck | ready | shipped | onice | empty`) + «neste beste handling», UTEN å endre lagret
+  `status`. `HEALTH_LABEL` (norsk UI) / `HEALTH_STATUS_EN` (prompts). Brukt av ProjectsList-kortene og
+  Roadmap-info-skinnen; testet i `projectHealth.test.js`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`/`ScreenSkeleton`, `PageTransition`,
   `Reveal`, `toast` (sonner-wrapper), `useEscape` (lukk ark/dialoger på Escape). Bygd på `motion`; respekterer

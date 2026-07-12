@@ -2,6 +2,23 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-12 — **Reposisjonering til AI-prosjekt-cockpit** (produkt + kode). Prompten var å gjøre Fabipilot
+  til et fokusert AI-bygger-cockpit i stedet for et generisk dashboard, med Prosjekter som kjernen. Gjort,
+  trygt og inkrementelt (ingen datamodell- eller migreringsendringer):
+  • **Posisjonering/copy**: skarpere innloggingsskjerm («Ditt AI-prosjekt-cockpit. Fra rotete idé til
+    levert.» + feature-liste reframet rundt bygge-flyten: Prosjekter/Prompt-kø/Byggeoppgaver/Idébank),
+    tydeligere prosjekt-tomtilstand som lærer flyten (Idé → Prosjekt → Roadmap → Prompt-kø → Levert).
+  • **README**: erstattet Vite-malen med en ordentlig produkt-README (hva/hvem/kjerneflyt/features/stack/
+    lokal-først-arkitektur/kjør-lokalt/roadmap). Døpte om `package.json` fra «dashboard» → «fabipilot»
+    (+ description, versjon 0.1.0). La til meta-description i `index.html`.
+  • **Ny ren logikk**: `src/lib/projectHealth.js` — utledet prosjekt-helse (Bygger/Står stille/Klar til
+    lansering/Levert/På is/Kom i gang) + «neste beste handling», UTEN å endre lagret status. Utvidet
+    `src/lib/prompts.js` med `projectBrief` (kontekst + status + åpne steg) + 8 kontekst-rike
+    prompt-oppskrifter (`PROJECT_RECIPES`: brutal review, launch-sjekk, rydd koden, bug-jakt, datamodell,
+    refaktor-plan, landingstekst, vekst-ideer) via `buildRecipe`. 25 nye enhetstester (75 totalt).
+  • **UI**: prosjektkortene viser nå avledet helse-merke; prosjektsiden (Roadmap) viser helse + «neste»
+    i info-skinnen og en «Spør Claude om prosjektet»-rad som kopierer ferdige, kontekst-rike prompts.
+  Verifisert: lint + 75 tester + build grønt; innloggingsskjermen render-sjekket i Chromium.
 - 2026-07-04 — **Penger-kategoriene matcher nå bank-appen** (brukeren la ved 5 skjermbilder av sin
   bank-app sin «Daglige utgifter»-oversikt og ba om å bruke akkurat de kategoriene). Byttet ut den gamle,
   frie 10-kategorien-listen (Mat/Transport/Bolig/Helse/Klær/Moro/Strømming/Musikk/Software/Annet) med de

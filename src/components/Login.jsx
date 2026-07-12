@@ -13,10 +13,10 @@ const GridMark = () => (
 )
 
 const LOGIN_FEATURES = [
-  { k: 'today', label: 'I dag', desc: 'Maks tre ting i fokus' },
-  { k: 'habits', label: 'Vaner', desc: 'Små ting, gjentatt' },
-  { k: 'projects', label: 'Prosjekter', desc: 'Det du jobber mot' },
-  { k: 'money', label: 'Penger', desc: 'Faste utgifter, samlet' },
+  { k: 'projects', label: 'Prosjekter', desc: 'Roadmap, kontekst, repo & live-lenker' },
+  { k: 'whatnow', label: 'Prompt-kø', desc: 'Kjør prompts til Claude, én om gangen' },
+  { k: 'today', label: 'Byggeoppgaver', desc: 'Maks tre ting i fokus i dag' },
+  { k: 'ideas', label: 'Idébank', desc: 'Fang ideen — gjør den til et prosjekt' },
 ]
 
 /* Norske tekster for de vanlige innloggings-stegene (Dexie sender engelsk). */
@@ -152,8 +152,8 @@ export default function LoginScreen() {
             Fabipilot
           </div>
           <h2 className="login-headline">
-            Alt på ett sted.<br />
-            På alle enhetene dine.
+            Ditt AI-prosjekt-cockpit.<br />
+            Fra rotete idé til levert.
           </h2>
           <ul className="login-features">
             {LOGIN_FEATURES.map((f) => (
@@ -177,8 +177,9 @@ export default function LoginScreen() {
           </div>
           <h1 className="login-title">Velkommen</h1>
           <p className="login-text">
-            Logg inn for å hente dataene dine — eller starte friskt. Alt synces
-            automatisk mellom mobil og laptop.
+            Hold prosjektkontekst, prompts, repo- og live-lenker og dagens
+            byggeoppgaver samlet — så du slutter å miste prosjektene dine inne i
+            chat-historikken. Alt synces mellom mobil og laptop.
           </p>
 
           <button type="button" className="login-btn" onClick={login} disabled={busy}>
