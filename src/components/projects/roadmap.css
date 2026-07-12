@@ -890,3 +890,86 @@
   gap: 6px;
 }
 
+
+/* ===== Avledet prosjekt-helse (info-skinne) ===== */
+.roadmap .phealth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.roadmap .phealth-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: 0 0 auto;
+}
+.roadmap .phealth-lbl { letter-spacing: -0.01em; }
+.roadmap .phealth-next {
+  flex: 1 1 100%;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.roadmap .phealth.h-building .phealth-dot { background: var(--forest); }
+.roadmap .phealth.h-building .phealth-lbl { color: var(--forest); }
+.roadmap .phealth.h-ready .phealth-dot { background: var(--accent); }
+.roadmap .phealth.h-ready .phealth-lbl { color: var(--accent); }
+.roadmap .phealth.h-stuck .phealth-dot { background: var(--danger); }
+.roadmap .phealth.h-stuck .phealth-lbl { color: var(--danger); }
+.roadmap .phealth.h-shipped .phealth-dot,
+.roadmap .phealth.h-onice .phealth-dot,
+.roadmap .phealth.h-empty .phealth-dot { background: var(--muted); }
+.roadmap .phealth.h-shipped .phealth-lbl,
+.roadmap .phealth.h-onice .phealth-lbl,
+.roadmap .phealth.h-empty .phealth-lbl { color: var(--muted); }
+
+/* ===== Prompt-oppskrifter (kontekst-rike Claude-prompts) ===== */
+.roadmap .precipes {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.roadmap .precipes-lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 9px;
+}
+.roadmap .precipes-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.roadmap .precipe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 11px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.roadmap .precipe-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.roadmap .precipe-emoji { font-size: 14px; line-height: 1; }

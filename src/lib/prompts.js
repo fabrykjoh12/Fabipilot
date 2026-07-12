@@ -31,3 +31,76 @@ export function buildAllPrompts(project, items) {
 export function hasContext(project) {
   return !!(project?.why || project?.context || project?.liveUrl || project?.repoUrl)
 }
+
+/* ── Kontekst-rike «oppskrifter» ──────────────────────────────────────────
+   Ferdige prompts som pakker HELE prosjektet (mål, lenker, status, åpne steg)
+   inn i én velformet forespørsel — ett klikk, ingen utfylling. Dette er
+   forskjellen på Fabipilot og en generisk gjøremålsliste: konteksten følger
+   alltid med til Claude/Codex. Rene funksjoner, testet i prompts.test.js. */
+
+import { projectHealth, HEALTH_STATUS_EN } from './projectHealth.js'
+
+const STAGE_EN = { now: 'High', next: 'Medium', later: 'Low' }
+
+/* Fyldig prosjektbrief: kontekst + avledet status + åpne/ferdige steg.
+   `items` = projectItems ({text, stage}). Legges foran hver oppskrift. */
+export function projectBrief(project, items = []) {
+  const lines = [projectContext(project)].filter(Boolean)
+  const health = projectHealth(project, items)
+  lines.push(`Status: ${HEALTH_STATUS_EN[health.state]}`)
+  lines.push(`Progress: ${health.doneCount}/${items.length} steps done`)
+
+  const open = items.filter((i) => i.stage !== 'done')
+  if (open.length) {
+    const byPrio = [...open].sort(
+      (a, b) => ('now next later'.indexOf(a.stage) - 'now next later'.indexOf(b.stage)),
+    )
+    lines.push('')
+    lines.push('Open steps:')
+    for (const it of byPrio) lines.push(`- [${STAGE_EN[it.stage] || '?'}] ${it.text}`)
+  }
+  return lines.join('\n')
+}
+
+export const PROJECT_RECIPES = [
+  {
+    key: 'review', emoji: '🔎', label: 'Brutal review',
+    ask: 'Give me a brutally honest product + code review of this project. Be specific, not polite. Cover: what is weak or confusing, what would make a real user bounce, the biggest risk, and the 3 highest-impact things to fix next. End with a prioritized action list.',
+  },
+  {
+    key: 'launch', emoji: '🚀', label: 'Launch-sjekk',
+    ask: 'Act as a launch checklist. Assess how close this project is to being shippable and list exactly what is left before I can launch it publicly — grouped into Must-fix, Should-fix, and Nice-to-have. Include product, UX, performance, and basic SEO/meta. Be concrete.',
+  },
+  {
+    key: 'cleanup', emoji: '🧹', label: 'Rydd koden',
+    ask: 'Review the codebase for cleanup opportunities: dead code, duplication, oversized files, weak naming, and inconsistent patterns. Propose a safe, incremental cleanup plan ordered by risk/reward. Do not suggest a rewrite.',
+  },
+  {
+    key: 'bughunt', emoji: '🐛', label: 'Bug-jakt',
+    ask: 'Hunt for likely bugs and edge cases: empty/invalid input, race conditions, off-by-one errors, error/loading states, and mobile behavior. For each, give the failing scenario and a minimal fix.',
+  },
+  {
+    key: 'schema', emoji: '🗄️', label: 'Datamodell',
+    ask: 'Review the data model / database schema for this project. Flag missing indexes, denormalization risks, unsafe migrations, and validation gaps. Suggest concrete improvements that preserve existing data.',
+  },
+  {
+    key: 'refactor', emoji: '♻️', label: 'Refaktor-plan',
+    ask: 'Propose a refactor plan for the riskiest or most tangled part of this codebase. Break it into small, independently shippable steps, each safe to merge on its own. Call out what could break and how to verify each step.',
+  },
+  {
+    key: 'landing', emoji: '📣', label: 'Landingstekst',
+    ask: 'Write landing page copy for this project: a sharp headline, a one-sentence subheadline, 3 benefit bullets, and a call to action. Match the goal above. Avoid generic startup clichés — make it concrete and specific to what this actually does.',
+  },
+  {
+    key: 'growth', emoji: '📈', label: 'Vekst-ideer',
+    ask: 'Suggest 5 concrete, low-effort ways to get the first real users for this project, given its goal and audience. Prefer specific channels and tactics over vague advice. Rank them by effort vs. likely payoff.',
+  },
+]
+
+/* Bygg en ferdig oppskrift-prompt for ett prosjekt. */
+export function buildRecipe(recipeKey, project, items = []) {
+  const recipe = PROJECT_RECIPES.find((r) => r.key === recipeKey)
+  if (!recipe) return ''
+  const brief = projectBrief(project, items)
+  return `${brief}\n\n---\n${recipe.ask}`
+}

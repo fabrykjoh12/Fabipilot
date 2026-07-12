@@ -13,7 +13,8 @@ import {
 } from '../../db.js'
 import { vibrate } from '../../lib/fx.js'
 import { toast, ScreenSkeleton } from '../../lib/ui.jsx'
-import { buildAllPrompts } from '../../lib/prompts.js'
+import { buildAllPrompts, buildRecipe, PROJECT_RECIPES } from '../../lib/prompts.js'
+import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
 import {
   STATUS_LABEL,
   NEXT_STATUS,
@@ -121,6 +122,7 @@ export default function Roadmap({ projectId, onBack }) {
   const total = items.length
   const pct = total ? Math.round((doneItems.length / total) * 100) : 0
   const col = colorVal(project.color)
+  const health = projectHealth(project, items)
 
   async function addTo(stage, text) {
     await addProjectItem(projectId, text, stage)
@@ -133,6 +135,16 @@ export default function Roadmap({ projectId, onBack }) {
     for (const line of lines) await addProjectItem(projectId, line, 'next')
     setQuickVal('')
     vibrate(8)
+  }
+
+  async function copyRecipe(recipe) {
+    try {
+      await navigator.clipboard.writeText(buildRecipe(recipe.key, project, items))
+      vibrate(8)
+      toast.success(`«${recipe.label}» kopiert`, { description: 'Lim inn i Claude — prosjektet er med.' })
+    } catch {
+      toast.error('Kunne ikke kopiere')
+    }
   }
 
   async function copyAll() {
@@ -260,6 +272,13 @@ export default function Roadmap({ projectId, onBack }) {
 
         <div className="rm-workspace">
         <aside className="rm-rail">
+        <div className={'phealth h-' + health.state}>
+          <span className="phealth-dot" />
+          <span className="phealth-lbl">{HEALTH_LABEL[health.state]}</span>
+          {health.nextAction && (
+            <span className="phealth-next">Neste: {health.nextAction.text}</span>
+          )}
+        </div>
         {linksEditing ? (
           <div className="plinks-edit">
             <input className="plink-input" placeholder="Live-URL (min-side.vercel.app)" value={liveVal} autoFocus onChange={(e) => setLiveVal(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveLinks(); if (e.key === 'Escape') setLinksEditing(false) }} />
@@ -356,6 +375,17 @@ export default function Roadmap({ projectId, onBack }) {
           <div className="pstat"><b>{nextItems.length}</b><span>Medium</span></div>
           <div className="pstat"><b>{laterItems.length}</b><span>Lav</span></div>
           <div className="pstat"><b>{doneItems.length}</b><span>Ferdig</span></div>
+        </div>
+
+        <div className="precipes">
+          <span className="precipes-lbl">Spør Claude om prosjektet</span>
+          <div className="precipes-chips">
+            {PROJECT_RECIPES.map((r) => (
+              <button key={r.key} type="button" className="precipe-chip" onClick={() => copyRecipe(r)} title="Kopier ferdig prompt med prosjektkontekst">
+                <span className="precipe-emoji">{r.emoji}</span>{r.label}
+              </button>
+            ))}
+          </div>
         </div>
         </aside>
 
