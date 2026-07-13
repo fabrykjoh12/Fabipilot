@@ -15,6 +15,7 @@ import { vibrate } from '../../lib/fx.js'
 import { toast, ScreenSkeleton } from '../../lib/ui.jsx'
 import { buildAllPrompts, buildRecipe, PROJECT_RECIPES } from '../../lib/prompts.js'
 import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
+import { launchChecklist } from '../../lib/launch.js'
 import {
   STATUS_LABEL,
   NEXT_STATUS,
@@ -52,6 +53,7 @@ export default function Roadmap({ projectId, onBack }) {
   const [editingContext, setEditingContext] = useState(false)
   const [linksEditing, setLinksEditing] = useState(false)
   const [queueOpen, setQueueOpen] = useState(false)
+  const [launchOpen, setLaunchOpen] = useState(false)
   const [composerTpl, setComposerTpl] = useState(null)
   const [quickVal, setQuickVal] = useState('')
   const [nameVal, setNameVal] = useState('')
@@ -123,6 +125,7 @@ export default function Roadmap({ projectId, onBack }) {
   const pct = total ? Math.round((doneItems.length / total) * 100) : 0
   const col = colorVal(project.color)
   const health = projectHealth(project, items)
+  const launch = launchChecklist(project, items)
 
   async function addTo(stage, text) {
     await addProjectItem(projectId, text, stage)
@@ -375,6 +378,37 @@ export default function Roadmap({ projectId, onBack }) {
           <div className="pstat"><b>{nextItems.length}</b><span>Medium</span></div>
           <div className="pstat"><b>{laterItems.length}</b><span>Lav</span></div>
           <div className="pstat"><b>{doneItems.length}</b><span>Ferdig</span></div>
+        </div>
+
+        <div className={'plaunch' + (launch.ready ? ' ready' : '')}>
+          <button
+            type="button"
+            className="plaunch-head"
+            onClick={() => setLaunchOpen((o) => !o)}
+            aria-expanded={launchOpen}
+          >
+            <span className="plaunch-title">
+              {launch.ready ? '🚀 Klar til lansering' : 'Klar til lansering'}
+            </span>
+            <span className="plaunch-count">{launch.doneCount}/{launch.total}</span>
+            <span className={'plaunch-chev' + (launchOpen ? ' open' : '')}>▾</span>
+          </button>
+          <span className="plaunch-bar">
+            <i style={{ width: launch.pct + '%', background: launch.ready ? 'var(--forest)' : col }} />
+          </span>
+          {launchOpen && (
+            <ul className="plaunch-list">
+              {launch.checks.map((c) => (
+                <li key={c.key} className={'plaunch-item' + (c.done ? ' done' : '')}>
+                  <span className="plaunch-mark" aria-hidden="true">{c.done ? '✓' : '○'}</span>
+                  <span className="plaunch-text">
+                    {c.label}
+                    {!c.done && <span className="plaunch-hint">{c.hint}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="precipes">

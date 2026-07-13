@@ -14,6 +14,9 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Launch-beredskap: `src/lib/launch.js` (`launchChecklist`) + sammenleggbart «Klar til lansering»-panel
+  i prosjekt-info-skinnen — konkret sjekkliste (mål, steg, kontekst, repo/live-lenker, ingen åpne
+  høy-steg, alt ferdig) utledet uten å endre lagrede felt.
 - Reposisjonering til AI-prosjekt-cockpit: skarpere innloggings-copy + prosjekt-tomtilstand som lærer
   flyten (Idé→Prosjekt→Roadmap→Prompt-kø→Levert), ordentlig produkt-README (erstattet Vite-malen),
   `package.json` omdøpt til `fabipilot`. Avledet prosjekt-helse (`src/lib/projectHealth.js`:

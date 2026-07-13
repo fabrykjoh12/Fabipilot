@@ -2,6 +2,14 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-13 — **Launch-beredskap på prosjektsiden** (neste steg etter reposisjoneringen). Ny ren
+  funksjon `src/lib/launch.js` (`launchChecklist`) utleder en konkret «hva gjenstår før jeg kan lansere»-
+  sjekkliste fra prosjekt + steg — 7 sjekker (mål, roadmap har steg, Claude-kontekst, repo-lenke,
+  live-lenke/deployet, ingen åpne høy-prioritet steg, alle steg ferdig) med `done`/`hint` + samlet
+  prosent og `ready`. Ingen lagrede felt endres. Vist som en sammenleggbar «Klar til lansering N/7»-panel
+  i Roadmap-info-skinnen (fremdriftsbar + hake/hint-liste, 🚀 + grønn bar når alt er klart). 5 nye tester
+  (80 totalt). Render-verifisert i Chromium (lys + mørk). Komplementær til `projectHealth` (utledet status)
+  og «launch-sjekk»-oppskriften (spør Claude).
 - 2026-07-12 — **Reposisjonering til AI-prosjekt-cockpit** (produkt + kode). Prompten var å gjøre Fabipilot
   til et fokusert AI-bygger-cockpit i stedet for et generisk dashboard, med Prosjekter som kjernen. Gjort,
   trygt og inkrementelt (ingen datamodell- eller migreringsendringer):
