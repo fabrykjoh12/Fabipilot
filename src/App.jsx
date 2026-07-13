@@ -41,25 +41,51 @@ function ScreenFallback() {
   return <ScreenSkeleton />
 }
 
-/* Faste faner nederst på mobil. Resten ligger i «Mer» (og i sidemenyen på PC). */
-const PRIMARY = ['overview', 'today', 'calendar', 'projects']
+/* Primærflyten (bygge-løpet): faste faner nederst på mobil + øverste gruppe i
+   sidemenyen på PC. Idé → Prosjekt → byggeoppgaver → Oversikt. Resten er
+   støtteverktøy og ligger i «Mer» (mobil) / «Verktøy»-gruppen (PC). */
+const PRIMARY = ['overview', 'projects', 'today', 'ideas']
 
 /* Moduler med egen «legg til»-linje nederst — der skjuler vi den flytende capture-knappen. */
 const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow', 'shared', 'shopping'])
 
 const MODULES = [
+  // Primærflyt (rekkefølge = bunnfaner på mobil)
   { k: 'overview', label: 'Oversikt', Comp: Overview },
+  { k: 'projects', label: 'Prosjekter', Comp: Projects },
   { k: 'today', label: 'Oppgaver', Comp: Tasks },
+  { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
+  // Støtteverktøy (sekundære)
   { k: 'calendar', label: 'Kalender', Comp: Calendar },
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
-  { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
   { k: 'habits', label: 'Vaner', Comp: Habits },
   { k: 'money', label: 'Penger', Comp: Money },
-  { k: 'projects', label: 'Prosjekter', Comp: Projects },
   { k: 'shared', label: 'Delt', Comp: SharedList },
   { k: 'shopping', label: 'Handleliste', Comp: ShoppingList },
   { k: 'garden', label: 'Hage', Comp: Garden },
 ]
+
+function NavButton({ m, active, onClick }) {
+  const on = active === m.k
+  return (
+    <button
+      type="button"
+      className={'nav-item' + (on ? ' active' : '') + (PRIMARY.includes(m.k) ? '' : ' nav-secondary')}
+      aria-current={on ? 'page' : undefined}
+      onClick={() => onClick(m.k)}
+    >
+      {on && (
+        <motion.span
+          className="nav-pill"
+          layoutId="nav-pill"
+          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+        />
+      )}
+      <NavIcon name={m.k} />
+      <span className="nav-lbl">{m.label}</span>
+    </button>
+  )
+}
 
 export default function App() {
   const [active, setActive] = useState('overview')
@@ -326,28 +352,13 @@ export default function App() {
             <span className={'sync-dot ' + led} title={syncLabel(syncState)} aria-label={syncLabel(syncState)} />
           )}
         </div>
-        {MODULES.map((m) => {
-          const on = active === m.k
-          return (
-            <button
-              key={m.k}
-              type="button"
-              className={'nav-item' + (on ? ' active' : '') + (PRIMARY.includes(m.k) ? '' : ' nav-secondary')}
-              aria-current={on ? 'page' : undefined}
-              onClick={() => setActive(m.k)}
-            >
-              {on && (
-                <motion.span
-                  className="nav-pill"
-                  layoutId="nav-pill"
-                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                />
-              )}
-              <NavIcon name={m.k} />
-              <span className="nav-lbl">{m.label}</span>
-            </button>
-          )
-        })}
+        {MODULES.filter((m) => PRIMARY.includes(m.k)).map((m) => (
+          <NavButton key={m.k} m={m} active={active} onClick={setActive} />
+        ))}
+        <span className="nav-sec-label" aria-hidden="true">Verktøy</span>
+        {MODULES.filter((m) => !PRIMARY.includes(m.k)).map((m) => (
+          <NavButton key={m.k} m={m} active={active} onClick={setActive} />
+        ))}
         <button
           type="button"
           className="nav-item nav-secondary"

@@ -14,6 +14,9 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Navigasjons-opprydding: primærflyt (Oversikt/Prosjekter/Oppgaver/Idébank) skilt fra sekundære
+  støtteverktøy med en «Verktøy»-gruppe i PC-sidemenyen; Kalender demotert til «Mer». Reduserer
+  «for mange moduler»-følelsen uten å fjerne noe.
 - Launch-beredskap: `src/lib/launch.js` (`launchChecklist`) + sammenleggbart «Klar til lansering»-panel
   i prosjekt-info-skinnen — konkret sjekkliste (mål, steg, kontekst, repo/live-lenker, ingen åpne
   høy-steg, alt ferdig) utledet uten å endre lagrede felt.

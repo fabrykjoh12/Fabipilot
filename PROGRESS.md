@@ -2,6 +2,14 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-13 — **Navigasjons-opprydding: bygge-flyten først** (redusert «for mange moduler»-følelsen,
+  som var den største premium-UX-risikoen). Primærflyten er nå bygge-løpet: **Oversikt · Prosjekter ·
+  Oppgaver · Idébank** (`PRIMARY` i App.jsx) — bunnfanene på mobil og øverste gruppe i PC-sidemenyen.
+  Kalender flyttet ned til støtteverktøyene (fortsatt i «Mer» på mobil). På PC deler en rolig
+  «VERKTØY»-etikett (`.nav-sec-label`, kun ≥860px) primærflyten fra de sekundære modulene (Kalender,
+  Hva nå?, Vaner, Penger, Delt, Handleliste, Hage, Backup) i stedet for én flat liste på 11. `MODULES`
+  omordnet så primær kommer først; nav-rendering trukket ut i en liten `NavButton`-komponent. Ingen
+  moduler fjernet, ingen datamodell-endring. Render-verifisert i Chromium (PC-sidemeny + mobil-bunnfaner).
 - 2026-07-13 — **UI/UX-løft av Projects-cockpiten** (gjør kjernen premium + handlingsbar, kontrollert
   scope — kun prosjekt-arbeidsbenken, ikke resten av appen). Bygde på launch/health-hjelperne:
   • **Handlingsbar launch-sjekkliste**: hvert uløst punkt er nå en knapp som hopper rett dit man fikser
