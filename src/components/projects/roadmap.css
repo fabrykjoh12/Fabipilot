@@ -973,3 +973,97 @@
   background: var(--accent-soft);
 }
 .roadmap .precipe-emoji { font-size: 14px; line-height: 1; }
+
+/* ===== Launch-beredskap (info-skinne) ===== */
+.roadmap .plaunch {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.roadmap .plaunch-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--ink);
+}
+.roadmap .plaunch-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.roadmap .plaunch-count {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.roadmap .plaunch.ready .plaunch-count { color: var(--forest); }
+.roadmap .plaunch-chev {
+  font-size: 11px;
+  color: var(--faint);
+  transition: transform 0.18s;
+}
+.roadmap .plaunch-chev.open { transform: rotate(180deg); }
+.roadmap .plaunch-bar {
+  display: block;
+  height: 6px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.roadmap .plaunch-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.roadmap .plaunch-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.roadmap .plaunch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.roadmap .plaunch-mark {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--surface-2);
+  color: var(--faint);
+}
+.roadmap .plaunch-item.done .plaunch-mark {
+  background: var(--forest-soft);
+  color: var(--forest);
+}
+.roadmap .plaunch-item.done .plaunch-text { color: var(--muted); }
+.roadmap .plaunch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.35;
+}
+.roadmap .plaunch-hint {
+  font-size: 12px;
+  color: var(--faint);
+}

@@ -150,6 +150,9 @@ Alle stores er med i JSON-eksport/import (se §8).
   (`building | stuck | ready | shipped | onice | empty`) + «neste beste handling», UTEN å endre lagret
   `status`. `HEALTH_LABEL` (norsk UI) / `HEALTH_STATUS_EN` (prompts). Brukt av ProjectsList-kortene og
   Roadmap-info-skinnen; testet i `projectHealth.test.js`
+- `src/lib/launch.js` — `launchChecklist(project, items)`: utledet launch-sjekkliste (7 sjekker med
+  `done`/`hint` + `pct`/`ready`), UTEN å endre lagrede felt. Vist som sammenleggbart «Klar til
+  lansering»-panel i Roadmap-info-skinnen; testet i `launch.test.js`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`/`ScreenSkeleton`, `PageTransition`,
   `Reveal`, `toast` (sonner-wrapper), `useEscape` (lukk ark/dialoger på Escape). Bygd på `motion`; respekterer
