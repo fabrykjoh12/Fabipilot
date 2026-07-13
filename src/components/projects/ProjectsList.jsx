@@ -2,9 +2,13 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, listProjects, addProject, moveProject, updateProjectItem } from '../../db.js'
 import { vibrate } from '../../lib/fx.js'
-import { colorVal } from './shared.jsx'
+import { colorVal, touchedText } from './shared.jsx'
 import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
+import { launchChecklist } from '../../lib/launch.js'
 import './list.css'
+
+/* Prosjekter som roper på handling: stått stille eller ferdigbygd (klar å levere). */
+const ATTENTION = new Set(['stuck', 'ready'])
 
 /* ===================== PROSJEKTLISTE ===================== */
 export default function ProjectsList({ onOpen }) {
@@ -33,9 +37,14 @@ export default function ProjectsList({ onOpen }) {
   const projectById = {}
   for (const p of projects) projectById[p.id] = p
 
+  const healthByProject = {}
+  for (const p of projects) healthByProject[p.id] = projectHealth(p, itemsByProject[p.id] || [])
+
   const wipItems = allItems.filter((i) => i.wip && i.stage !== 'done')
 
   const active = projects.filter((p) => p.status === 'active')
+  const attention = active.filter((p) => ATTENTION.has(healthByProject[p.id].state))
+  const activeRest = active.filter((p) => !ATTENTION.has(healthByProject[p.id].state))
   const onice = projects.filter((p) => p.status === 'onice')
   const done = projects.filter((p) => p.status === 'done')
 
@@ -60,7 +69,9 @@ export default function ProjectsList({ onOpen }) {
     const stat = statsByProject[p.id] || { total: 0, done: 0 }
     const pct = stat.total ? Math.round((stat.done / stat.total) * 100) : 0
     const col = colorVal(p.color)
-    const health = projectHealth(p, itemsByProject[p.id] || [])
+    const health = healthByProject[p.id] || projectHealth(p, itemsByProject[p.id] || [])
+    const launch = launchChecklist(p, itemsByProject[p.id] || [])
+    const openCount = stat.total - stat.done
     return (
       <div className="plist-card-wrap">
         <div className="plist-sort">
@@ -109,8 +120,23 @@ export default function ProjectsList({ onOpen }) {
                 {next.text}
               </>
             ) : (
-              <span className="plist-empty">Ingen «neste steg» satt</span>
+              <span className="plist-empty">Sett et «neste steg»</span>
             )}
+          </div>
+          <div className="plist-meta">
+            <span className="plist-detail">{health.detail || touchedText(p.lastTouched)}</span>
+            <span className="plist-badges">
+              {openCount > 0 && (
+                <span className="plist-chip" title="Åpne steg / prompts i kø">{openCount} i kø</span>
+              )}
+              {stat.total > 0 && (
+                <span className={'plist-chip launch' + (launch.ready ? ' ready' : '')} title="Launch-beredskap">
+                  🚀 {launch.doneCount}/{launch.total}
+                </span>
+              )}
+              {p.liveUrl && <span className="plist-ind" title="Har live-lenke">↗</span>}
+              {p.repoUrl && <span className="plist-ind" title="Har repo-lenke">⎇</span>}
+            </span>
           </div>
         </button>
       </div>
@@ -181,14 +207,28 @@ export default function ProjectsList({ onOpen }) {
           </div>
         )}
 
-        {active.length > 0 && (
+        {attention.length > 0 && (
           <div className="sec">
-            <div className="sec-label">
-              Aktive<span className="ln" />
-              <span className="ct">{active.length}</span>
+            <div className="sec-label sec-attention">
+              Trenger oppmerksomhet<span className="ln" />
+              <span className="ct">{attention.length}</span>
             </div>
             <div className="plist-grid">
-              {active.map((p) => (
+              {attention.map((p) => (
+                <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeRest.length > 0 && (
+          <div className="sec">
+            <div className="sec-label">
+              {attention.length > 0 ? 'Andre aktive' : 'Aktive'}<span className="ln" />
+              <span className="ct">{activeRest.length}</span>
+            </div>
+            <div className="plist-grid">
+              {activeRest.map((p) => (
                 <Card key={p.id} p={p} idx={projects.indexOf(p)} total={projects.length} />
               ))}
             </div>
