@@ -2,6 +2,21 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-13 — **UI/UX-løft av Projects-cockpiten** (gjør kjernen premium + handlingsbar, kontrollert
+  scope — kun prosjekt-arbeidsbenken, ikke resten av appen). Bygde på launch/health-hjelperne:
+  • **Handlingsbar launch-sjekkliste**: hvert uløst punkt er nå en knapp som hopper rett dit man fikser
+    det (mål/kontekst → åpner editoren, repo/live → åpner lenke-editoren, steg → scroller til tavla +
+    fokus på hurtiglegg-til). Ny «Fiks neste: …»-hovedknapp løser det høyest prioriterte hullet.
+    `launchChecklist` utvidet med `action`/`cta`/`firstUnmet` (ren, testet).
+  • **Spesifikk helse-forklaring**: `projectHealth` gir nå en `detail`-setning som forklarer HVORFOR
+    («Ikke rørt på 11 dager», «Alt bygd — klar til lansering», «Mangler et første byggesteg»). Helse-
+    merket ble et statuskort øverst i info-skinna med «Neste beste steg»-knapp (åpner steget).
+  • **Prompt-oppskrifter løftet**: ny `UI/UX-løft`-oppskrift (9 totalt), gruppert i Kvalitet/Arkitektur/
+    Lansering, med «Anbefalt nå»-forslag utledet fra helse-tilstanden (`recommendedRecipe`) — appen vet
+    hva du bør spørre AI om nå.
+  • **Copy**: «Kjør i Claude» / «Kopier prompt-kø» i stedet for «Kjør prompts» / «Kopier alle».
+  • Bevegelser respekterer `prefers-reduced-motion`. 15 nye tester (87 totalt). Render-verifisert i
+    Chromium (lys + mørk). Ingen datamodell-/synk-endringer.
 - 2026-07-13 — **Launch-beredskap på prosjektsiden** (neste steg etter reposisjoneringen). Ny ren
   funksjon `src/lib/launch.js` (`launchChecklist`) utleder en konkret «hva gjenstår før jeg kan lansere»-
   sjekkliste fra prosjekt + steg — 7 sjekker (mål, roadmap har steg, Claude-kontekst, repo-lenke,

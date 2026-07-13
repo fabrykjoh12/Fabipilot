@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   db,
@@ -11,9 +11,9 @@ import {
   updateProjectItem,
   todayKey,
 } from '../../db.js'
-import { vibrate } from '../../lib/fx.js'
+import { vibrate, reduceMotion } from '../../lib/fx.js'
 import { toast, ScreenSkeleton } from '../../lib/ui.jsx'
-import { buildAllPrompts, buildRecipe, PROJECT_RECIPES } from '../../lib/prompts.js'
+import { buildAllPrompts, buildRecipe, PROJECT_RECIPES, RECIPE_GROUPS, recommendedRecipe } from '../../lib/prompts.js'
 import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
 import { launchChecklist } from '../../lib/launch.js'
 import {
@@ -62,6 +62,8 @@ export default function Roadmap({ projectId, onBack }) {
   const [contextVal, setContextVal] = useState('')
   const [liveVal, setLiveVal] = useState('')
   const [repoVal, setRepoVal] = useState('')
+  const quickRef = useRef(null)
+  const boardRef = useRef(null)
 
   if (!project) return <ScreenSkeleton />
 
@@ -99,6 +101,23 @@ export default function Roadmap({ projectId, onBack }) {
     setEditingWhy(false)
   }
 
+  function scrollToBoard() {
+    boardRef.current?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' })
+    setTimeout(() => quickRef.current?.focus(), reduceMotion() ? 0 : 320)
+  }
+
+  /* Trykk på et uløst launch-punkt → hopp rett til der man fikser det. */
+  function fixCheck(action) {
+    setLaunchOpen(true)
+    switch (action) {
+      case 'why': startEditWhy(); break
+      case 'context': setContextVal(project.context || ''); setEditingContext(true); break
+      case 'links': openLinksEdit(); break
+      case 'board': scrollToBoard(); break
+      default: break
+    }
+  }
+
   async function handleDelete() {
     const itemsCopy = items.slice()
     await deleteProject(project.id)
@@ -126,6 +145,7 @@ export default function Roadmap({ projectId, onBack }) {
   const col = colorVal(project.color)
   const health = projectHealth(project, items)
   const launch = launchChecklist(project, items)
+  const recRecipe = recommendedRecipe(health.state)
 
   async function addTo(stage, text) {
     await addProjectItem(projectId, text, stage)
@@ -224,10 +244,10 @@ export default function Roadmap({ projectId, onBack }) {
           {queue.length > 0 && (
             <div className="phead-run">
               <button type="button" className="prun" onClick={() => setQueueOpen(true)}>
-                ▶ Kjør prompts <span className="prun-ct">{queue.length}</span>
+                ▶ Kjør i Claude <span className="prun-ct">{queue.length}</span>
               </button>
-              <button type="button" className="pcopyall" onClick={copyAll} title="Kopier alle som én liste">
-                {COPY} Kopier alle
+              <button type="button" className="pcopyall" onClick={copyAll} title="Kopier hele prompt-køen som én liste">
+                {COPY} Kopier prompt-kø
               </button>
             </div>
           )}
@@ -276,10 +296,16 @@ export default function Roadmap({ projectId, onBack }) {
         <div className="rm-workspace">
         <aside className="rm-rail">
         <div className={'phealth h-' + health.state}>
-          <span className="phealth-dot" />
-          <span className="phealth-lbl">{HEALTH_LABEL[health.state]}</span>
+          <span className="phealth-top">
+            <span className="phealth-dot" />
+            <span className="phealth-lbl">{HEALTH_LABEL[health.state]}</span>
+          </span>
+          <span className="phealth-detail">{health.detail}</span>
           {health.nextAction && (
-            <span className="phealth-next">Neste: {health.nextAction.text}</span>
+            <button type="button" className="phealth-next" onClick={() => setSheetItem(health.nextAction)}>
+              <span className="phealth-next-lbl">Neste beste steg</span>
+              <span className="phealth-next-txt">{health.nextAction.text}</span>
+            </button>
           )}
         </div>
         {linksEditing ? (
@@ -388,46 +414,82 @@ export default function Roadmap({ projectId, onBack }) {
             aria-expanded={launchOpen}
           >
             <span className="plaunch-title">
-              {launch.ready ? '🚀 Klar til lansering' : 'Klar til lansering'}
+              {launch.ready ? 'Klar til lansering 🚀' : 'Klar til lansering'}
             </span>
             <span className="plaunch-count">{launch.doneCount}/{launch.total}</span>
-            <span className={'plaunch-chev' + (launchOpen ? ' open' : '')}>▾</span>
+            <span className={'plaunch-chev' + (launchOpen ? ' open' : '')} aria-hidden="true">▾</span>
           </button>
           <span className="plaunch-bar">
             <i style={{ width: launch.pct + '%', background: launch.ready ? 'var(--forest)' : col }} />
           </span>
+          {launch.ready ? (
+            <p className="plaunch-ready-note">Alt er på plass — på tide å publisere.</p>
+          ) : (
+            <button type="button" className="plaunch-fix" onClick={() => fixCheck(launch.firstUnmet.action)}>
+              Fiks neste: {launch.firstUnmet.label}
+            </button>
+          )}
           {launchOpen && (
             <ul className="plaunch-list">
-              {launch.checks.map((c) => (
-                <li key={c.key} className={'plaunch-item' + (c.done ? ' done' : '')}>
-                  <span className="plaunch-mark" aria-hidden="true">{c.done ? '✓' : '○'}</span>
-                  <span className="plaunch-text">
-                    {c.label}
-                    {!c.done && <span className="plaunch-hint">{c.hint}</span>}
-                  </span>
-                </li>
-              ))}
+              {launch.checks.map((c) => {
+                if (c.done) {
+                  return (
+                    <li key={c.key} className="plaunch-item done">
+                      <span className="plaunch-mark" aria-hidden="true">✓</span>
+                      <span className="plaunch-text">{c.label}</span>
+                    </li>
+                  )
+                }
+                return (
+                  <li key={c.key} className="plaunch-item">
+                    <button type="button" className="plaunch-fixitem" onClick={() => fixCheck(c.action)}>
+                      <span className="plaunch-mark" aria-hidden="true">○</span>
+                      <span className="plaunch-text">
+                        {c.label}
+                        <span className="plaunch-hint">{c.hint}</span>
+                      </span>
+                      <span className="plaunch-cta">{c.cta} ›</span>
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
 
         <div className="precipes">
           <span className="precipes-lbl">Spør Claude om prosjektet</span>
-          <div className="precipes-chips">
-            {PROJECT_RECIPES.map((r) => (
-              <button key={r.key} type="button" className="precipe-chip" onClick={() => copyRecipe(r)} title="Kopier ferdig prompt med prosjektkontekst">
-                <span className="precipe-emoji">{r.emoji}</span>{r.label}
-              </button>
-            ))}
-          </div>
+          {recRecipe && (
+            <button type="button" className="precipe-rec" onClick={() => copyRecipe(recRecipe)}>
+              <span className="precipe-rec-tag">Anbefalt nå</span>
+              <span className="precipe-rec-main">
+                <span className="precipe-emoji">{recRecipe.emoji}</span>
+                {recRecipe.label}
+              </span>
+              <span className="precipe-rec-copy">Kopier ›</span>
+            </button>
+          )}
+          {RECIPE_GROUPS.map((g) => (
+            <div key={g} className="precipe-group">
+              <span className="precipe-group-lbl">{g}</span>
+              <div className="precipes-chips">
+                {PROJECT_RECIPES.filter((r) => r.group === g).map((r) => (
+                  <button key={r.key} type="button" className="precipe-chip" onClick={() => copyRecipe(r)} title="Kopier ferdig prompt med prosjektkontekst">
+                    <span className="precipe-emoji">{r.emoji}</span>{r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
         </aside>
 
-        <section className="rm-board">
+        <section className="rm-board" ref={boardRef}>
         <div className="rm-quickadd">
           <textarea
+            ref={quickRef}
             className="rm-quickadd-input"
-            placeholder="Skriv en idé eller prompt til prosjektet…  (Enter for å legge til, Shift+Enter for ny linje)"
+            placeholder="Skriv et byggesteg eller en prompt…  (Enter for å legge til, Shift+Enter for ny linje)"
             value={quickVal}
             rows={2}
             onChange={(e) => setQuickVal(e.target.value)}

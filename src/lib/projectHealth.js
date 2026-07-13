@@ -43,7 +43,25 @@ export function projectHealth(project, items = [], nowMs = Date.now()) {
 
   const moving = staleDays !== null && staleDays <= 3
 
-  return { state, moving, nextAction, openCount: open.length, doneCount, staleDays }
+  return { state, moving, nextAction, openCount: open.length, doneCount, staleDays, detail: detailFor(state, staleDays, open.length) }
+}
+
+/* Én kort, spesifikk setning som forklarer HVORFOR prosjektet har denne
+   helsen — «Ikke rørt på 9 dager» slår «Står stille». */
+function detailFor(state, staleDays, openCount) {
+  const days = (n) => `${n} ${n === 1 ? 'dag' : 'dager'}`
+  switch (state) {
+    case 'shipped': return 'Prosjektet er levert'
+    case 'onice': return 'Satt på is'
+    case 'empty': return 'Mangler et første byggesteg'
+    case 'ready': return 'Alt er bygd — klar til lansering'
+    case 'stuck': return `Ikke rørt på ${days(staleDays)}`
+    case 'building':
+      if (staleDays === null) return `${openCount} åpne steg`
+      if (staleDays <= 1) return 'I aktiv bevegelse'
+      return `Rørt sist for ${days(staleDays)} siden`
+    default: return ''
+  }
 }
 
 /* Norske etiketter for UI. */

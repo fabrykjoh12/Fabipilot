@@ -5,8 +5,11 @@
 
 /**
  * Bygg launch-sjekklisten for ett prosjekt.
- * Hver sjekk: { key, label, done, hint } — `hint` vises kun når `done` er false.
- * Returnerer også { doneCount, total, pct, ready }.
+ * Hver sjekk: { key, action, label, cta, done, hint }
+ *   - `action` — hva UI-et skal gjøre når punktet trykkes (Roadmap mapper det til en handler)
+ *   - `cta`    — kort handlingsknapp-tekst for uløste punkter
+ *   - `hint`   — vises kun når `done` er false
+ * Returnerer også { doneCount, total, pct, ready, firstUnmet }.
  */
 export function launchChecklist(project, items = []) {
   const open = items.filter((i) => i.stage !== 'done')
@@ -15,45 +18,59 @@ export function launchChecklist(project, items = []) {
   const checks = [
     {
       key: 'why',
-      label: 'Mål satt',
+      action: 'why',
+      label: 'Målet er satt',
+      cta: 'Skriv mål',
       done: !!project?.why,
-      hint: 'Legg til hvorfor prosjektet betyr noe.',
+      hint: 'Hva skal dette prosjektet oppnå?',
     },
     {
       key: 'steps',
-      label: 'Roadmap har steg',
+      action: 'board',
+      label: 'Roadmap har et byggesteg',
+      cta: 'Legg til steg',
       done: items.length > 0,
-      hint: 'Legg til minst ett steg på tavla.',
+      hint: 'Prosjektet trenger et konkret neste byggesteg.',
     },
     {
       key: 'context',
-      label: 'Claude-kontekst',
+      action: 'context',
+      label: 'Claude-kontekst er lagt inn',
+      cta: 'Legg inn kontekst',
       done: !!project?.context,
-      hint: 'Legg inn stack & konvensjoner — blir med i hver prompt.',
+      hint: 'Stack & konvensjoner — blir med i hver prompt.',
     },
     {
       key: 'repo',
+      action: 'links',
       label: 'Repo-lenke',
+      cta: 'Lim inn repo',
       done: !!project?.repoUrl,
-      hint: 'Lim inn GitHub-lenken.',
+      hint: 'Koble på GitHub-repoet.',
     },
     {
       key: 'live',
+      action: 'links',
       label: 'Live-lenke (deployet)',
+      cta: 'Lim inn URL',
       done: !!project?.liveUrl,
-      hint: 'Deploy og lim inn URL-en.',
+      hint: 'Deploy og lim inn den offentlige URL-en.',
     },
     {
       key: 'nohigh',
+      action: 'board',
       label: 'Ingen åpne høy-prioritet steg',
+      cta: 'Gå til tavla',
       done: openNow.length === 0,
-      hint: `${openNow.length} høy-prioritet ${openNow.length === 1 ? 'steg' : 'steg'} gjenstår.`,
+      hint: `${openNow.length} høy-prioritet ${openNow.length === 1 ? 'steg stopper' : 'steg stopper'} launch.`,
     },
     {
       key: 'allsteps',
-      label: 'Alle steg ferdig',
+      action: 'board',
+      label: 'Alle steg er ferdige',
+      cta: 'Gå til tavla',
       done: items.length > 0 && open.length === 0,
-      hint: items.length === 0 ? 'Ingen steg enda.' : `${open.length} steg gjenstår.`,
+      hint: items.length === 0 ? 'Ingen steg enda.' : `${open.length} steg gjenstår før alt er bygd.`,
     },
   ]
 
@@ -65,5 +82,6 @@ export function launchChecklist(project, items = []) {
     total,
     pct: Math.round((doneCount / total) * 100),
     ready: doneCount === total,
+    firstUnmet: checks.find((c) => !c.done) || null,
   }
 }
