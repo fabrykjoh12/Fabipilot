@@ -25,8 +25,9 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   DB-URL er hardkodet i `db.js`. `dexie-cloud.key` er hemmelig og er i `.gitignore` (committes aldri).
   Nye web-origins (f.eks. Vercel-URL) må whitelistes: `npx dexie-cloud whitelist <url>`.
 - vite-plugin-pwa
-- Vitest for enhetstester på rene funksjoner (`src/lib/*.test.js`). GitHub Actions (`.github/workflows/ci.yml`)
-  kjører lint + test + build på push/PR.
+- Vitest for enhetstester på rene funksjoner (`src/lib/*.test.js`) + integrasjonstester mot ekte `db.js`
+  via `fake-indexeddb` (`src/db.test.js`). GitHub Actions (`.github/workflows/ci.yml`) kjører lint + test
+  + build på push/PR.
 - Deploy: Vercel (auto fra `main`), ingen env-variabler
 
 ## 4. Designsystem (Any.do-inspirert — rent, lyst, luftig)
@@ -139,6 +140,9 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/db.js` — Dexie + Dexie Cloud-config: alle stores + CRUD-hjelpere + `exportAll`/`importAll` + `promoteIdeaToProject`
   (re-eksporterer `todayKey`/`tomorrowKey`/`nextDate` fra `lib/dates.js` så kall-steder er uendret)
 - `src/lib/dates.js` — rene datohjelpere: `todayKey`, `tomorrowKey`, `nextDate` (testet i `dates.test.js`)
+- `src/lib/tasks.js` — rene hjelpere for gjentakende oppgaver: `nextTaskOccurrence` (bygg neste forekomst)
+  og `shouldSpawnRepeat` (hindrer duplikat-forekomster ved av/på-huking); brukt av `setTaskDone` i db.js,
+  testet i `tasks.test.js`
 - `src/lib/migrations.js` — rene migrerings-mappinger: `legacyTodoToTask` (delt av v10-migreringen og
   `importAll`s eldre-backup-gren) og `legacyMoneyCategory` (delt av v11-migreringen og `importAll` for
   gamle Penger-kategori-nøkler); begge testet i `migrations.test.js`

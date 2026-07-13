@@ -14,6 +14,8 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Dexie-testharness (`fake-indexeddb`) + fiks: gjentakende oppgaver duplikerte framtidige forekomster
+  ved av/på-huking. Rene hjelpere `src/lib/tasks.js` + integrasjonstester `src/db.test.js`.
 - Prosjektliste-kort på cockpit-nivå: «Trenger oppmerksomhet»-gruppe (stuck/ready øverst) + kort-footer
   med helse-detalj, «N i kø», launch-beredskap 🚀 N/7 og live/repo-indikatorer.
 - Navigasjons-opprydding: primærflyt (Oversikt/Prosjekter/Oppgaver/Idébank) skilt fra sekundære
