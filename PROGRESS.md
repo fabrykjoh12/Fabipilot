@@ -2,6 +2,15 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-13 — **Dexie-testharness + fiks: gjentakende oppgaver duplikerte** (teknisk grunnmur, trygt).
+  • **Reell bug fikset**: `setTaskDone` laget en ny forekomst hver gang en gjentakende oppgave ble huket
+    av — så av/på/av-huking ga duplikate framtidige oppgaver. Nå hopper den over hvis en åpen forekomst
+    allerede finnes på måldatoen. Beslutningslogikken ligger i nye rene hjelpere `src/lib/tasks.js`
+    (`nextTaskOccurrence` + `shouldSpawnRepeat`), testet i `tasks.test.js`.
+  • **Ny integrasjons-testharness**: `fake-indexeddb` (devDep) lar oss teste ekte `db.js`-funksjoner mot
+    en in-memory IndexedDB. `src/db.test.js` dekker gjentakelses-oppførselen (inkl. duplikat-fiksen
+    ende-til-ende) og `exportAll`/`importAll` (round-trip + idempotens ved re-import + legacy
+    kategori-remap + avvisning av ugyldig backup). 17 nye tester (104 totalt). Ingen datamodell-endring.
 - 2026-07-13 — **Prosjektliste-kortene løftet til cockpit-nivå + «Trenger oppmerksomhet»-gruppering**.
   Listen var det svakeste leddet etter at innsiden av hvert prosjekt ble polert. Nå:
   • Ny **«Trenger oppmerksomhet»**-seksjon øverst (rød etikett) som løfter fram aktive prosjekter som

@@ -2,6 +2,7 @@ import Dexie from 'dexie'
 import dexieCloud from 'dexie-cloud-addon'
 import { todayKey, tomorrowKey, nextDate } from './lib/dates.js'
 import { legacyTodoToTask, legacyMoneyCategory } from './lib/migrations.js'
+import { nextTaskOccurrence, shouldSpawnRepeat } from './lib/tasks.js'
 
 export { todayKey, tomorrowKey, nextDate }
 
@@ -282,20 +283,19 @@ export async function setTaskDone(id, done) {
     completedAt: done ? now() : null,
   })
   // Gjentakende oppgave: lag neste forekomst når den hukes av (krever dato).
+  // Hopp over hvis en åpen forekomst allerede finnes på måldatoen, ellers får
+  // man duplikater når man huker av/på flere ganger (shouldSpawnRepeat).
   if (done && t && t.repeat && t.repeat !== 'none' && t.dueDate) {
-    await db.tasks.add({
-      id: uid(),
-      title: t.title,
-      isDone: false,
-      isFocus: false,
-      dueDate: nextDate(t.dueDate, t.repeat),
-      completedAt: null,
-      estimate: t.estimate || null,
-      repeat: t.repeat,
-      subtasks: [],
-      sortOrder: now(),
-      createdAt: now(),
-    })
+    const target = nextDate(t.dueDate, t.repeat)
+    const siblings = await db.tasks.where('dueDate').equals(target).toArray()
+    if (shouldSpawnRepeat(t, siblings)) {
+      await db.tasks.add({
+        id: uid(),
+        ...nextTaskOccurrence(t),
+        sortOrder: now(),
+        createdAt: now(),
+      })
+    }
   }
 }
 export const setTaskFocus = (id, focus) => db.tasks.update(id, { isFocus: focus })
