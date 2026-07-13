@@ -65,4 +65,19 @@ describe('projectHealth', () => {
       expect(HEALTH_STATUS_EN[state]).toBeTruthy()
     }
   })
+
+  it('gives a specific detail reason for each state', () => {
+    // stuck names the exact number of stale days
+    expect(projectHealth({ status: 'active', lastTouched: NOW - 12 * DAY }, [item('now')], NOW).detail)
+      .toBe('Ikke rørt på 12 dager')
+    // ready explains it is fully built
+    expect(projectHealth({ status: 'active', lastTouched: NOW }, [item('done')], NOW).detail)
+      .toMatch(/klar til lansering/i)
+    // empty points at the missing first step
+    expect(projectHealth({ status: 'active', lastTouched: NOW }, [], NOW).detail)
+      .toMatch(/byggesteg/i)
+    // building, freshly touched, reads as moving
+    expect(projectHealth({ status: 'active', lastTouched: NOW }, [item('next')], NOW).detail)
+      .toBe('I aktiv bevegelse')
+  })
 })

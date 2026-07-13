@@ -143,8 +143,9 @@ Alle stores er med i JSON-eksport/import (se §8).
   `importAll`s eldre-backup-gren) og `legacyMoneyCategory` (delt av v11-migreringen og `importAll` for
   gamle Penger-kategori-nøkler); begge testet i `migrations.test.js`
 - `src/lib/prompts.js` — Claude-prompt-bygging: `projectContext`, `buildPrompt`, `buildAllPrompts`, `hasContext`,
-  `projectBrief` (kontekst + status + åpne steg) og `PROJECT_RECIPES`/`buildRecipe` (kontekst-rike ferdige
-  prompts: brutal review, launch-sjekk, rydd koden, bug-jakt, datamodell, refaktor, landingstekst, vekst)
+  `projectBrief` (kontekst + status + åpne steg), `PROJECT_RECIPES`/`buildRecipe` (kontekst-rike ferdige
+  prompts, gruppert via `RECIPE_GROUPS`: brutal review, UI/UX-løft, bug-jakt, rydd koden, datamodell,
+  refaktor, launch-sjekk, landingstekst, vekst) og `recommendedRecipe(healthState)` («anbefalt nå»-forslag)
   (brukt av Prosjekter; testet i `prompts.test.js`)
 - `src/lib/projectHealth.js` — `projectHealth(project, items)`: utledet helse-signal
   (`building | stuck | ready | shipped | onice | empty`) + «neste beste handling», UTEN å endre lagret

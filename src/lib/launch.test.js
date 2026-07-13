@@ -5,7 +5,7 @@ const item = (stage) => ({ stage })
 const get = (res, key) => res.checks.find((c) => c.key === key)
 
 describe('launchChecklist', () => {
-  it('has all seven checks and none done for a blank project', () => {
+  it('has all seven checks and only the vacuous one done for a blank project', () => {
     const res = launchChecklist({ status: 'active' }, [])
     expect(res.total).toBe(7)
     // blank: why/steps/context/repo/live/allsteps are undone; nohigh is vacuously true
@@ -13,6 +13,15 @@ describe('launchChecklist', () => {
     expect(get(res, 'nohigh').done).toBe(true)
     expect(res.ready).toBe(false)
     expect(res.pct).toBe(Math.round((1 / 7) * 100))
+  })
+
+  it('exposes an action and cta on every check', () => {
+    const res = launchChecklist({}, [])
+    for (const c of res.checks) {
+      expect(c.action).toBeTruthy()
+      expect(c.cta).toBeTruthy()
+      expect(['why', 'context', 'links', 'board']).toContain(c.action)
+    }
   })
 
   it('marks metadata checks done when the fields are set', () => {
@@ -37,11 +46,19 @@ describe('launchChecklist', () => {
     expect(get(launchChecklist({}, [item('done')]), 'allsteps').done).toBe(true)
   })
 
-  it('is ready only when every check passes', () => {
+  it('reports the first unmet check for "fix next"', () => {
+    // blank project: first unmet is "why" (checks are in fix-order)
+    expect(launchChecklist({}, []).firstUnmet.key).toBe('why')
+    // with a goal set, the next gap is a build step
+    expect(launchChecklist({ why: 'x' }, []).firstUnmet.key).toBe('steps')
+  })
+
+  it('has no firstUnmet when everything passes', () => {
     const project = { why: 'Ship', context: 'React', repoUrl: 'gh', liveUrl: 'app' }
     const res = launchChecklist(project, [item('done'), item('done')])
     expect(res.ready).toBe(true)
     expect(res.doneCount).toBe(7)
     expect(res.pct).toBe(100)
+    expect(res.firstUnmet).toBe(null)
   })
 })

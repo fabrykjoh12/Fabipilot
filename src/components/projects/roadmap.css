@@ -891,15 +891,24 @@
 }
 
 
-/* ===== Avledet prosjekt-helse (info-skinne) ===== */
+/* ===== Avledet prosjekt-helse (statuskort øverst i info-skinna) ===== */
 .roadmap .phealth {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 12px 13px;
+  border-radius: var(--r-md, 12px);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.roadmap .phealth-top {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 .roadmap .phealth-dot {
@@ -909,28 +918,57 @@
   background: var(--muted);
   flex: 0 0 auto;
 }
-.roadmap .phealth-lbl { letter-spacing: -0.01em; }
-.roadmap .phealth-next {
-  flex: 1 1 100%;
-  font-size: 12px;
-  font-weight: 500;
+.roadmap .phealth-detail {
+  font-size: 12.5px;
   color: var(--muted);
+  line-height: 1.4;
+}
+.roadmap .phealth-next {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.roadmap .phealth-next:hover { box-shadow: inset 0 0 0 1px var(--accent); }
+.roadmap .phealth-next-lbl {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.roadmap .phealth-next-txt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .roadmap .phealth.h-building .phealth-dot { background: var(--forest); }
-.roadmap .phealth.h-building .phealth-lbl { color: var(--forest); }
+.roadmap .phealth.h-building .phealth-top { color: var(--forest); }
+.roadmap .phealth.h-ready { border-color: var(--accent-soft); }
 .roadmap .phealth.h-ready .phealth-dot { background: var(--accent); }
-.roadmap .phealth.h-ready .phealth-lbl { color: var(--accent); }
+.roadmap .phealth.h-ready .phealth-top { color: var(--accent); }
+.roadmap .phealth.h-stuck { border-color: var(--danger-soft); background: var(--danger-soft); }
 .roadmap .phealth.h-stuck .phealth-dot { background: var(--danger); }
-.roadmap .phealth.h-stuck .phealth-lbl { color: var(--danger); }
+.roadmap .phealth.h-stuck .phealth-top { color: var(--danger); }
 .roadmap .phealth.h-shipped .phealth-dot,
 .roadmap .phealth.h-onice .phealth-dot,
 .roadmap .phealth.h-empty .phealth-dot { background: var(--muted); }
-.roadmap .phealth.h-shipped .phealth-lbl,
-.roadmap .phealth.h-onice .phealth-lbl,
-.roadmap .phealth.h-empty .phealth-lbl { color: var(--muted); }
+.roadmap .phealth.h-shipped .phealth-top,
+.roadmap .phealth.h-onice .phealth-top,
+.roadmap .phealth.h-empty .phealth-top { color: var(--ink); }
 
 /* ===== Prompt-oppskrifter (kontekst-rike Claude-prompts) ===== */
 .roadmap .precipes {
@@ -946,6 +984,55 @@
   text-transform: uppercase;
   color: var(--faint);
   margin-bottom: 9px;
+}
+.roadmap .precipe-rec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-ring);
+  font-family: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.roadmap .precipe-rec:hover { box-shadow: inset 0 0 0 1px var(--accent); }
+.roadmap .precipe-rec-tag {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+.roadmap .precipe-rec-main {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.roadmap .precipe-rec-copy {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.roadmap .precipe-group { margin-bottom: 11px; }
+.roadmap .precipe-group-lbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 7px;
 }
 .roadmap .precipes-chips {
   display: flex;
@@ -1062,8 +1149,72 @@
   flex-direction: column;
   gap: 2px;
   line-height: 1.35;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .roadmap .plaunch-hint {
   font-size: 12px;
   color: var(--faint);
+}
+
+/* «Fiks neste»-CTA — hovedhandling for uløst launch */
+.roadmap .plaunch-fix {
+  display: block;
+  width: 100%;
+  margin-top: 11px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.roadmap .plaunch-fix:hover { background: var(--accent-deep); }
+.roadmap .plaunch-ready-note {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--forest);
+  font-weight: 600;
+}
+
+/* Uløst punkt = handlingsknapp med inline CTA */
+.roadmap .plaunch-fixitem {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  margin: -7px -8px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: background 0.13s;
+}
+.roadmap .plaunch-fixitem:hover { background: var(--surface-2); }
+.roadmap .plaunch-cta {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 0.13s;
+}
+.roadmap .plaunch-fixitem:hover .plaunch-cta,
+.roadmap .plaunch-fixitem:focus-visible .plaunch-cta { opacity: 1; }
+@media (hover: none) {
+  .roadmap .plaunch-cta { opacity: 1; }
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   projectContext, buildPrompt, buildAllPrompts, hasContext,
   projectBrief, buildRecipe, PROJECT_RECIPES,
+  RECIPE_GROUPS, recommendedRecipe,
 } from './prompts.js'
 
 describe('projectContext', () => {
@@ -113,12 +114,33 @@ describe('buildRecipe', () => {
     expect(out).toContain('brutally honest')
   })
 
-  it('every recipe has a key, label, emoji and ask', () => {
+  it('every recipe has a key, label, emoji, ask and a known group', () => {
     for (const r of PROJECT_RECIPES) {
       expect(r.key).toBeTruthy()
       expect(r.label).toBeTruthy()
       expect(r.emoji).toBeTruthy()
       expect(r.ask.length).toBeGreaterThan(20)
+      expect(RECIPE_GROUPS).toContain(r.group)
     }
+  })
+
+  it('recipe keys are unique', () => {
+    const keys = PROJECT_RECIPES.map((r) => r.key)
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+})
+
+describe('recommendedRecipe', () => {
+  it('returns a real recipe for every health state', () => {
+    for (const state of ['empty', 'building', 'stuck', 'ready', 'shipped', 'onice']) {
+      const r = recommendedRecipe(state)
+      expect(PROJECT_RECIPES).toContain(r)
+    }
+  })
+  it('recommends the launch checklist when ready to ship', () => {
+    expect(recommendedRecipe('ready').key).toBe('launch')
+  })
+  it('falls back to review for an unknown state', () => {
+    expect(recommendedRecipe('weird').key).toBe('review')
   })
 })
