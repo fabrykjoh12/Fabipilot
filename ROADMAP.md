@@ -14,6 +14,8 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Prosjektliste-kort på cockpit-nivå: «Trenger oppmerksomhet»-gruppe (stuck/ready øverst) + kort-footer
+  med helse-detalj, «N i kø», launch-beredskap 🚀 N/7 og live/repo-indikatorer.
 - Navigasjons-opprydding: primærflyt (Oversikt/Prosjekter/Oppgaver/Idébank) skilt fra sekundære
   støtteverktøy med en «Verktøy»-gruppe i PC-sidemenyen; Kalender demotert til «Mer». Reduserer
   «for mange moduler»-følelsen uten å fjerne noe.

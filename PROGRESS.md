@@ -2,6 +2,16 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-13 — **Prosjektliste-kortene løftet til cockpit-nivå + «Trenger oppmerksomhet»-gruppering**.
+  Listen var det svakeste leddet etter at innsiden av hvert prosjekt ble polert. Nå:
+  • Ny **«Trenger oppmerksomhet»**-seksjon øverst (rød etikett) som løfter fram aktive prosjekter som
+    står stille eller er klar-til-lansering (`projectHealth.state` ∈ {stuck, ready}); resten vises som
+    «Andre aktive».
+  • Kort-footer med cockpit-signaler: spesifikk helse-detalj («Ikke rørt på 11 dager» / «Alt er bygd —
+    klar til lansering» / «I aktiv bevegelse»), «N i kø» (åpne steg), launch-beredskap 🚀 N/7
+    (`launchChecklist`), og live/repo-indikatorer (↗/⎇). Gjenbruker de eksisterende rene hjelperne —
+    ingen ny logikk, ingen datamodell-endring.
+  Render-verifisert i Chromium (lys + mørk). Lint + 87 tester + build grønt.
 - 2026-07-13 — **Navigasjons-opprydding: bygge-flyten først** (redusert «for mange moduler»-følelsen,
   som var den største premium-UX-risikoen). Primærflyten er nå bygge-løpet: **Oversikt · Prosjekter ·
   Oppgaver · Idébank** (`PRIMARY` i App.jsx) — bunnfanene på mobil og øverste gruppe i PC-sidemenyen.
