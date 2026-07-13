@@ -16,6 +16,7 @@ import { toast, ScreenSkeleton } from '../../lib/ui.jsx'
 import { buildAllPrompts, buildRecipe, PROJECT_RECIPES, RECIPE_GROUPS, recommendedRecipe } from '../../lib/prompts.js'
 import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
 import { launchChecklist } from '../../lib/launch.js'
+import { downscaleImage } from '../../lib/image.js'
 import {
   STATUS_LABEL,
   NEXT_STATUS,
@@ -64,6 +65,8 @@ export default function Roadmap({ projectId, onBack }) {
   const [repoVal, setRepoVal] = useState('')
   const quickRef = useRef(null)
   const boardRef = useRef(null)
+  const photoRef = useRef(null)
+  const [photoBusy, setPhotoBusy] = useState(false)
 
   if (!project) return <ScreenSkeleton />
 
@@ -210,6 +213,27 @@ export default function Roadmap({ projectId, onBack }) {
     setProjectStatus(project.id, NEXT_STATUS[project.status])
   }
 
+  async function onPickImage(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setPhotoBusy(true)
+    try {
+      const image = await downscaleImage(file)
+      await updateProject(project.id, { image })
+      vibrate(8)
+      toast.success('Bilde lagt til')
+    } catch (err) {
+      toast.error('Kunne ikke legge til bildet', { description: err?.message })
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+  function removeImage() {
+    updateProject(project.id, { image: null })
+    toast.message('Bilde fjernet')
+  }
+
   return (
     <div className="screen roadmap">
       <div className="screen-scroll">
@@ -220,12 +244,14 @@ export default function Roadmap({ projectId, onBack }) {
         <div className="phead">
           <button
             type="button"
-            className="pemoji-badge"
+            className={'pemoji-badge' + (project.image ? ' has-photo' : '')}
             style={{ background: col + '22', borderColor: col + '55' }}
             onClick={() => setCustomizing((c) => !c)}
-            aria-label="Endre ikon og farge"
+            aria-label="Endre ikon, farge og bilde"
           >
-            {project.emoji || '🗂️'}
+            {project.image
+              ? <img className="pemoji-photo" src={project.image} alt="" />
+              : (project.emoji || '🗂️')}
           </button>
           <div className="phead-main">
             {editingName ? (
@@ -266,6 +292,24 @@ export default function Roadmap({ projectId, onBack }) {
 
         {customizing && (
           <div className="pcustom">
+            <div className="pcustom-photo">
+              <input
+                ref={photoRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={onPickImage}
+              />
+              {project.image && (
+                <img className="pcustom-photo-preview" src={project.image} alt="Prosjektbilde" />
+              )}
+              <button type="button" className="pcustom-photo-btn" disabled={photoBusy} onClick={() => photoRef.current?.click()}>
+                {photoBusy ? 'Laster…' : project.image ? '📷 Bytt bilde' : '📷 Legg til bilde'}
+              </button>
+              {project.image && (
+                <button type="button" className="pcustom-photo-rm" onClick={removeImage}>Fjern</button>
+              )}
+            </div>
             <div className="pcustom-emojis">
               {PROJECT_EMOJIS.map((e) => (
                 <button

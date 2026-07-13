@@ -491,6 +491,7 @@ export async function addProject({ name, why = '', status = 'active', color = 'f
     status,
     color,
     emoji,
+    image: null,
     deadline: null,
     notes: '',
     sortOrder: maxOrder ? (maxOrder.sortOrder ?? 0) + 1000 : 0,

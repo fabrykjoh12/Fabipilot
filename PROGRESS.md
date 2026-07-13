@@ -2,6 +2,13 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-13 — **Cover-bilde på prosjekter** (ønske fra brukeren: «add photos to my projects list»). Nytt
+  valgfritt `image`-felt på `projects` (uindeksert, ingen schema-bump) = nedskalert JPEG-data-URL. Ny
+  hjelper `src/lib/image.js` (`downscaleImage`) leser valgt fil, skalerer til maks ~640px og komprimerer
+  (JPEG q≈0.72) via canvas, så bildet holdes lite nok til å synke på prosjekt-raden via Dexie Cloud.
+  Settes i prosjekt-sidens kustomiseringspanel («Legg til/Bytt bilde» + «Fjern»); vist som cover-banner
+  øverst på liste-kortet og i prosjekt-header-badgen (emoji-fallback når ingen bilde). Med i JSON-backup
+  (del av `projects`). 2 nye tester på validerings-grenen (106 totalt). Render-verifisert i Chromium (lys+mørk).
 - 2026-07-13 — **Dexie-testharness + fiks: gjentakende oppgaver duplikerte** (teknisk grunnmur, trygt).
   • **Reell bug fikset**: `setTaskDone` laget en ny forekomst hver gang en gjentakende oppgave ble huket
     av — så av/på/av-huking ga duplikate framtidige oppgaver. Nå hopper den over hvis en åpen forekomst

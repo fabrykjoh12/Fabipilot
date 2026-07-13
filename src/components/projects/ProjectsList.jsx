@@ -90,7 +90,12 @@ export default function ProjectsList({ onOpen }) {
             onClick={(e) => { e.stopPropagation(); moveProject(p.id, 1) }}
           >▼</button>
         </div>
-        <button type="button" className="plist-card" onClick={() => onOpen(p.id)} style={{ '--pc': col }}>
+        <button type="button" className={'plist-card' + (p.image ? ' has-cover' : '')} onClick={() => onOpen(p.id)} style={{ '--pc': col }}>
+          {p.image && (
+            <span className="plist-cover">
+              <img src={p.image} alt="" loading="lazy" />
+            </span>
+          )}
           <div className="plist-top">
             <span className="plist-emoji" style={{ background: col + '22' }}>{p.emoji || '🗂️'}</span>
             <span className="plist-name">{p.name}</span>

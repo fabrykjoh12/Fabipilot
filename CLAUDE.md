@@ -90,8 +90,10 @@ Synces via Dexie Cloud (se §3).
   Sparemål. `addToGoal(id, delta)` justerer `saved` (min 0).
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
   `status` = `'active' | 'onice' | 'done'`. `lastTouched` oppdateres når et item i prosjektet endres.
-  `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon. Prompt-verksted-felt (alle uindeksert, ingen
-  schema-bump): `context` (Claude-kontekst/stack — limes inn foran kopierte prompts), `liveUrl`, `repoUrl`,
+  `color` = nøkkel i `PROJECT_COLORS`, `emoji` = valgt ikon. `image` (uindeksert, valgfri): nedskalert
+  JPEG-data-URL (cover-bilde, satt via `downscaleImage` i `src/lib/image.js`, maks ~640px — holdes lite
+  fordi det synces på prosjekt-raden), vist som cover på liste-kortet og i prosjekt-header. Prompt-verksted-felt
+  (alle uindeksert, ingen schema-bump): `context` (Claude-kontekst/stack — limes inn foran kopierte prompts), `liveUrl`, `repoUrl`,
   `deadline` (`YYYY-MM-DD` el. `null`), `notes`. Deling: `shareProject(id,email)` flytter prosjektet + alle
   `projectItems` inn i et eget Dexie Cloud-realm (`realmId`) og inviterer på e-post; `stopSharingProject`
   flytter tilbake til privat realm. `addProjectItem` arver prosjektets `realmId`.
