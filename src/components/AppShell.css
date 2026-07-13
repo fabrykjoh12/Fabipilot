@@ -256,6 +256,10 @@
 .nav-secondary {
   display: none;
 }
+/* Seksjonsskille i sidemenyen — kun på PC (mobil har bunnfaner) */
+.nav-sec-label {
+  display: none;
+}
 
 /* «Mer»-sheet */
 .more-overlay {
@@ -358,6 +362,16 @@
   }
   .nav-more {
     display: none;
+  }
+  .nav-sec-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 18px 13px 7px;
+    user-select: none;
   }
   .nav-brand {
     font-family: var(--font-display);
