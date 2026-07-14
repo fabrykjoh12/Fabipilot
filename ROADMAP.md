@@ -14,6 +14,8 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- «Jobb» — delt arbeidsplan: trykk på dagene du jobber, kjæresten ser dem og du ser hennes. Ny
+  `workdays`-store (v12) i samme delte realm som «Delt»/«Handleliste».
 - Cover-bilde på prosjekter: valgfritt nedskalert bilde (`image`-felt, `src/lib/image.js`), satt i
   kustomiseringspanelet, vist som cover på liste-kortet + i prosjekt-header.
 - Dexie-testharness (`fake-indexeddb`) + fiks: gjentakende oppgaver duplikerte framtidige forekomster

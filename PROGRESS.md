@@ -2,6 +2,15 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-14 — **«Jobb» — delt arbeidsplan med kjæresten** (ønske fra brukeren: en jobb-liste der jeg
+  trykker på dagene jeg jobber, som kjæresten kan se, og jeg ser når hun jobber). Ny modul + ny store
+  `workdays` (v12: `id, date, owner, createdAt` + `realmId`). Ligger i DET SAMME delte Dexie Cloud-realmet
+  som «Delt»/«Handleliste» (`ensureSharedRealm`), så én invitasjon deler alt og begge ser hverandres dager;
+  `owner` skiller hvem som jobber. Månedskalender (`Workdays.jsx`/`Workdays.css`): trykk på en dag for å
+  skru MIN jobb-dag av/på (`toggleMyWorkday`) — mine dager = fylt aksent, kjærestens = rosa prikk, begge =
+  begge. Måned-navigasjon + teller «Du: N · Henne: M». «Del»-panel gjenbruker `inviteToShared`. Ny modul i
+  «Verktøy»-gruppa (sekundær), `Briefcase`-ikon. Ikke i JSON-eksport (deles via realmet). Render-verifisert
+  i Chromium (lys+mørk). Lint + 106 tester + build grønt.
 - 2026-07-13 — **Cover-bilde på prosjekter** (ønske fra brukeren: «add photos to my projects list»). Nytt
   valgfritt `image`-felt på `projects` (uindeksert, ingen schema-bump) = nedskalert JPEG-data-URL. Ny
   hjelper `src/lib/image.js` (`downscaleImage`) leser valgt fil, skalerer til maks ~640px og komprimerer

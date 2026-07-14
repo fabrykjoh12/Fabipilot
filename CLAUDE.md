@@ -57,7 +57,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **11**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **12**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -111,6 +111,11 @@ Synces via Dexie Cloud (se §3).
   kjæresten»-bryteren i hendelse-arket — delte hendelser dukker automatisk opp i kalenderen på begge
   enheter siden det bare er én tabell. Kalenderen viser også `tasks` på deres `dueDate` (huk av direkte
   i dag-agendaen).
+- **workdays** (Jobb — delt arbeidsplan) — `id, date, owner, realmId, createdAt`
+  `date` = `YYYY-MM-DD`. Hver person huker av dagene de jobber; `owner` = `db.cloud.currentUserId`.
+  Ligger i DET SAMME delte realmet som `sharedItems` (via `ensureSharedRealm()`), så én invitasjon deler
+  «Jobb» + «Delt» + «Handleliste» med kjæresten samtidig, og begge ser hverandres dager. `toggleMyWorkday(date)`
+  legger til / fjerner min egen dag. IKKE i JSON-eksport (deles via sky-realmet). v12 la til storen.
 - **todos** (UTGÅTT) — slått sammen inn i `tasks` i v10. Storen beholdes tom for bakoverkompat;
   `importAll` mapper gamle backup-`todos` automatisk inn i `tasks`. Ikke i bruk i UI.
 - **sharedItems** (Delt / Handleliste) — `id, realmId, owner, text, list, isDone, completedAt, sortOrder, createdAt`
@@ -211,6 +216,10 @@ Alle stores er med i JSON-eksport/import (se §8).
     `ShoppingList.jsx` («Handleliste», `list='handleliste'`) er tynne wrappere rundt den — samme realm/
     medlemmer, så én invitasjon deler begge listene
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
+  - `Workdays.jsx` / `Workdays.css` — «Jobb»: delt arbeidsplan (månedskalender). Trykk på dagene du
+    jobber; kjæresten ser dem, og du ser hennes. Bruker samme delte realm som «Delt»/«Handleliste»
+    (`listWorkdays`/`toggleMyWorkday` + `inviteToShared` i db.js) — dine dager = fylt aksent, kjærestens
+    = rosa prikk
   - `Garden.jsx` / `Garden.css` — «Hage»: rolig, levende SVG-scene som speiler uka (vaner=blomster, prosjekter=trær, gjort i dag=sommerfugler, fokus=sol, penger=vær). Kun lesing over eksisterende stores, ingen skam/visning.
     Trykk på en blomst/et tre i full visning (ikke kompakt-kortet på Oversikt) viser en navnelapp
     (vane-/prosjektnavn) — tast/klikk igjen, Escape, eller trykk utenfor for å lukke

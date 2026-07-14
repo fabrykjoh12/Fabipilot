@@ -1,0 +1,129 @@
+/* ===== Jobb — delt arbeidsplan ===== */
+.wd-cal {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+.wd-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.wd-nav {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 10px;
+  font-size: 18px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.wd-nav:active { transform: scale(0.94); }
+.wd-month {
+  flex: 1 1 auto;
+  text-align: center;
+  border: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.wd-weekdays,
+.wd-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.wd-weekdays {
+  margin-bottom: 6px;
+}
+.wd-wd {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--faint);
+  text-transform: uppercase;
+}
+.wd-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 11px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-family: inherit;
+  transition: background 0.13s, border-color 0.13s, transform 0.1s;
+}
+.wd-cell:active { transform: scale(0.93); }
+.wd-day {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.wd-cell.out { opacity: 0.4; }
+.wd-cell.out .wd-day { color: var(--faint); }
+.wd-cell.today {
+  border-color: var(--accent);
+}
+/* MIN jobb-dag — fylt aksent (det er dette et trykk skrur av/på) */
+.wd-cell.me {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.wd-cell.me .wd-day { color: #fff; }
+/* Kjærestens jobb-dag — liten prikk øverst til høyre */
+.wd-partner-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wd-partner, #d16ba5);
+}
+.wd-cell.me .wd-partner-dot {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.wd-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 0 2px;
+}
+.wd-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.wd-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  flex: 0 0 auto;
+}
+.wd-swatch.me { background: var(--accent); }
+.wd-swatch.partner { background: var(--wd-partner, #d16ba5); }
+
+@media (min-width: 700px) {
+  .wd-cal { max-width: 520px; }
+}

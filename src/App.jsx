@@ -12,6 +12,7 @@ import IdeaBank from './components/IdeaBank.jsx'
 import Habits from './components/Habits.jsx'
 import SharedList from './components/SharedList.jsx'
 import ShoppingList from './components/ShoppingList.jsx'
+import Workdays from './components/Workdays.jsx'
 import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
@@ -57,6 +58,7 @@ const MODULES = [
   { k: 'ideas', label: 'Idébank', Comp: IdeaBank },
   // Støtteverktøy (sekundære)
   { k: 'calendar', label: 'Kalender', Comp: Calendar },
+  { k: 'work', label: 'Jobb', Comp: Workdays },
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'habits', label: 'Vaner', Comp: Habits },
   { k: 'money', label: 'Penger', Comp: Money },
