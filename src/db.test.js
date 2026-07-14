@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { db, addTask, setTaskDone, exportAll, importAll } from './db.js'
+import { db, addTask, setTaskDone, addIdea, addProject, addHabit, addProjectItem, exportAll, importAll } from './db.js'
 import { legacyMoneyCategory } from './lib/migrations.js'
 
 // Domenetabellene vi rører i disse testene — nullstilles mellom hver test.
@@ -41,6 +41,34 @@ describe('setTaskDone — gjentakende oppgaver', () => {
     const t = await addTask('Udatert', { dueDate: null, repeat: 'weekly' })
     await setTaskDone(t.id, true)
     expect(await db.tasks.count()).toBe(1)
+  })
+})
+
+describe('data-lags-validering — tom/whitespace input oppretter ingenting', () => {
+  it('addTask rejects empty and whitespace titles', async () => {
+    expect(await addTask('')).toBe(null)
+    expect(await addTask('   ')).toBe(null)
+    expect(await db.tasks.count()).toBe(0)
+    const ok = await addTask('Ekte oppgave')
+    expect(ok).not.toBe(null)
+    expect(await db.tasks.count()).toBe(1)
+  })
+
+  it('addIdea / addHabit reject blanks', async () => {
+    expect(await addIdea('   ')).toBe(null)
+    expect(await addHabit('')).toBe(null)
+    expect(await db.ideas.count()).toBe(0)
+  })
+
+  it('addProject rejects a blank name', async () => {
+    expect(await addProject({ name: '  ' })).toBe(null)
+    expect(await db.projects.count()).toBe(0)
+  })
+
+  it('addProjectItem rejects blank text', async () => {
+    const p = await addProject({ name: 'Prosjekt' })
+    expect(await addProjectItem(p.id, '   ')).toBe(null)
+    expect(await db.projectItems.count()).toBe(0)
   })
 })
 

@@ -2,6 +2,11 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-14 — **Data-lags-validering (defense-in-depth)**. `addTask`/`addIdea`/`addProject`/`addHabit`/
+  `addProjectItem` returnerer nå `null` og skriver ingenting når tittelen/teksten er tom eller kun
+  whitespace (før stolte de blindt på at UI-et guardet). `promoteIdeaToProject` håndterer en tom idé-tekst
+  trygt (oppretter/sletter ingenting). Matcher mønsteret `addSharedItem` allerede hadde. 4 nye
+  integrasjonstester (110 totalt). Ingen UI-endring — kallstedene guarder fortsatt som før.
 - 2026-07-14 — **«Jobb» — delt arbeidsplan med kjæresten** (ønske fra brukeren: en jobb-liste der jeg
   trykker på dagene jeg jobber, som kjæresten kan se, og jeg ser når hun jobber). Ny modul + ny store
   `workdays` (v12: `id, date, owner, createdAt` + `realmId`). Ligger i DET SAMME delte Dexie Cloud-realmet

@@ -232,9 +232,11 @@ export async function listIdeas() {
   return db.ideas.orderBy('createdAt').reverse().toArray()
 }
 export async function addIdea(text) {
+  const t = text?.trim()
+  if (!t) return null
   const idea = {
     id: uid(),
-    text: text.trim(),
+    text: t,
     category: 'ny',
     isFavorite: false,
     note: '',
@@ -260,9 +262,11 @@ export async function listTasks() {
  *  - 'YYYY-MM-DD' → den datoen.
  */
 export async function addTask(title, opts = {}) {
+  const t = title?.trim()
+  if (!t) return null
   const task = {
     id: uid(),
-    title: title.trim(),
+    title: t,
     isDone: false,
     isFocus: false,
     dueDate: opts.dueDate !== undefined ? opts.dueDate : todayKey(),
@@ -341,9 +345,11 @@ export async function listHabits() {
   return db.habits.orderBy('sortOrder').toArray()
 }
 export async function addHabit(name) {
+  const n = name?.trim()
+  if (!n) return null
   const habit = {
     id: uid(),
-    name: name.trim(),
+    name: n,
     history: [],
     color: 'forest',
     emoji: '🌿',
@@ -488,10 +494,12 @@ export const getProject = (id) => db.projects.get(id)
 export const countActiveProjects = () => db.projects.where('status').equals('active').count()
 
 export async function addProject({ name, why = '', status = 'active', color = 'forest', emoji = '🗂️' }) {
+  const nm = name?.trim()
+  if (!nm) return null
   const maxOrder = await db.projects.orderBy('sortOrder').last()
   const p = {
     id: uid(),
-    name: name.trim(),
+    name: nm,
     why: why.trim ? why.trim() : why,
     status,
     color,
@@ -536,11 +544,13 @@ export async function listProjectItems(projectId) {
 const touch = (projectId) => db.projects.update(projectId, { lastTouched: now() })
 
 export async function addProjectItem(projectId, text, stage = 'next') {
+  const t = text?.trim()
+  if (!t) return null
   const project = await db.projects.get(projectId)
   const item = {
     id: uid(),
     projectId,
-    text: text.trim(),
+    text: t,
     stage,
     energy: null,
     sortOrder: now(),
@@ -615,6 +625,7 @@ export async function reorderItem(item, direction) {
 /** Forfremm en idé til et nytt aktivt prosjekt. */
 export async function promoteIdeaToProject(idea) {
   const project = await addProject({ name: idea.text, why: '', status: 'active' })
+  if (!project) return { project: null } // tom idé-tekst → ikke opprett/slett noe
   await db.ideas.delete(idea.id)
   return { project }
 }
