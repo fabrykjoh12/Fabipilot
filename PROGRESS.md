@@ -2,6 +2,18 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-14 — **Penger-oversikten løftet: «Trygt å bruke»** (ønske fra brukeren: bedre oversikt over
+  penger, «jeg er dårlig med penger»). Fokuset flyttet fra tall til mening — ett stort svar øverst på
+  «kan jeg bruke penger nå, og hvor mye?»:
+  • **«Trygt å bruke i dag»-hero**: inntekt (el. budsjett) − faste trekk − forbruk, spredt over dagene igjen
+    i måneden, med «X igjen denne uka · Y igjen i N dager». Grønn/gul/rød etter hvor mye, egen «over
+    grunnlaget»-tilstand, og en prompt-tilstand som ber om inntekt/budsjett når grunnlaget mangler.
+  • **Måneds-prognose-setning** i budsjett-kortet: «Holder tempoet ender du X under/over budsjett».
+  • **«Kommende trekk»-kort**: neste faste trekk («i morgen / om 3 d»), sum som gjenstår denne måneden,
+    årlig-reframe per abonnement (kr/år), og anbefalt månedlig avsetning til årlige regninger.
+  All logikk er rene, utledede funksjoner i `src/lib/money.js` (14 nye tester, 124 totalt) — ingen
+  datamodell-endring, kun ny visning over data brukeren allerede legger inn. Render-verifisert i Chromium
+  (lys+mørk, alle hero-tilstander). Lint + build grønt.
 - 2026-07-14 — **Data-lags-validering (defense-in-depth)**. `addTask`/`addIdea`/`addProject`/`addHabit`/
   `addProjectItem` returnerer nå `null` og skriver ingenting når tittelen/teksten er tom eller kun
   whitespace (før stolte de blindt på at UI-et guardet). `promoteIdeaToProject` håndterer en tom idé-tekst

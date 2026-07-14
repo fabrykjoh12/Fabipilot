@@ -635,3 +635,131 @@
   text-transform: capitalize;
 }
 .trend-col.on .trend-mlbl { color: var(--ink); }
+
+/* ===== «Trygt å bruke»-hero ===== */
+.safe-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  box-shadow: var(--sh-2);
+  overflow: hidden;
+}
+.safe-hero.low { background: linear-gradient(135deg, #e6a23c, #d1841f); }
+.safe-hero.over { background: linear-gradient(135deg, #f2685c, #d33f33); }
+.safe-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.safe-amount {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.safe-sub {
+  font-size: 13.5px;
+  font-weight: 500;
+  opacity: 0.92;
+  margin-top: 2px;
+}
+.safe-hero.prompt {
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  color: var(--ink);
+  cursor: pointer;
+}
+.safe-hero.prompt .safe-lbl { color: var(--muted); }
+.safe-prompt-txt {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* pace-setning i budsjett-summary */
+.bs-pace {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+.bs-pace.good { color: var(--forest); }
+.bs-pace.bad { color: var(--danger); }
+
+/* ===== Kommende trekk (oversikt) ===== */
+.upcoming-card { margin-bottom: 16px; }
+.uc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.uc-sum {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.uc-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+}
+.uc-row:first-of-type { border-top: 0; }
+.uc-days {
+  flex: 0 0 auto;
+  min-width: 62px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 4px 9px;
+  text-align: center;
+}
+.uc-days.soon { color: var(--accent); background: var(--accent-soft); }
+.uc-name {
+  flex: 1 1 auto;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.uc-amt {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.uc-year {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--faint);
+}
+.uc-reserve {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}

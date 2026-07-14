@@ -14,6 +14,7 @@ import {
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
 import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
+import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve, upcomingCharges } from '../lib/money.js'
 import './Money.css'
 
 /* Matcher kategoriene i brukerens bank-app («Daglige utgifter») 1:1, så Penger-oversikten
@@ -612,6 +613,18 @@ export default function Money() {
   const isCurrentMonth = monthPrefix === todayKey().slice(0, 7)
   const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
 
+  // «Trygt å bruke» + prognose gjelder kun inneværende måned (utledet, ikke lagret).
+  const today = new Date()
+  const safe = safeToSpend({ income: totalIncome, subsMonthly: subTotal, spentVariable: expTotal, budgetTotal: totalBudget }, today)
+  const projected = projectMonthEnd({ spentVariable: expTotal, subsMonthly: subTotal }, today)
+  const remainingCharges = remainingChargesThisMonth(subs, today)
+  const reserve = yearlyReserve(subs)
+  const upcomingMonthly = upcomingCharges(subs, today, 5)
+  // Prognose vs grunnlag (budsjett hvis satt, ellers inntekt): + = under, − = over.
+  const paceBasis = totalBudget > 0 ? totalBudget : totalIncome
+  const paceDiff = paceBasis > 0 ? paceBasis - projected : 0
+  const safeState = !safe.available ? '' : safe.over ? 'over' : safe.today < 100 ? 'low' : 'ok'
+
   function shiftMonth(d) {
     const dt = new Date(cursor.y, cursor.m + d, 1)
     setCursor({ y: dt.getFullYear(), m: dt.getMonth() })
@@ -658,6 +671,27 @@ export default function Money() {
         {/* ===== OVERSIKT ===== */}
         {tab === 'oversikt' && (
           <>
+            {isCurrentMonth && (
+              safe.available ? (
+                <div className={'safe-hero ' + safeState}>
+                  <span className="safe-lbl">{safe.over ? 'Du har brukt opp måneden' : 'Trygt å bruke i dag'}</span>
+                  <AnimatedNumber className="safe-amount" value={safe.over ? Math.abs(safe.month) : safe.today} format={kr} />
+                  {safe.over ? (
+                    <span className="safe-sub">{kr(Math.abs(safe.month))} over grunnlaget · ta det rolig ut måneden</span>
+                  ) : (
+                    <span className="safe-sub">
+                      {kr(safe.week)} igjen denne uka · {kr(safe.month)} igjen i {safe.daysLeft} {safe.daysLeft === 1 ? 'dag' : 'dager'}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <button type="button" className="safe-hero prompt" onClick={() => document.querySelector('.income-add input')?.focus()}>
+                  <span className="safe-lbl">Trygt å bruke</span>
+                  <span className="safe-prompt-txt">Legg inn månedsinntekt eller et budsjett — så regner jeg ut hvor mye du trygt kan bruke hver dag.</span>
+                </button>
+              )
+            )}
+
             <div className="month-nav">
               <button type="button" className="cal-arrow" aria-label="Forrige måned" onClick={() => shiftMonth(-1)}>
                 <ChevronLeft />
@@ -696,7 +730,35 @@ export default function Money() {
                   Inntekt {kr(totalIncome)} · {kr(totalIncome - totalSpent)} igjen å bruke
                 </span>
               )}
+              {isCurrentMonth && projected > 0 && paceBasis > 0 && today.getDate() >= 3 && (
+                <span className={'bs-pace ' + (paceDiff >= 0 ? 'good' : 'bad')}>
+                  {paceDiff >= 0
+                    ? `Holder tempoet ender du ${kr(paceDiff)} under ${totalBudget > 0 ? 'budsjett' : 'inntekt'} 🎉`
+                    : `Holder tempoet ender du ${kr(Math.abs(paceDiff))} over ${totalBudget > 0 ? 'budsjett' : 'inntekt'}`}
+                </span>
+              )}
             </div>
+
+            {isCurrentMonth && (upcomingMonthly.length > 0 || reserve > 0) && (
+              <div className="card upcoming-card">
+                <div className="uc-head">
+                  <span className="trend-lbl">Kommende trekk</span>
+                  {remainingCharges > 0 && <span className="uc-sum">{kr(remainingCharges)} igjen i mnd</span>}
+                </div>
+                {upcomingMonthly.map((u) => (
+                  <div key={u.id} className="uc-row">
+                    <span className={'uc-days' + (u.days <= 3 ? ' soon' : '')}>
+                      {u.days === 0 ? 'i dag' : u.days === 1 ? 'i morgen' : `om ${u.days} d`}
+                    </span>
+                    <span className="uc-name">{u.name}</span>
+                    <span className="uc-amt">{kr(u.amount)}<span className="uc-year">{kr(u.amount * 12)}/år</span></span>
+                  </div>
+                ))}
+                {reserve > 0 && (
+                  <div className="uc-reserve">💡 Sett av {kr(reserve)}/mnd til årlige regninger</div>
+                )}
+              </div>
+            )}
 
             <CategoryDonut rows={catRows} total={totalSpent} />
 

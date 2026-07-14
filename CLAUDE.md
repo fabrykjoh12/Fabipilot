@@ -165,6 +165,10 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/lib/launch.js` — `launchChecklist(project, items)`: utledet launch-sjekkliste (7 sjekker med
   `done`/`hint` + `pct`/`ready`), UTEN å endre lagrede felt. Vist som sammenleggbart «Klar til
   lansering»-panel i Roadmap-info-skinnen; testet i `launch.test.js`
+- `src/lib/money.js` — rene penge-hjelpere: `safeToSpend` («Trygt å bruke i dag/uke/måned» — inntekt/budsjett
+  minus faste trekk og forbruk, spredt over dagene igjen), `projectMonthEnd` (måneds-prognose ut fra tempo),
+  `upcomingCharges`/`remainingChargesThisMonth`/`yearlyReserve` (kommende faste trekk + årlig-avsetning). Alt
+  utledet, ingenting lagret; brukt av Penger/Oversikt, testet i `money.test.js`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`/`ScreenSkeleton`, `PageTransition`,
   `Reveal`, `toast` (sonner-wrapper), `useEscape` (lukk ark/dialoger på Escape). Bygd på `motion`; respekterer
@@ -194,9 +198,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
-  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (budsjett vs forbruk per måned, 6-måneders
-    trendgraf, «vs forrige måned»-endringsmerke på totalen og på hver kategori — rødt ved økt bruk,
-    grønt ved redusert) / Forbruk (logget, med «Fyll inn hele måneden» — rask totalsum per kategori i
+  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt («Trygt å bruke i dag»-hero øverst +
+    måneds-prognose-setning + «Kommende trekk»-kort med årlig-reframe og årlig-avsetning (alt utledet i
+    `src/lib/money.js`); budsjett vs forbruk per måned, 6-måneders trendgraf, «vs forrige måned»-endringsmerke
+    på totalen og på hver kategori — rødt ved økt bruk, grønt ved redusert) / Forbruk (logget, med «Fyll inn hele måneden» — rask totalsum per kategori i
     stedet for å logge hvert kjøp, med egen månedsvelger i arket) / Faste (abonnement) / Sparing
   - `Projects.jsx` — «Prosjekter»: tynn ruter (liste ↔ arbeidsbenk). Selve komponentene bor i
     `src/components/projects/`: `shared.jsx` (konstanter/ikoner, ingen state), `ProjectsList.jsx`
