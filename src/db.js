@@ -197,6 +197,11 @@ db.version(11)
     }
   })
 
+// v12: jobb-liste — workdays (delt arbeidsplan, samme realm som «Delt»/«Handleliste»).
+db.version(12).stores({
+  workdays: 'id, date, owner, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -741,6 +746,29 @@ export async function listSharedMembers() {
 }
 
 export const removeSharedMember = (memberId) => db.members.delete(memberId)
+
+/* ---------------------------------------------------------
+   JOBB-LISTE — delt arbeidsplan med kjæresten.
+   Hver person huker av dagene de jobber. Alt ligger i DET SAMME delte realmet
+   som «Delt»/«Handleliste» (én invitasjon deler alt), så begge ser hverandres
+   dager. `owner` skiller hvem som jobber den dagen.
+   --------------------------------------------------------- */
+export async function listWorkdays() {
+  return db.workdays.toArray()
+}
+
+/** Skru MIN jobb-dag av/på for en dato. Returnerer true hvis den nå er på. */
+export async function toggleMyWorkday(date) {
+  const owner = db.cloud.currentUserId
+  const mine = await db.workdays.where('date').equals(date).filter((w) => w.owner === owner).first()
+  if (mine) {
+    await db.workdays.delete(mine.id)
+    return false
+  }
+  const realmId = await ensureSharedRealm()
+  await db.workdays.add({ id: uid(), realmId, owner, date, createdAt: now() })
+  return true
+}
 
 /* ---------------------------------------------------------
    DELING AV PROSJEKTER — del et helt prosjekt (med steg) via e-post.

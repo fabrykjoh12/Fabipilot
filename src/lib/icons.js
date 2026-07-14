@@ -12,6 +12,7 @@ import {
   CloudUpload,
   MoreHorizontal,
   Flower2,
+  Briefcase,
 } from 'lucide-react'
 
 /* Lucide-ikoner per modul (konsistent, premium ikonsett). Delt mellom
@@ -27,6 +28,7 @@ export const ICONS = {
   projects: FolderKanban,
   shared: Users,
   shopping: ShoppingCart,
+  work: Briefcase,
   garden: Flower2,
   backup: CloudUpload,
   more: MoreHorizontal,
