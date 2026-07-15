@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   projectContext, buildPrompt, buildAllPrompts, hasContext,
   projectBrief, buildRecipe, PROJECT_RECIPES,
-  RECIPE_GROUPS, recommendedRecipe,
+  RECIPE_GROUPS, recommendedRecipe, buildTaskList,
 } from './prompts.js'
 
 describe('projectContext', () => {
@@ -127,6 +127,44 @@ describe('buildRecipe', () => {
   it('recipe keys are unique', () => {
     const keys = PROJECT_RECIPES.map((r) => r.key)
     expect(new Set(keys).size).toBe(keys.length)
+  })
+})
+
+describe('buildTaskList', () => {
+  const project = { name: 'Hanzi Dojo', why: 'Lære kinesisk', context: 'React + Vite', repoUrl: 'https://github.com/x/hanzi', liveUrl: 'https://hanzi.app' }
+  const items = [
+    { text: 'Fix SRS timing bug', stage: 'now', result: 'Ser ut som off-by-one i intervallet' },
+    { text: 'Add dark mode', stage: 'next' },
+    { text: 'Ship v1', stage: 'later' },
+    { text: 'Set up repo', stage: 'done' },
+  ]
+
+  it('starts with the project name as an H1', () => {
+    expect(buildTaskList(project, items).startsWith('# Hanzi Dojo — oppgaver')).toBe(true)
+  })
+
+  it('includes context, goal and links', () => {
+    const md = buildTaskList(project, items)
+    expect(md).toContain('> Lære kinesisk')
+    expect(md).toContain('Repo: https://github.com/x/hanzi')
+    expect(md).toContain('**Kontekst:** React + Vite')
+  })
+
+  it('groups steps by priority with checkboxes; done is checked', () => {
+    const md = buildTaskList(project, items)
+    expect(md).toContain('## Høy prioritet')
+    expect(md).toContain('- [ ] Fix SRS timing bug')
+    expect(md).toContain('- [x] Set up repo')
+  })
+
+  it('includes a step result as a sub-bullet', () => {
+    expect(buildTaskList(project, items)).toContain('  - Ser ut som off-by-one i intervallet')
+  })
+
+  it('omits empty priority groups', () => {
+    const md = buildTaskList({ name: 'X' }, [{ text: 'only', stage: 'now' }])
+    expect(md).toContain('## Høy prioritet')
+    expect(md).not.toContain('## Ferdig')
   })
 })
 

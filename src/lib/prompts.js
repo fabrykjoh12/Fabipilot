@@ -32,6 +32,37 @@ export function hasContext(project) {
   return !!(project?.why || project?.context || project?.liveUrl || project?.repoUrl)
 }
 
+/* Bygg en repo-vennlig `TASKS.md`: prosjektkontekst + alle steg som en
+   avkryssbar markdown-liste, gruppert på prioritet. Legges i prosjektets repo
+   så et kode-verktøy (Claude/Codex) leser oppgavene automatisk hver økt. */
+const TASK_GROUPS = [
+  ['now', 'Høy prioritet'],
+  ['next', 'Medium'],
+  ['later', 'Lav'],
+  ['done', 'Ferdig'],
+]
+export function buildTaskList(project, items = []) {
+  const lines = [`# ${project?.name || 'Prosjekt'} — oppgaver`, '']
+  if (project?.why) lines.push(`> ${project.why}`, '')
+  const meta = []
+  if (project?.liveUrl) meta.push(`Live: ${project.liveUrl}`)
+  if (project?.repoUrl) meta.push(`Repo: ${project.repoUrl}`)
+  if (meta.length) lines.push(meta.join(' · '), '')
+  if (project?.context) lines.push(`**Kontekst:** ${project.context}`, '')
+  lines.push('_Vedlikeholdes i Fabipilot. Jobb gjennom de åpne punktene under._')
+
+  for (const [stage, label] of TASK_GROUPS) {
+    const inStage = items.filter((i) => i.stage === stage)
+    if (!inStage.length) continue
+    lines.push('', `## ${label}`)
+    for (const it of inStage) {
+      lines.push(`- [${stage === 'done' ? 'x' : ' '}] ${it.text}`)
+      if (it.result) lines.push(`  - ${it.result}`)
+    }
+  }
+  return lines.join('\n')
+}
+
 /* ── Kontekst-rike «oppskrifter» ──────────────────────────────────────────
    Ferdige prompts som pakker HELE prosjektet (mål, lenker, status, åpne steg)
    inn i én velformet forespørsel — ett klikk, ingen utfylling. Dette er

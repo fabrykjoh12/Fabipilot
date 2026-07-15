@@ -13,7 +13,7 @@ import {
 } from '../../db.js'
 import { vibrate, reduceMotion } from '../../lib/fx.js'
 import { toast, ScreenSkeleton } from '../../lib/ui.jsx'
-import { buildAllPrompts, buildRecipe, PROJECT_RECIPES, RECIPE_GROUPS, recommendedRecipe } from '../../lib/prompts.js'
+import { buildAllPrompts, buildRecipe, PROJECT_RECIPES, RECIPE_GROUPS, recommendedRecipe, buildTaskList } from '../../lib/prompts.js'
 import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
 import { launchChecklist } from '../../lib/launch.js'
 import { downscaleImage } from '../../lib/image.js'
@@ -171,6 +171,27 @@ export default function Roadmap({ projectId, onBack }) {
     } catch {
       toast.error('Kunne ikke kopiere')
     }
+  }
+
+  async function copyTasks() {
+    try {
+      await navigator.clipboard.writeText(buildTaskList(project, items))
+      vibrate(8)
+      toast.success('Oppgaveliste kopiert', { description: 'Lim inn i repoet som TASKS.md — eller rett til Claude.' })
+    } catch {
+      toast.error('Kunne ikke kopiere')
+    }
+  }
+  function downloadTasks() {
+    const blob = new Blob([buildTaskList(project, items)], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'TASKS.md'
+    a.click()
+    URL.revokeObjectURL(url)
+    vibrate(8)
+    toast.success('TASKS.md lastet ned', { description: 'Legg fila i repoet, så leser Claude oppgavene automatisk.' })
   }
 
   async function copyAll() {
@@ -526,6 +547,17 @@ export default function Roadmap({ projectId, onBack }) {
             </div>
           ))}
         </div>
+
+        {items.length > 0 && (
+          <div className="ptasks">
+            <span className="precipes-lbl">Ta med til repoet</span>
+            <div className="ptasks-actions">
+              <button type="button" className="ptasks-btn" onClick={copyTasks}>{COPY} Kopier oppgaveliste</button>
+              <button type="button" className="ptasks-btn" onClick={downloadTasks}>⬇ TASKS.md</button>
+            </div>
+            <p className="ptasks-hint">Legg <code>TASKS.md</code> i prosjektets repo, så leser Claude oppgavene herfra automatisk hver økt.</p>
+          </div>
+        )}
         </aside>
 
         <section className="rm-board" ref={boardRef}>
