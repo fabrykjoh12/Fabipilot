@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   projectContext, buildPrompt, buildAllPrompts, hasContext,
   projectBrief, buildRecipe, PROJECT_RECIPES,
-  RECIPE_GROUPS, recommendedRecipe, buildTaskList,
+  RECIPE_GROUPS, recommendedRecipe, buildTaskList, CLAUDE_SESSION_HOOK,
 } from './prompts.js'
 
 describe('projectContext', () => {
@@ -165,6 +165,16 @@ describe('buildTaskList', () => {
     const md = buildTaskList({ name: 'X' }, [{ text: 'only', stage: 'now' }])
     expect(md).toContain('## Høy prioritet')
     expect(md).not.toContain('## Ferdig')
+  })
+})
+
+describe('CLAUDE_SESSION_HOOK', () => {
+  it('is valid JSON with a SessionStart hook that reads TASKS.md', () => {
+    const cfg = JSON.parse(CLAUDE_SESSION_HOOK)
+    expect(Array.isArray(cfg.hooks.SessionStart)).toBe(true)
+    const cmd = cfg.hooks.SessionStart[0].hooks[0]
+    expect(cmd.type).toBe('command')
+    expect(cmd.command).toContain('TASKS.md')
   })
 })
 
