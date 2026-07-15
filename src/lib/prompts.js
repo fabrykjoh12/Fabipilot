@@ -63,6 +63,25 @@ export function buildTaskList(project, items = []) {
   return lines.join('\n')
 }
 
+/* Ferdig SessionStart-hook for prosjektets repo: legges i `.claude/settings.json`.
+   Ved starten av HVER Claude-økt i repoet skrives TASKS.md inn i konteksten, så
+   Claude leser oppgavene automatisk uten at brukeren gjør noe. */
+export const CLAUDE_SESSION_HOOK = JSON.stringify(
+  {
+    hooks: {
+      SessionStart: [
+        {
+          hooks: [
+            { type: 'command', command: "echo '# Oppgaver fra Fabipilot (fasit for hva som skal gjøres):' && cat TASKS.md 2>/dev/null" },
+          ],
+        },
+      ],
+    },
+  },
+  null,
+  2,
+)
+
 /* ── Kontekst-rike «oppskrifter» ──────────────────────────────────────────
    Ferdige prompts som pakker HELE prosjektet (mål, lenker, status, åpne steg)
    inn i én velformet forespørsel — ett klikk, ingen utfylling. Dette er

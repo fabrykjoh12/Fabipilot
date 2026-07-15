@@ -158,8 +158,9 @@ Alle stores er med i JSON-eksport/import (se §8).
   prompts, gruppert via `RECIPE_GROUPS`: brutal review, UI/UX-løft, bug-jakt, rydd koden, datamodell,
   refaktor, launch-sjekk, landingstekst, vekst) og `recommendedRecipe(healthState)` («anbefalt nå»-forslag).
   `buildTaskList(project, items)` bygger en repo-vennlig `TASKS.md` (avkryssbar markdown-oppgaveliste, gruppert
-  på prioritet) som legges i prosjektets eget repo → kode-verktøy leser oppgavene automatisk
-  (brukt av Prosjekter; testet i `prompts.test.js`)
+  på prioritet) som legges i prosjektets eget repo → kode-verktøy leser oppgavene automatisk. `CLAUDE_SESSION_HOOK`
+  = ferdig `.claude/settings.json` (SessionStart-hook som `cat`-er TASKS.md inn i Claude sin kontekst hver økt,
+  så Claude leser oppgavene automatisk uten manuelt arbeid) (brukt av Prosjekter; testet i `prompts.test.js`)
 - `src/lib/projectHealth.js` — `projectHealth(project, items)`: utledet helse-signal
   (`building | stuck | ready | shipped | onice | empty`) + «neste beste handling», UTEN å endre lagret
   `status`. `HEALTH_LABEL` (norsk UI) / `HEALTH_STATUS_EN` (prompts). Brukt av ProjectsList-kortene og

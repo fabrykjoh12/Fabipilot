@@ -2,6 +2,15 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-15 — **Auto-les i Claude: SessionStart-hook-oppsett** (oppfølging: brukeren vil at Claude
+  automatisk skal lese prosjekt-oppgavene når hun jobber med repoet, uten manuelt arbeid hver gang).
+  Undersøkte: Dexie Cloud er nettverks-blokkert i Claude-miljøene (kan ikke hentes live fra en hook), men
+  GitHub er tilgjengelig → broen går via `TASKS.md` i repoet + en Claude Code SessionStart-hook som leser
+  fila inn i konteksten ved starten av hver økt (null arbeid under koding). Ny `CLAUDE_SESSION_HOOK`
+  (`src/lib/prompts.js`) = ferdig `.claude/settings.json`-innhold. Sammenleggbart «Auto-les hver økt —
+  engangsoppsett» i «Ta med til repoet»-blokka (Roadmap.jsx) med steg + kode-blokk + «Kopier settings.json».
+  1 ny test (130 totalt). Render-verifisert. Lint + build grønt. (Full auto-push Fabipilot→GitHub, som ville
+  fjernet re-eksport helt, krever en token i nettleseren og er utsatt til brukeren evt. ønsker det.)
 - 2026-07-14 — **Bro fra prosjekt-siden til repoet: `TASKS.md`-eksport** (ønske fra brukeren: at prosjektene
   hans, f.eks. hanzi-dojo, skal «se» hva som står på Fabipilot-prosjektsiden, så Claude bruker den som
   fasit for hva som må fikses). Fabipilot er en nettleser-PWA og kan ikke skrive til repoet direkte, så

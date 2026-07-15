@@ -13,7 +13,7 @@ import {
 } from '../../db.js'
 import { vibrate, reduceMotion } from '../../lib/fx.js'
 import { toast, ScreenSkeleton } from '../../lib/ui.jsx'
-import { buildAllPrompts, buildRecipe, PROJECT_RECIPES, RECIPE_GROUPS, recommendedRecipe, buildTaskList } from '../../lib/prompts.js'
+import { buildAllPrompts, buildRecipe, PROJECT_RECIPES, RECIPE_GROUPS, recommendedRecipe, buildTaskList, CLAUDE_SESSION_HOOK } from '../../lib/prompts.js'
 import { projectHealth, HEALTH_LABEL } from '../../lib/projectHealth.js'
 import { launchChecklist } from '../../lib/launch.js'
 import { downscaleImage } from '../../lib/image.js'
@@ -55,6 +55,7 @@ export default function Roadmap({ projectId, onBack }) {
   const [linksEditing, setLinksEditing] = useState(false)
   const [queueOpen, setQueueOpen] = useState(false)
   const [launchOpen, setLaunchOpen] = useState(false)
+  const [hookOpen, setHookOpen] = useState(false)
   const [composerTpl, setComposerTpl] = useState(null)
   const [quickVal, setQuickVal] = useState('')
   const [nameVal, setNameVal] = useState('')
@@ -192,6 +193,11 @@ export default function Roadmap({ projectId, onBack }) {
     URL.revokeObjectURL(url)
     vibrate(8)
     toast.success('TASKS.md lastet ned', { description: 'Legg fila i repoet, så leser Claude oppgavene automatisk.' })
+  }
+  function copyHook() {
+    navigator.clipboard.writeText(CLAUDE_SESSION_HOOK)
+      .then(() => { vibrate(8); toast.success('settings.json kopiert', { description: 'Lim inn i .claude/settings.json i repoet.' }) })
+      .catch(() => toast.error('Kunne ikke kopiere'))
   }
 
   async function copyAll() {
@@ -556,6 +562,21 @@ export default function Roadmap({ projectId, onBack }) {
               <button type="button" className="ptasks-btn" onClick={downloadTasks}>⬇ TASKS.md</button>
             </div>
             <p className="ptasks-hint">Legg <code>TASKS.md</code> i prosjektets repo, så leser Claude oppgavene herfra automatisk hver økt.</p>
+            <button type="button" className="ptasks-setup-toggle" onClick={() => setHookOpen((o) => !o)} aria-expanded={hookOpen}>
+              <span className={'ptasks-chev' + (hookOpen ? ' open' : '')} aria-hidden="true">▸</span>
+              Auto-les hver økt — engangsoppsett
+            </button>
+            {hookOpen && (
+              <div className="ptasks-setup">
+                <ol>
+                  <li>Legg <code>TASKS.md</code> (over) i repoets rot-mappe.</li>
+                  <li>Lag fila <code>.claude/settings.json</code> i repoet med dette innholdet:</li>
+                </ol>
+                <pre className="ptasks-code">{CLAUDE_SESSION_HOOK}</pre>
+                <button type="button" className="ptasks-btn" onClick={copyHook}>{COPY} Kopier settings.json</button>
+                <p className="ptasks-hint">Da leser Claude oppgavene automatisk ved starten av hver økt — du gjør ingenting under kodingen. Oppdater <code>TASKS.md</code> kun når du endrer planen.</p>
+              </div>
+            )}
           </div>
         )}
         </aside>
