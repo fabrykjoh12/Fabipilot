@@ -2,6 +2,14 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-07-14 — **Bro fra prosjekt-siden til repoet: `TASKS.md`-eksport** (ønske fra brukeren: at prosjektene
+  hans, f.eks. hanzi-dojo, skal «se» hva som står på Fabipilot-prosjektsiden, så Claude bruker den som
+  fasit for hva som må fikses). Fabipilot er en nettleser-PWA og kan ikke skrive til repoet direkte, så
+  broen er en fil: ny `buildTaskList(project, items)` (`src/lib/prompts.js`) lager en repo-vennlig
+  `TASKS.md` — kontekst + lenker + alle steg som en avkryssbar markdown-liste gruppert på prioritet (åpne
+  `- [ ]`, ferdige `- [x]`, steg-resultat som under-punkt). «Ta med til repoet»-blokk i prosjekt-info-skinna
+  med «Kopier oppgaveliste» + «⬇ TASKS.md» (Roadmap.jsx). Bruker legger fila i sitt eget repo → Claude/Codex
+  leser oppgavene automatisk hver økt. 5 nye tester (129 totalt). Render-verifisert. Lint + build grønt.
 - 2026-07-14 — **Penger-oversikten løftet: «Trygt å bruke»** (ønske fra brukeren: bedre oversikt over
   penger, «jeg er dårlig med penger»). Fokuset flyttet fra tall til mening — ett stort svar øverst på
   «kan jeg bruke penger nå, og hvor mye?»:

@@ -14,6 +14,8 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- `TASKS.md`-eksport: bro fra prosjekt-siden til prosjektets eget repo (`buildTaskList`) — avkryssbar
+  markdown-oppgaveliste som Claude/Codex leser automatisk, kopier eller last ned fra prosjekt-siden.
 - Penger «Trygt å bruke»: utledet dags-/uke-/måneds-beløp (`src/lib/money.js`) som hero øverst på
   Oversikt, + måneds-prognose-setning + «Kommende trekk»-kort (årlig-reframe + avsetning til årlige regninger).
 - «Jobb» — delt arbeidsplan: trykk på dagene du jobber, kjæresten ser dem og du ser hennes. Ny
