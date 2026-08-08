@@ -14,6 +14,9 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- **«Fabipilot 2.0»-redesign** (fra Claude Design-prototypen): mykt farget lerret-gradient + frostet
+  glass, iOS-blå aksent `#0A84FF`, flytende bunn-pille på mobil, nye radius-/skygge-skalaer. Gjennomført
+  i design-tokens, så hele appen fulgte med.
 - `TASKS.md`-eksport + SessionStart-hook-oppsett (`CLAUDE_SESSION_HOOK`): bro fra prosjekt-siden til
   prosjektets eget repo (`buildTaskList`) — avkryssbar markdown-oppgaveliste som Claude/Codex leser
   automatisk hver økt via en engangs-hook, kopier eller last ned fra prosjekt-siden.

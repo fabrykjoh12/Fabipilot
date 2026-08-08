@@ -1,40 +1,47 @@
 /* ============================================================
-   DESIGN SYSTEM — rent & lyst (Any.do-inspirert). Én aksent: blå.
-   Font: Plus Jakarta Sans (selvhostet, offline-klar).
+   DESIGN SYSTEM — «Fabipilot 2.0»: mykt farget lerret + frostet glass.
+   Én aksent: blå. Font: Plus Jakarta Sans (selvhostet, offline-klar).
    ============================================================ */
 :root {
   /* ---- Farger: flater ---- */
-  --canvas: #ffffff;
-  --canvas-2: #f3f5f8; /* innfelt/hover */
-  --surface: #ffffff;
-  --surface-2: #f6f7f9; /* sekundær flate */
-  --surface-focus: #eff4ff; /* lys blå (fokus) */
+  /* --canvas er ALLTID en enkel farge (brukes inne i andre gradienter, f.eks.
+     .screen-bar-fadingen — en gradient der ville vært ugyldig CSS). Selve det
+     myke fargede lerretet ligger i --canvas-grad og settes kun på .app. */
+  --canvas: #eef2f9;
+  --canvas-grad: linear-gradient(170deg, #eaf0fb 0%, #f6f4f1 45%, #eef3f0 100%);
+  --canvas-2: #e3e9f3; /* innfelt/hover */
+  --surface: rgba(255, 255, 255, 0.72); /* frostet glass over lerretet */
+  --surface-2: rgba(255, 255, 255, 0.5); /* sekundær flate */
+  --surface-solid: #ffffff; /* når noe MÅ være ugjennomsiktig (popover over innhold) */
+  --surface-focus: rgba(10, 132, 255, 0.1); /* lys blå (fokus) */
+  --glass-border: rgba(255, 255, 255, 0.75); /* lys kant som gir glasset en tydelig kontur */
+  --glass-blur: blur(20px);
   --ink: #1a1c22;
   --ink-soft: #3a3d47;
-  --muted: #6b7280; /* ≥4.5:1 på hvit (WCAG AA for brødtekst) */
-  --faint: #9096a3; /* placeholder / hint — ~3:1 */
-  --line: #ecedf1;
-  --line-strong: #dfe1e7;
+  --muted: #5f6570; /* ≥4.5:1 på lerretet (WCAG AA for brødtekst) */
+  --faint: #868c99; /* placeholder / hint — ~3:1 */
+  --line: rgba(26, 28, 34, 0.07);
+  --line-strong: rgba(26, 28, 34, 0.13);
 
   /* ---- Merkefarger ---- */
-  --accent: #2f6dff;
-  --accent-bright: #588bff;
-  --accent-deep: #2257e0;
-  --accent-soft: #eaf1ff;
-  --accent-ring: rgba(47, 109, 255, 0.22);
-  --forest: #16a37b;
-  --forest-soft: rgba(22, 163, 123, 0.12);
+  --accent: #0a84ff;
+  --accent-bright: #48a4ff;
+  --accent-deep: #0868c4;
+  --accent-soft: rgba(10, 132, 255, 0.1);
+  --accent-ring: rgba(10, 132, 255, 0.22);
+  --forest: #30b15c;
+  --forest-soft: rgba(48, 177, 92, 0.12);
   --danger: #f5483b;
   --danger-soft: rgba(245, 72, 59, 0.1);
-  --success: #16a37b;
+  --success: #30b15c;
 
   /* ---- Radius-skala ---- */
   --r-xs: 8px;
-  --r-sm: 11px;
-  --r-md: 14px;
-  --r-lg: 18px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
   --r-xl: 24px;
-  --r-2xl: 30px;
+  --r-2xl: 32px;
   --r-full: 999px;
   --radius: var(--r-lg); /* bakoverkompat */
 
@@ -48,14 +55,14 @@
   --s-8: 32px;
   --s-10: 40px;
 
-  /* ---- Elevasjon (lagvise, myke skygger) ---- */
-  --sh-1: 0 1px 2px rgba(20, 30, 60, 0.05);
-  --sh-2: 0 1px 2px rgba(20, 30, 60, 0.04), 0 4px 12px rgba(20, 30, 60, 0.05);
-  --sh-3: 0 2px 6px rgba(20, 30, 60, 0.06), 0 12px 28px rgba(20, 30, 60, 0.08);
-  --sh-4: 0 8px 24px rgba(20, 30, 60, 0.1);
-  --sh-5: 0 16px 44px rgba(20, 30, 60, 0.15);
-  --sh-accent: 0 6px 18px rgba(47, 109, 255, 0.26);
-  --sh-accent-lg: 0 10px 26px rgba(47, 109, 255, 0.32);
+  /* ---- Elevasjon (lagvise, myke skygger — blåtonet så de smelter inn i lerretet) ---- */
+  --sh-1: 0 1px 2px rgba(60, 80, 120, 0.05);
+  --sh-2: 0 1px 2px rgba(60, 80, 120, 0.04), 0 4px 14px rgba(60, 80, 120, 0.07);
+  --sh-3: 0 2px 6px rgba(60, 80, 120, 0.06), 0 6px 24px rgba(60, 80, 120, 0.08);
+  --sh-4: 0 8px 32px rgba(60, 80, 120, 0.1);
+  --sh-5: 0 16px 48px rgba(60, 80, 120, 0.16);
+  --sh-accent: 0 6px 18px rgba(10, 132, 255, 0.35);
+  --sh-accent-lg: 0 10px 32px rgba(10, 132, 255, 0.4);
   --shadow: var(--sh-2); /* bakoverkompat */
 
   /* ---- Bevegelse ---- */
@@ -71,30 +78,33 @@
   --font-display: 'Plus Jakarta Sans Variable', system-ui, -apple-system, sans-serif;
 }
 
-/* ===== Mørk modus (grafitt) ===== */
+/* ===== Mørk modus (grafitt med samme glass-oppskrift) ===== */
 [data-theme='dark'] {
-  --canvas: #0f1116;
-  --canvas-2: #181b22;
-  --surface: #171a21;
-  --surface-2: #1e222b;
-  --surface-focus: #15203c;
-  --ink: #f1f3f7;
+  --canvas: #14181f;
+  --canvas-grad: linear-gradient(170deg, #161b26 0%, #12151c 45%, #141a18 100%);
+  --canvas-2: #1d222c;
+  --surface: rgba(52, 58, 70, 0.62);
+  --surface-2: rgba(42, 47, 58, 0.55);
+  --surface-solid: #1c2129;
+  --surface-focus: rgba(77, 163, 255, 0.16);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --ink: #f0f1f4;
   --ink-soft: #c8cdd6;
-  --muted: #99a0ac;
-  --faint: #6b7280;
-  --line: #242932;
-  --line-strong: #323845;
+  --muted: #a3aab6;
+  --faint: #7b8290;
+  --line: rgba(240, 241, 244, 0.09);
+  --line-strong: rgba(240, 241, 244, 0.16);
 
-  --accent: #5b8bff;
-  --accent-bright: #7ba2ff;
-  --accent-deep: #3f74f0;
-  --accent-soft: rgba(91, 139, 255, 0.16);
-  --accent-ring: rgba(91, 139, 255, 0.3);
-  --forest: #2fd39a;
-  --forest-soft: rgba(47, 211, 154, 0.16);
+  --accent: #4da3ff;
+  --accent-bright: #7bbcff;
+  --accent-deep: #2b8de6;
+  --accent-soft: rgba(77, 163, 255, 0.16);
+  --accent-ring: rgba(77, 163, 255, 0.3);
+  --forest: #3fcf72;
+  --forest-soft: rgba(63, 207, 114, 0.16);
   --danger: #ff6b60;
   --danger-soft: rgba(255, 107, 96, 0.16);
-  --success: #2fd39a;
+  --success: #3fcf72;
 
   --sh-1: 0 1px 2px rgba(0, 0, 0, 0.35);
   --sh-2: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -116,11 +126,11 @@
   --accent: #ff69b4;
   --accent-bright: #ff94c9;
   --accent-deep: #f23694;
-  --accent-soft: #ffebf5;
+  --accent-soft: rgba(255, 105, 180, 0.12);
   --accent-ring: rgba(255, 105, 180, 0.22);
-  --surface-focus: #fff0f7;
-  --sh-accent: 0 6px 18px rgba(255, 105, 180, 0.26);
-  --sh-accent-lg: 0 10px 26px rgba(255, 105, 180, 0.32);
+  --surface-focus: rgba(255, 105, 180, 0.12);
+  --sh-accent: 0 6px 18px rgba(255, 105, 180, 0.32);
+  --sh-accent-lg: 0 10px 32px rgba(255, 105, 180, 0.38);
 }
 [data-theme='dark'][data-accent='pink'] {
   --accent: #ff69b4;
@@ -128,7 +138,7 @@
   --accent-deep: #f651a3;
   --accent-soft: rgba(255, 105, 180, 0.16);
   --accent-ring: rgba(255, 105, 180, 0.3);
-  --surface-focus: #3c1529;
+  --surface-focus: rgba(255, 105, 180, 0.18);
 }
 
 * {
@@ -142,7 +152,8 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background: var(--canvas);
+  background: var(--canvas-grad);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -178,18 +189,32 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--canvas) 72%, rgba(233, 236, 229, 0));
+  /* mobil: hold innholdet klar av den flytende bunnpillen, og la fadingen
+     strekke seg helt ned bak den så teksten toner ut i stedet for å kuttes */
+  padding: 14px 16px calc(84px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--canvas) 72%, transparent);
 }
 
-/* ===== Navigasjon ===== */
+/* ===== Navigasjon =====
+   Mobil: flytende «pille» som svever over innholdet (glasset trenger ekte
+   backdrop-filter her, siden innholdet faktisk scroller under den). */
 .nav {
   flex: 0 0 auto;
   display: flex;
   order: 2; /* mobil: nav nederst (under innholdet) */
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 60;
+  width: min(calc(100% - 24px), 520px);
   background: var(--surface);
-  border-top: 1px solid var(--line);
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  box-shadow: var(--sh-5);
+  padding: 8px 6px;
   overflow-x: auto;
   scrollbar-width: none;
   scroll-behavior: smooth;
@@ -200,7 +225,7 @@
 .nav-item {
   position: relative;
   flex: 1 0 auto;
-  min-width: 60px;
+  min-width: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -243,10 +268,10 @@
 /* glidende aktiv-indikator (motion layoutId) */
 .nav-pill {
   position: absolute;
-  inset: 4px 8px;
+  inset: 0 4px;
   z-index: -1;
   background: var(--accent-soft);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-full);
 }
 .nav-more svg {
   fill: currentColor;
@@ -347,12 +372,18 @@
     height: 100vh;
     height: 100dvh;
   }
+  /* PC: tilbake til fast sidemeny — nullstill mobilens flytende pille */
   .nav {
+    position: static;
+    transform: none;
     flex-direction: column;
     width: 224px;
     order: 0; /* PC: sidemeny til venstre */
-    border-top: 0;
+    border: 0;
     border-right: 1px solid var(--line);
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--surface-2);
     padding: 22px 14px;
     gap: 4px;
   }
@@ -408,6 +439,10 @@
   }
   .screen-scroll {
     padding: 40px 28px 130px;
+  }
+  /* PC: navet er sidemeny igjen, så bunnlinja trenger ingen klaring */
+  .screen-bar {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
   }
 }
 .nav-brand {
@@ -705,7 +740,8 @@
   top: 50px;
   right: 0;
   z-index: 20;
-  background: var(--surface);
+  /* svever over innhold — må være ugjennomsiktig, ikke glass */
+  background: var(--surface-solid);
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: var(--shadow);
@@ -754,7 +790,8 @@
   left: 50%;
   bottom: 96px;
   transform: translateX(-50%) translateY(10px);
-  background: var(--ink);
+  /* fast mørk flate (ikke --ink, som er nesten hvit i mørk modus → hvit på hvit) */
+  background: #23262e;
   color: #fff;
   font-size: 13.5px;
   font-weight: 500;
@@ -944,7 +981,7 @@
 .task.done .ttl {
   color: var(--muted);
   text-decoration: line-through;
-  text-decoration-color: #b9c0b0;
+  text-decoration-color: var(--line-strong);
   font-weight: 400;
 }
 .star {
@@ -1773,7 +1810,7 @@ label.backup-action {
 .subtxt.done {
   color: var(--muted);
   text-decoration: line-through;
-  text-decoration-color: #c2c9ba;
+  text-decoration-color: var(--line-strong);
 }
 .subdel {
   border: 0;
@@ -2217,9 +2254,9 @@ label.backup-action {
   height: 100%;
   overflow-y: auto;
   background:
-    radial-gradient(90% 60% at 85% 0%, rgba(47, 109, 255, 0.08), transparent 55%),
-    radial-gradient(80% 60% at 0% 100%, rgba(47, 109, 255, 0.05), transparent 55%),
-    var(--canvas);
+    radial-gradient(90% 60% at 85% 0%, rgba(10, 132, 255, 0.08), transparent 55%),
+    radial-gradient(80% 60% at 0% 100%, rgba(10, 132, 255, 0.05), transparent 55%),
+    var(--canvas-grad);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2243,7 +2280,7 @@ label.backup-action {
   position: relative;
   flex: 1 1 50%;
   padding: 44px 40px;
-  background: linear-gradient(155deg, #3d78ff 0%, #2257e0 55%, #17398f 100%);
+  background: linear-gradient(155deg, #46a4ff 0%, #0a84ff 55%, #0a4f9e 100%);
   color: #eef3ff;
   overflow: hidden;
 }

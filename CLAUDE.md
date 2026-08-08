@@ -30,19 +30,32 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   + build på push/PR.
 - Deploy: Vercel (auto fra `main`), ingen env-variabler
 
-## 4. Designsystem (Any.do-inspirert — rent, lyst, luftig)
-- Lys palett: lerret `#ffffff`, kort `#ffffff`/dempet flate `#f6f7f9`, blekk `#1a1c22`, dempet `#8b909c`,
-  linje `#ecedf1` / sterk linje `#dfe1e7`. Mørk modus = grafitt (`--canvas:#0f1116` osv.). Alle verdier er
-  CSS-tokens i `:root` — bruk `var(--…)`, aldri hardkodede hex i komponenter.
-- Aksent = blå `#2f6dff` som standard, med rosa som valgfri personlig enhets-preferanse (`[data-accent='pink']`
+## 4. Designsystem («Fabipilot 2.0» — mykt farget lerret + frostet glass)
+- Lys palett: lerretet er en myk gradient (`--canvas-grad`: `#EAF0FB → #F6F4F1 → #EEF3F0`) satt på `.app`
+  og `body`; kortene er frostet glass (`--surface: rgba(255,255,255,.72)`) med lys kant (`--glass-border`)
+  og blåtonet skygge. Blekk `#1a1c22`, dempet `#5f6570`, linjer er alfa-baserte (`rgba(26,28,34,.07)`).
+  Mørk modus = samme oppskrift i grafitt (`--canvas-grad: #161B26 → #12151C → #141A18`, glass
+  `rgba(52,58,70,.62)`). Alle verdier er CSS-tokens i `:root` — bruk `var(--…)`, aldri hardkodede hex
+  i komponenter.
+- **To regler glasset står og faller på:**
+  1. `--canvas` er ALLTID en enkel farge (den brukes inne i andre gradienter, f.eks. `.screen-bar`-fadingen,
+     der en gradient ville vært ugyldig CSS). Selve lerret-gradienten er `--canvas-grad`.
+  2. Alt som svever OVER innhold (popovers, `⌘K`-arket, menyer) skal bruke `--surface-solid`, ikke
+     `--surface` — gjennomsiktig glass over tekst/mørkt slør blir uleselig. Ekte `backdrop-filter`
+     (`--glass-blur`) trengs bare der innhold faktisk scroller under, i praksis den flytende bunnmenyen;
+     over lerret-gradienten gjør blur ingen synlig forskjell.
+- Mobil-navigasjonen er en **flytende pille** (`position: fixed`, `--r-full`, glass + blur) som svever
+  over innholdet. Ting som ligger nederst må derfor holde klaring: `.screen-bar` har ekstra bunn-padding
+  og `.cap-fab` ligger over pilla. På PC (`min-width: 860px`) nullstilles dette tilbake til sidemenyen.
+- Aksent = blå `#0A84FF` som standard, med rosa som valgfri personlig enhets-preferanse (`[data-accent='pink']`
   i AppShell.css, samme H/S/L-forhold som blå bare dreid til rosa — kun `--accent`-familien + `--surface-focus`
   påvirkes). Lagres i `localStorage` og settes via `document.documentElement.dataset.accent`, akkurat som
-  `theme`. Byttes i «Mer»-menyen eller Backup-panelet (App.jsx/BackupSheet.jsx). Semantisk grønn `#16a37b`
+  `theme`. Byttes i «Mer»-menyen eller Backup-panelet (App.jsx/BackupSheet.jsx). Semantisk grønn `#30B15C`
   (`--forest`) kun for positiv status (aktivt prosjekt, vane gjort). Kategori-farger (prosjekt/hendelse/
   penger/vaner) er egne valgbare swatcher fra `SWATCH` (`src/lib/palette.js`) — en muset pastell-familie
   avledet fra den BLÅ aksenten uansett, ikke direkte bundet til aksent-valget (uendret av rosa-bryteren).
-- Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver); luftige hvite
-  kort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
+- Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver) — de ligger
+  rett på lerretet; luftige glasskort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
 - Fonter: Plus Jakarta Sans (variabel) for både display og brødtekst, via tokens `--font-display`/`--font-body`.
 - Belønning ved fullføring/lagring: gnist-animasjon + `navigator.vibrate`
 - Respekter `prefers-reduced-motion`. Tap-mål min 44px. Synlig tastatur-fokus.

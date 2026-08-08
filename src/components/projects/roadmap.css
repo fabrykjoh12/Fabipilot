@@ -269,7 +269,7 @@
   font-weight: 400;
 }
 .roadmap .stage.later .ctxt {
-  color: #6a7265;
+  color: var(--muted);
   font-weight: 400;
 }
 .roadmap .adv {
@@ -355,7 +355,7 @@
   line-height: 1;
 }
 .roadmap .addrow button:disabled {
-  background: #cdd2c7;
+  background: var(--line-strong);
 }
 
 /* done */
@@ -416,7 +416,7 @@
   font-size: 14px;
   color: var(--muted);
   text-decoration: line-through;
-  text-decoration-color: #c2c9ba;
+  text-decoration-color: var(--line-strong);
 }
 
 /* ===== Profil-utvidelser ===== */

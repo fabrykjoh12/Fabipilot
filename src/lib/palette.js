@@ -1,4 +1,4 @@
-/* Muted pastel fargefamilie avledet fra aksenten (--accent: #2f6dff, ~222° blå hue).
+/* Muted pastel fargefamilie i slekt med den blå aksenten (~222° blå hue).
    Samme metning/lyshet (HSL S46 L48) på tvers av alle valører — gir kategori-swatchene
    en felles, sammenhengende følelse i stedet for den gamle, tilfeldig sammensatte
    jordfargepaletten. Delt av Prosjekter (PROJECT_COLORS), Kalender (EVENT_COLORS) og

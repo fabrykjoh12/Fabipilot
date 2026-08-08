@@ -2,6 +2,27 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-08 — **«Fabipilot 2.0»-redesignet fra Claude Design lagt inn**. Prototypen (et bundlet
+  artifact) ble pakket ut, og designspråket portert inn i appen via design-tokens i stedet for å skrive om
+  komponentene — siden alt allerede brukte `var(--…)` fulgte hele appen med «gratis»:
+  • **Lerret**: flat hvit → myk gradient (`--canvas-grad`, `#EAF0FB → #F6F4F1 → #EEF3F0`), grafitt-variant
+    i mørk modus. `--canvas` beholdt som ENKEL farge fordi den brukes inne i andre gradienter
+    (`.screen-bar`-fadingen) der en gradient ville vært ugyldig CSS.
+  • **Kort**: hvite flater → frostet glass (`--surface: rgba(255,255,255,.72)`) med lys kant
+    (`--glass-border`) og blåtonede skygger. Ekte `backdrop-filter` kun der innhold scroller under
+    (bunnmenyen) — over en jevn gradient er blur visuelt en no-op.
+  • **Aksent**: `#2f6dff` → iOS-blå `#0A84FF`; grønn `#16a37b` → `#30B15C`. Rosa-varianten justert til
+    samme alfa-baserte oppskrift.
+  • **Mobil-nav**: fastlimt bunnrad → flytende pille (glass + blur) som svever over innholdet. Krevde
+    klaring for det som ligger nederst — `.screen-bar` (fanget en regresjon der hurtig-innlegging-feltet
+    ble skjult bak pilla) og `.cap-fab`. PC-sidemenyen nullstiller det hele.
+  • Nytt token `--surface-solid` for alt som svever over innhold (⌘K-arket, popover-menyer) — glass der
+    blir uleselig.
+  Fikset underveis: en radial-gradient i «Start dagen» som ble kuttet ved bokskanten og ga en synlig
+  loddrett skjøt midt i kortet (`closest-side`), to eksisterende mørk-modus-kontrastfeil (aktiv chip og
+  toast brukte `--ink` som bakgrunn med hvit tekst — `--ink` er nesten hvit i mørk modus), og rester av
+  den gamle olivengrå paletten som klasket med de nye kalde tonene. PWA-tema-farge oppdatert.
+  Render-verifisert i Chromium (lys/mørk/rosa, mobil + PC, alle moduler). Lint + 130 tester + build grønt.
 - 2026-07-15 — **Auto-les i Claude: SessionStart-hook-oppsett** (oppfølging: brukeren vil at Claude
   automatisk skal lese prosjekt-oppgavene når hun jobber med repoet, uten manuelt arbeid hver gang).
   Undersøkte: Dexie Cloud er nettverks-blokkert i Claude-miljøene (kan ikke hentes live fra en hook), men

@@ -13,7 +13,8 @@
 .cap-sheet {
   width: 100%;
   max-width: 480px;
-  background: var(--surface);
+  /* ligger over et mørkt slør — glass ville blitt grumsete */
+  background: var(--surface-solid);
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   box-shadow: var(--sh-5);
@@ -170,7 +171,8 @@
 .cap-fab {
   position: fixed;
   right: 18px;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  /* over den flytende bunnpillen (nav: 10px + ~64px høyde) */
+  bottom: calc(92px + env(safe-area-inset-bottom));
   z-index: 60;
   width: 56px;
   height: 56px;

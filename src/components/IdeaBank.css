@@ -73,10 +73,12 @@
   width: 14px;
   height: 14px;
 }
+/* Aktiv chip bruker aksenten — den gamle var --ink på hvit tekst, som ble
+   hvit-på-hvit i mørk modus (der --ink er nesten hvit). */
 .ideabank .chip.active {
-  background: var(--ink);
+  background: var(--accent);
   color: #fff;
-  border-color: var(--ink);
+  border-color: var(--accent);
 }
 .ideabank .chip.star.active {
   background: var(--accent);

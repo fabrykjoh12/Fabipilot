@@ -15,7 +15,9 @@
   right: -20%;
   width: 70%;
   height: 120%;
-  background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+  /* closest-side: glødet må tone helt ut FØR bokskanten, ellers kuttes
+     radial-gradienten tvert og gir en synlig loddrett skjøt midt i kortet */
+  background: radial-gradient(circle closest-side, var(--accent-soft), transparent);
   pointer-events: none;
 }
 .mf-head {
