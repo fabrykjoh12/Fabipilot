@@ -2,6 +2,19 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Datatap-undersøkelse: «last opp i skyen» kunne lyve** (brukeren slettet PWA-en for å
+  installere den på nytt, og alt var borte — også gammelt innhold — enda «last opp i skyen» var trykket rett før).
+  To reelle feil funnet i opplastings-stien:
+  • `pushAllToCloud` kalte `db.cloud.sync({ purpose: 'push' })` UTEN `wait: true`, så løftet resolvet før
+    opplastingen var ferdig — og pakket kallet i et stille `catch {}`. Kvitteringen «Lastet opp N ting til
+    skyen» telte dermed bare LOKALE rader og ble vist selv om ingenting nådde serveren. Nå: krever
+    innlogging, venter (`wait: true`), og lar feil boble opp til en ekte feilmelding.
+  • `syncLabel`/`syncLed` leste aldri `SyncState.license`. Med `license: 'expired' | 'deactivated'` stopper
+    Dexie Cloud å ta imot data, mens `status`/`phase` fortsatt kan se normale ut — appen viste «Synket ✓»
+    og grønn LED mens alt bare lå lokalt. Lisens sjekkes nå FØRST, med rød LED og «lagrer KUN lokalt».
+  7 nye tester (137 totalt) i ny `src/lib/sync.test.js` — verifisert at de faktisk feiler (3 stk) mot den
+  gamle koden. Lint + build grønt. NB: selve datagjenopprettingen er ikke løst av dette; det avhenger av
+  om dataene noen gang nådde skyen.
 - 2026-08-09 — **Bunnmenyen bygget om etter prototypen — Oppgaver er hovedpunktet** (ønske fra brukeren).
   Mobilnavet er nå ikon-only (ingen tekst under ikonene; `aria-label` bærer navnet) med en hevet blå
   «+»-sirkel midt i pilla, slik Claude Design-prototypen viser: Oversikt · Oppgaver · **+** · Prosjekter · Mer.

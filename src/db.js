@@ -892,6 +892,11 @@ export async function importAll(data) {
    dataen (mens du er innlogget).
    ========================================================= */
 export async function pushAllToCloud() {
+  // Uten innlogging finnes det ingen sky-konto å laste opp TIL — da lå alt bare
+  // lokalt, og en «Lastet opp»-kvittering ville vært direkte villedende.
+  if (!db.cloud.currentUser?.value?.isLoggedIn) {
+    throw new Error('Du er ikke innlogget i skyen — dataene ligger kun lokalt på denne enheten.')
+  }
   const counts = {}
   let total = 0
   for (const t of TABLES) {
@@ -900,10 +905,18 @@ export async function pushAllToCloud() {
     total += rows.length
     if (rows.length) await db.table(t).bulkPut(rows)
   }
-  try {
-    await db.cloud.sync({ purpose: 'push' })
-  } catch {
-    // Sync skjer uansett i bakgrunnen så snart det er nett.
+  // `wait: true` er avgjørende: uten den returnerer sync() FØR opplastingen er
+  // ferdig. Og feil MÅ boble opp — et stille catch her ga «Lastet opp N ting»
+  // selv når ingenting nådde serveren.
+  await db.cloud.sync({ purpose: 'push', wait: true })
+  const state = db.cloud.syncState?.value
+  if (state?.license && state.license !== 'ok') {
+    throw new Error(
+      `Sky-lisensen er ${state.license === 'expired' ? 'utløpt' : 'deaktivert'} — serveren tar ikke imot data.`,
+    )
+  }
+  if (state?.status === 'error' || state?.phase === 'error') {
+    throw new Error(state.error?.message || 'Synken feilet — dataene ble ikke lastet opp.')
   }
   return { counts, total }
 }
