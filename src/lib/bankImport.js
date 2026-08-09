@@ -112,24 +112,81 @@ export function isTransfer(text) {
 
 /* ---------- Kategori-gjetting ---------- */
 
-// Nøkkelord → kategori i CATEGORIES (Money.jsx). Sjekkes i rekkefølge —
-// spesifikke før generelle («obs bygg» må treffe hjem før «obs» treffer
-// dagligvarer). Små bokstaver; matches som substring i butikknavnet.
+/* Nøkkelord → [kategori, underkategori]. Sjekkes ovenfra og ned, så SPESIFIKKE
+   regler må stå før generelle: «obs bygg» må treffe hjem/interiør før «obs»
+   treffer dagligvarer, og «bil-service» før «service». Alt matches som
+   substring i det rensede butikknavnet (små bokstaver, med mellomrom rundt så
+   ' yx ' ikke treffer «Styx»). Listene er bygget fra brukerens ekte
+   kontoutskrift — se PROGRESS.md. */
 const RULES = [
-  ['hjem', ['obs bygg', 'byggmax', 'maxbo', 'monter', 'jernia', 'ikea', 'jula', 'clas ohl', 'kid interiør', 'princess', 'power', 'elkjøp', 'komplett', 'rusta', 'søstrene', 'dustin', 'elkjop', 'telia', 'telenor', 'family nett', 'altibox', 'ice net', 'fjordkraft', 'tibber', 'fortum', 'hafslund', 'strøm', 'husleie', 'forsikring', 'gjensidige', 'fremtind', 'tryg']],
-  ['dagligvarer', ['rema', 'meny', 'kiwi', 'extra', 'coop', 'obs', 'joker', 'bunnpris', 'spar ', 'matkroken', 'maximat', 'normal', 'europris', 'nille', 'oda.', 'holdbart']],
-  ['restaurant', ['subway', 'burger', 'mcdonald', 'mcd', 'kebab', 'pizza', 'sushi', 'ssn ', 'peppes', 'egon', 'starbucks', 'espresso', 'kaffe', 'cafe', 'café', 'restaurant', 'foodora', 'wolt', 'just eat', 'taco', 'bakeri', 'jordbærpikene', 'gatekjøkken']],
-  ['kjoretoy', ['easypark', 'apcoa', 'onepark', 'parkering', 'st1', 'circle k', 'shell', 'esso', 'uno-x', 'unox', 'yx ', '1-2-3', 'best stasjon', 'bensin', 'drivstoff', 'autopass', 'ferde', 'fjellinjen', 'bompenge', 'biltema', 'mekonomen', 'vianor', 'dekk', 'bilxtra', 'bil-service', 'bilservice', 'naf ']],
-  ['helse', ['apotek', 'boots', 'legevakt', 'lege', 'tannlege', 'fysio', 'kiropraktor', 'volvat', 'medisins', 'sats', 'evo ', 'fresh fitness', 'family sports', 'optiker', 'specsavers', 'brilleland', 'synsam']],
-  ['fritid', ['kino', 'netflix', 'spotify', 'hbo', 'disney', 'viaplay', 'apple.com/bill', 'itunes', 'midjourney', 'openai', 'anthropic', 'steam', 'playstation', 'nintendo', 'epic games', 'xbox', 'discord', 'twitch', 'google one', 'dropbox', 'billett', 'ticketmaster', 'hotell', 'hotel', 'airbnb', 'sas ', 'norwegian', 'widerøe', 'wideroe', 'vio.com', 'adobe', 'teater', 'konsert', 'museum', 'badeland', 'bowling', 'klatring', 'ark ', 'norli', 'platekompaniet', 'lego']],
+  // --- må stå først: sammensatte navn som ellers fanges av en bredere regel
+  ['hjem', 'interior', ['obs bygg', 'byggmax', 'maxbo', 'monter', 'jernia', 'montér']],
+  ['kjoretoy', 'verksted', ['bil-service', 'bilservice', 'bilxtra', 'mekonomen', 'vianor', 'dekkmann', 'dekk team', 'naf ', 'biltema', 'autose', 'autosenter', 'bilverksted', 'bilpleie']],
+
+  // --- dagligvarer
+  ['dagligvarer', 'matbutikk', ['rema', 'meny', 'kiwi', 'extra', 'coop', 'obs', 'joker', 'bunnpris', 'spar ', 'matkroken', 'maximat', 'oda.', 'holdbart', 'europris', 'nille', 'normal', 'asian market', 'market st']],
+  ['dagligvarer', 'vinmonopol', ['vinmonopol']],
+  ['dagligvarer', 'kiosk', ['narvesen', '7-eleven', 'seven eleven', 'deli de luca', 'mix ', 'gottebiten', 'godteri']],
+
+  // --- restaurant
+  ['restaurant', 'takeaway', ['foodora', 'wolt', 'just eat', 'pizza', 'kebab', 'sushi', 'taco']],
+  ['restaurant', 'kafe', ['starbucks', 'espresso', 'kaffe', 'cafe', 'café', 'bakeri', 'baker ', 'godt brød', 'jordbærpikene']],
+  ['restaurant', 'restaurant', ['subway', 'burger', 'mcdonald', 'mcd', 'ssn ', 'peppes', 'egon', 'restauran', 'gatekjøkken', 'alimento', 'steakh', 'big horn', 'tangs', 'sushi', 'wok ', 'thai ', 'bistro', 'brasseri', 'pub ']],
+
+  // --- transport
+  ['kjoretoy', 'parkering', ['easypark', 'apcoa', 'onepark', 'parkering', 'p-hus']],
+  ['kjoretoy', 'drivstoff', ['st1', 'circle k', 'shell', 'esso', 'uno-x', 'unox', ' yx ', '1-2-3', 'best stasjon', 'bensin', 'drivstoff', 'recharge', 'mer lading']],
+  ['kjoretoy', 'bom', ['autopass', 'ferde', 'fjellinjen', 'bompenge', 'fjord1', 'torghatten']],
+  ['kjoretoy', 'kollektiv', ['vipps:vkt', 'vkt ', 'ruter', 'vy ', 'vipps:vy', 'entur', 'kolumbus', 'skyss', 'atb ', 'flytoget', 'taxi']],
+
+  // --- helse
+  ['helse', 'apotek', ['apotek', 'boots', 'farmasi']],
+  ['helse', 'behandling', ['legevakt', 'lege', 'tannlege', 'volvat', 'medisins', 'fysio', 'kiropraktor', 'aleris']],
+  ['helse', 'trening', ['sats', 'evo ', 'fresh fitness', 'family sports', 'spenst', 'treningssenter']],
+  ['helse', 'optiker', ['optiker', 'specsavers', 'brilleland', 'synsam', 'krogh optikk']],
+
+  // --- fritid og abonnement
+  ['fritid', 'stromming', ['netflix', 'spotify', 'hbo', 'max.com', 'disney', 'viaplay', 'youtube', 'tidal', 'skyshowtime']],
+  ['fritid', 'programvare', ['apple.com/bill', 'itunes', 'midjourney', 'openai', 'anthropic', 'adobe', 'google one', 'dropbox', 'microsoft', 'notion', 'figma', 'github', 'vercel', 'canva', 'higgsfield', 'claude', 'cursor']],
+  ['fritid', 'spill', ['steam', 'playstation', 'nintendo', 'epic games', 'xbox', 'discord', 'twitch']],
+  ['fritid', 'reise', ['hotell', 'hotel', 'airbnb', 'sas ', 'norwegian', 'widerøe', 'wideroe', 'vio.com', 'booking.com', 'expedia', 'color line', 'fjordline']],
+  ['fritid', 'opplevelser', ['kino', 'teater', 'konsert', 'museum', 'badeland', 'bowling', 'klatring', 'billett', 'ticketmaster', 'tusenfryd', 'the well', 'norsk tipping', 'spa ']],
+  ['fritid', 'bocker', ['ark ', 'norli', 'platekompaniet', 'outland', 'lego']],
+
+  // --- hjem og regninger
+  ['hjem', 'strom', ['fjordkraft', 'tibber', 'fortum', 'hafslund', 'strøm', 'elvia', 'lede as']],
+  ['hjem', 'mobil', ['telia', 'telenor', 'family nett', 'altibox', 'ice net', 'ice norge', 'talkmore', 'onecall', 'chilimobil']],
+  ['hjem', 'forsikring', ['forsikring', 'gjensidige', 'fremtind', 'tryg', 'if skade', 'frende', 'storebrand']],
+  ['hjem', 'elektronikk', ['elkjøp', 'elkjop', 'power', 'komplett', 'dustin', 'multicom', 'proshop']],
+  ['hjem', 'interior', ['ikea', 'jula', 'clas ohl', 'kid interiør', 'kid ', 'princess', 'rusta', 'søstrene', 'skeidar', 'bohus', 'jysk']],
+  ['hjem', 'hage', ['plantasjen', 'hageland', 'felleskjøpet', 'gartneri']],
+
+  // --- klær og sko
+  ['klaer', 'sko', ['eurosko', 'skoringen', 'shoe ', 'din sko', 'nike', 'adidas', 'zalando']],
+  ['klaer', 'sport', ['xxl', 'intersport', 'sport 1', 'sport1', 'g-max', 'gmax', 'anton sport']],
+  ['klaer', 'klaer', ['h&m', 'hm.com', 'zara', 'cubus', 'dressmann', 'bik bok', 'lindex', 'vero moda', 'kappahl', 'boozt', 'volt ', 'carlings', 'jack & jones', 'gina tricot', 'match ', 'name it']],
+
+  // --- frisør og velvære
+  ['skjonnhet', 'frisor', ['nikita hair', 'nikita ', 'cutters', 'adam og eva', 'frisør', 'hair ', 'barber']],
+  ['skjonnhet', 'kosmetikk', ['vita ', 'kicks', 'parfym', 'fredrik & louisa', 'lyko', 'blush ']],
+
+  // --- gaver
+  ['gaver', 'gave', ['bjørklund', 'thune', 'gullsmed', 'david-andersen', 'pandora']],
+  ['gaver', 'blomster', ['blomster', 'interflora', 'mester grønn']],
+
+  // --- øvrig (kjente, men uten butikk vi kan plassere)
+  ['ovrig', 'gebyr', ['prislagte tjenester', 'visa-kostnad', 'gebyr', 'renter', 'purregebyr']],
+  ['ovrig', 'betaling', ['vipps:klarna', 'klarna', 'paypal', 'vipps:']],
 ]
 
+/* guessCategory(merchant) → { category, sub }
+   `sub` er null når vi bare klarer å slå fast toppkategorien. */
 export function guessCategory(merchant) {
   const m = ` ${merchant.toLowerCase()} `
-  for (const [cat, words] of RULES) {
-    for (const w of words) if (m.includes(w)) return cat
+  for (const [cat, sub, words] of RULES) {
+    for (const w of words) if (m.includes(w)) return { category: cat, sub }
   }
-  return 'ovrig'
+  return { category: 'ovrig', sub: 'ukjent' }
 }
 
 /* ---------- Dedup-nøkkel ---------- */
@@ -145,10 +202,11 @@ export function importKey(date, amount, merchant) {
 
 /* buildImportPlan(csvText, { existingKeys, overrides })
    → { ok, groups, skipped, from, to, count, total }
-   - groups: én per butikk, sortert på sum — [{ merchant, category, count,
+   - groups: én per butikk, sortert på sum — [{ merchant, category, sub, count,
      total, rows: [{date, amount, merchant, key}] }]
    - existingKeys: Map<key, antall> fra allerede lagrede expenses (dedup)
-   - overrides: { butikknavn-lowercase → kategori } — brukerens tidligere valg
+   - overrides: { butikknavn-lowercase → {category, sub} } — brukerens tidligere
+     valg (godtar også gammel form der verdien bare er kategori-strengen)
    - skipped: { reserved, transfers, incoming, duplicates } (antall) */
 export function buildImportPlan(csvText, { existingKeys, overrides } = {}) {
   const parsed = parseBankCSV(csvText)
@@ -175,9 +233,16 @@ export function buildImportPlan(csvText, { existingKeys, overrides } = {}) {
 
     const gk = merchant.toLowerCase()
     if (!byMerchant.has(gk)) {
+      const guess = guessCategory(merchant)
+      // Huskede valg fra forrige import vinner. Eldre lagrede valg er en ren
+      // streng (bare kategori) — støtt begge formene.
+      const saved = overrides && overrides[gk]
+      const savedCat = typeof saved === 'string' ? saved : saved?.category
+      const savedSub = typeof saved === 'string' ? null : saved?.sub
       byMerchant.set(gk, {
         merchant,
-        category: (overrides && overrides[gk]) || guessCategory(merchant),
+        category: savedCat || guess.category,
+        sub: savedCat ? savedSub ?? null : guess.sub,
         count: 0,
         total: 0,
         rows: [],

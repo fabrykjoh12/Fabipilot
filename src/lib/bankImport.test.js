@@ -76,15 +76,30 @@ describe('guessCategory — mot brukerens faktiske butikker', () => {
     ['Clas Ohl 2828 Jernbaneg.1d', 'hjem'],
     ['APPLE.COM/BILL', 'fritid'],
     ['Kilden Kino Kilden 8', 'fritid'],
-    ['Vipps:vkt', 'ovrig'],
+    ['Vipps:vkt', 'kjoretoy'],
     ['Prislagte Tjenester', 'ovrig'],
   ])('%s → %s', (merchant, cat) => {
-    expect(guessCategory(merchant)).toBe(cat)
+    expect(guessCategory(merchant).category).toBe(cat)
   })
 
   it('«obs bygg» treffer hjem selv om «obs» alene er dagligvarer', () => {
-    expect(guessCategory('Obs Bygg Sandefjord')).toBe('hjem')
-    expect(guessCategory('Obs Stavern')).toBe('dagligvarer')
+    expect(guessCategory('Obs Bygg Sandefjord').category).toBe('hjem')
+    expect(guessCategory('Obs Stavern').category).toBe('dagligvarer')
+  })
+
+  it('gir underkategori i tillegg til kategori', () => {
+    expect(guessCategory('Rema Eik')).toEqual({ category: 'dagligvarer', sub: 'matbutikk' })
+    expect(guessCategory('EasyPark AS')).toEqual({ category: 'kjoretoy', sub: 'parkering' })
+    expect(guessCategory('Ubetjent Varekjøp St1 Fokserød')).toEqual({ category: 'kjoretoy', sub: 'drivstoff' })
+    expect(guessCategory('Vipps:vkt')).toEqual({ category: 'kjoretoy', sub: 'kollektiv' })
+    expect(guessCategory('Netflix.com')).toEqual({ category: 'fritid', sub: 'stromming' })
+    expect(guessCategory('Helt Ukjent Butikk')).toEqual({ category: 'ovrig', sub: 'ukjent' })
+  })
+
+  it('de nye kategoriene fanger det som lå igjen i «Øvrig»', () => {
+    expect(guessCategory('Nikita Hair 741 Jernbanegt').category).toBe('skjonnhet')
+    expect(guessCategory('Eurosko Sek').category).toBe('klaer')
+    expect(guessCategory('Bjørklund Farma Jernbanegate').category).toBe('gaver')
   })
 })
 
@@ -124,7 +139,10 @@ describe('buildImportPlan', () => {
   })
 
   it('overrides: brukerens tidligere kategorivalg vinner over gjettingen', () => {
-    const plan = buildImportPlan(CSV, { overrides: { 'easypark as': 'ovrig' } })
+    const plan = buildImportPlan(CSV, { overrides: { 'easypark as': { category: 'ovrig', sub: null } } })
     expect(plan.groups.find((g) => g.merchant === 'EasyPark AS').category).toBe('ovrig')
+    // gammel form (bare kategori-streng) må fortsatt virke
+    const old = buildImportPlan(CSV, { overrides: { 'easypark as': 'fritid' } })
+    expect(old.groups.find((g) => g.merchant === 'EasyPark AS').category).toBe('fritid')
   })
 })

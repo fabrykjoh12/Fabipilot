@@ -91,10 +91,14 @@ Synces via Dexie Cloud (se §3).
   `history` = liste av `YYYY-MM-DD` der vanen ble gjort. Ingen streaks.
 - **subscriptions** (Penger) — `id, name, amount, cycle, category, renewDay, createdAt`
   `cycle` = `'monthly' | 'yearly'`. Månedstotal: årlig deles på 12. `category` = nøkkel i `CATEGORIES`
-  (Money.jsx): `dagligvarer | restaurant | kjoretoy | fritid | helse | hjem | ovrig` — matcher
-  kategoriene i brukerens bank-app 1:1 («Daglige utgifter»), `ovrig` sist = felles utfallskurv/fallback.
+  (`src/lib/categories.js`): `dagligvarer | restaurant | kjoretoy | fritid | helse | hjem | klaer |
+  skjonnhet | gaver | ovrig`, `ovrig` sist = felles utfallskurv/fallback. De seks første + `ovrig` er de
+  opprinnelige bank-app-kategoriene; `klaer`/`skjonnhet`/`gaver` ble lagt TIL (ikke omdøpt) fordi de var
+  de største restene i «Øvrig» ved bankimport — derfor trengs ingen migrering.
   `renewDay` = dag i måneden (1–31) abonnementet trekkes, eller `null` (uindeksert).
-- **expenses** (Penger/Forbruk) — `id, amount, category, note, date, bulk, importKey, createdAt`
+- **expenses** (Penger/Forbruk) — `id, amount, category, sub, note, date, bulk, importKey, createdAt`
+  `sub` (uindeksert, valgfri): underkategori — nøkkel i `SUBCATEGORIES[category]` (`src/lib/categories.js`).
+  Kan mangle; alt summeres på `category` uansett.
   `date` = `YYYY-MM-DD`. Logget engangsforbruk. `importKey` (uindeksert, valgfri): `dato|beløp|butikk`
   satt av bankimporten — dedup-grunnlag så samme/overlappende CSV-eksport kan importeres flere ganger
   uten dobbeltføring (`listExpenseImportKeys` teller som multiset; to like kjøp samme dag er lov). `category` = nøkkel i `CATEGORIES` (se subscriptions over).
@@ -203,9 +207,12 @@ Alle stores er med i JSON-eksport/import (se §8).
   brukt av ⌘K-paletten i `Capture.jsx`
 - `src/lib/notify.js` — påminnelser: permission, daglig «planlegg dagen»-varsel via Notification Triggers
   (best-effort, lukket app der støttet), `fireTest`, app-ikon-badge (`setBadge`). Prefs i localStorage per enhet.
+- `src/lib/categories.js` — `CATEGORIES` + `SUBCATEGORIES` for Penger, med `catMeta`/`catKey`/`subsFor`/
+  `subLabel`. Delt av Money.jsx, MoneyImport.jsx og bankImport.js — importen må gjette både kategori og
+  underkategori, så alle tre trenger samme fasit
 - `src/lib/bankImport.js` — bankimport (DNB/Sbanken CSV), rene funksjoner: `parseBankCSV` (semikolon/
   quotet/CRLF), `cleanMerchant` (prefikser/valuta/koder/dato-haler vekk), `guessCategory` (nøkkelord →
-  `CATEGORIES`-nøkkel, spesifikke før generelle), `isTransfer` (overføring/kontoregulering hoppes over),
+  `{category, sub}`, spesifikke regler før generelle), `isTransfer` (overføring/kontoregulering hoppes over),
   `importKey` + `buildImportPlan` (plan gruppert per butikk, med dedup mot eksisterende nøkler og
   brukerens huskede kategorivalg). Testet i `bankImport.test.js`
 - `src/lib/parse.js` — `parseEntry(text)`: tolker norsk dato/tid + typehint for hurtiglagring → `{title, type, dueDate, time}`

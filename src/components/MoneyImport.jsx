@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { buildImportPlan } from '../lib/bankImport.js'
+import { CATEGORIES, subsFor } from '../lib/categories.js'
 import { importBankExpenses, listExpenseImportKeys } from '../db.js'
 import { toast, useEscape } from '../lib/ui.jsx'
 import { kr, vibrate } from '../lib/fx.js'
@@ -20,17 +21,19 @@ function loadOverrides() {
   try { return JSON.parse(localStorage.getItem(OVERRIDES_KEY)) || {} } catch { return {} }
 }
 
-export default function MoneyImportSheet({ categories, onClose }) {
+export default function MoneyImportSheet({ onClose }) {
+  const categories = CATEGORIES
   const [plan, setPlan] = useState(null)
   const [error, setError] = useState('')
   const [skip, setSkip] = useState(() => new Set()) // butikk-nøkler som ikke skal med
-  const [cats, setCats] = useState({}) // butikk-nøkkel → overstyrt kategori (denne økta)
+  const [cats, setCats] = useState({}) // butikk-nøkkel → {category, sub} overstyrt denne økta
   const [busy, setBusy] = useState(false)
   useEscape(onClose)
 
   const catMeta = (k) => categories.find((c) => c.k === k) || categories[categories.length - 1]
   const gkey = (g) => g.merchant.toLowerCase()
-  const chosenCat = (g) => cats[gkey(g)] || g.category
+  const chosenCat = (g) => cats[gkey(g)]?.category ?? g.category
+  const chosenSub = (g) => (gkey(g) in cats ? cats[gkey(g)].sub : g.sub)
 
   async function onFile(e) {
     const file = e.target.files?.[0]
@@ -63,11 +66,11 @@ export default function MoneyImportSheet({ categories, onClose }) {
     if (busy || !activeCount) return
     setBusy(true)
     try {
-      const rows = activeGroups.flatMap((g) => g.rows.map((r) => ({ ...r, category: chosenCat(g) })))
+      const rows = activeGroups.flatMap((g) => g.rows.map((r) => ({ ...r, category: chosenCat(g), sub: chosenSub(g) })))
       const n = await importBankExpenses(rows)
       // husk kategorivalget per butikk til neste import
       const overrides = loadOverrides()
-      for (const g of plan.groups) overrides[gkey(g)] = chosenCat(g)
+      for (const g of plan.groups) overrides[gkey(g)] = { category: chosenCat(g), sub: chosenSub(g) }
       localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides))
       vibrate(12)
       toast.success(`Importerte ${n} kjøp fra banken`, {
@@ -144,18 +147,35 @@ export default function MoneyImportSheet({ categories, onClose }) {
                       <span className="imp-merchant">{g.merchant}</span>
                       <span className="imp-meta">{g.count} {g.count === 1 ? 'kjøp' : 'kjøp'} · {kr(Math.round(g.total))}</span>
                     </div>
-                    <label className="imp-cat" style={{ background: c.color + '22' }}>
-                      <select
-                        value={chosenCat(g)}
-                        disabled={off}
-                        aria-label={`Kategori for ${g.merchant}`}
-                        onChange={(e) => setCats((m) => ({ ...m, [k]: e.target.value }))}
-                      >
-                        {categories.map((cat) => (
-                          <option key={cat.k} value={cat.k}>{cat.emoji} {cat.label}</option>
-                        ))}
-                      </select>
-                    </label>
+                    <div className="imp-cats">
+                      <label className="imp-cat" style={{ background: c.color + '22' }}>
+                        <select
+                          value={chosenCat(g)}
+                          disabled={off}
+                          aria-label={`Kategori for ${g.merchant}`}
+                          onChange={(e) => setCats((m) => ({ ...m, [k]: { category: e.target.value, sub: null } }))}
+                        >
+                          {categories.map((cat) => (
+                            <option key={cat.k} value={cat.k}>{cat.emoji} {cat.label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      {subsFor(chosenCat(g)).length > 0 && (
+                        <label className="imp-sub">
+                          <select
+                            value={chosenSub(g) || ''}
+                            disabled={off}
+                            aria-label={`Underkategori for ${g.merchant}`}
+                            onChange={(e) => setCats((m) => ({ ...m, [k]: { category: chosenCat(g), sub: e.target.value || null } }))}
+                          >
+                            <option value="">– uten –</option>
+                            {subsFor(chosenCat(g)).map((sc) => (
+                              <option key={sc.k} value={sc.k}>{sc.label}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </div>
                   </div>
                 )
               })}

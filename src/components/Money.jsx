@@ -14,23 +14,11 @@ import {
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
 import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
+import { CATEGORIES, catMeta, catKey, subsFor, subLabel } from '../lib/categories.js'
 import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve, upcomingCharges } from '../lib/money.js'
 import MoneyImportSheet from './MoneyImport.jsx'
 import './Money.css'
 
-/* Matcher kategoriene i brukerens bank-app («Daglige utgifter») 1:1, så Penger-oversikten
-   kan sammenlignes direkte med den. «Øvrig forbruk» sist = felles utfallskurv. */
-const CATEGORIES = [
-  { k: 'dagligvarer', label: 'Dagligvarer', emoji: '🛒', color: SWATCH.amber },
-  { k: 'restaurant', label: 'Restaurant og uteliv', emoji: '🍽️', color: SWATCH.coral },
-  { k: 'kjoretoy', label: 'Kjøretøy', emoji: '🚗', color: SWATCH.blue },
-  { k: 'fritid', label: 'Fritid', emoji: '🎮', color: SWATCH.teal },
-  { k: 'helse', label: 'Helse og velvære', emoji: '❤️', color: SWATCH.rose },
-  { k: 'hjem', label: 'Hjem og hage', emoji: '🌱', color: SWATCH.forest },
-  { k: 'ovrig', label: 'Øvrig forbruk', emoji: '📦', color: SWATCH.slate },
-]
-const catMeta = (k) => CATEGORIES.find((c) => c.k === k) || CATEGORIES[CATEGORIES.length - 1]
-const catKey = (k) => (CATEGORIES.some((c) => c.k === k) ? k : 'ovrig')
 
 const MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember']
 const WEEKDAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag']
@@ -84,7 +72,7 @@ function lastNMonths(n, refY, refM) {
 
 /* ============ trend: forbruk per måned ============ */
 function MonthTrend({ expenses, subTotal, cursor, onPick }) {
-  const months = lastNMonths(6, cursor.y, cursor.m)
+  const months = lastNMonths(12, cursor.y, cursor.m)
   const data = months.map((mo) => {
     const exp = expenses
       .filter((e) => (e.date || '').startsWith(mo.prefix))
@@ -96,7 +84,7 @@ function MonthTrend({ expenses, subTotal, cursor, onPick }) {
 
   return (
     <div className="trend card">
-      <span className="trend-lbl">Forbruk siste 6 måneder</span>
+      <span className="trend-lbl">Forbruk siste 12 måneder</span>
       <div className="trend-bars">
         {data.map((d) => {
           const sel = d.y === cursor.y && d.m === cursor.m
@@ -183,6 +171,7 @@ function ExpenseSheet({ initial, onClose }) {
   const editing = !!initial
   const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
   const [category, setCategory] = useState(initial?.category || 'dagligvarer')
+  const [sub, setSub] = useState(initial?.sub || '')
   const [note, setNote] = useState(initial?.note || '')
   const [date, setDate] = useState(initial?.date || todayKey())
   const saveRef = useRef(null)
@@ -190,8 +179,9 @@ function ExpenseSheet({ initial, onClose }) {
   async function save() {
     const amt = Number(amount)
     if (!amt) return
-    if (editing) await updateExpense(initial.id, { amount: amt, category, note: note.trim(), date })
-    else await addExpense({ amount: amt, category, note: note.trim(), date })
+    const subVal = sub || null
+    if (editing) await updateExpense(initial.id, { amount: amt, category, sub: subVal, note: note.trim(), date })
+    else await addExpense({ amount: amt, category, sub: subVal, note: note.trim(), date })
     vibrate([12, 30, 12])
     burst(saveRef.current)
     setTimeout(onClose, reduceMotion() ? 0 : 160)
@@ -230,13 +220,30 @@ function ExpenseSheet({ initial, onClose }) {
               type="button"
               className={'msheet-cat' + (category === c.k ? ' on' : '')}
               style={category === c.k ? { borderColor: c.color, background: c.color + '18' } : undefined}
-              onClick={() => setCategory(c.k)}
+              onClick={() => { setCategory(c.k); setSub('') }}
             >
               <span className="msheet-cat-emoji">{c.emoji}</span>
               {c.label}
             </button>
           ))}
         </div>
+
+        {subsFor(category).length > 0 && (
+          <>
+            <span className="msheet-lbl">Underkategori (valgfri)</span>
+            <div className="msheet-cats">
+              <button type="button" className={'msheet-cat' + (sub === '' ? ' on' : '')} onClick={() => setSub('')}>– uten –</button>
+              {subsFor(category).map((sc) => (
+                <button
+                  key={sc.k}
+                  type="button"
+                  className={'msheet-cat' + (sub === sc.k ? ' on' : '')}
+                  onClick={() => setSub(sc.k)}
+                >{sc.label}</button>
+              ))}
+            </div>
+          </>
+        )}
 
         <div className="msheet-row">
           <label className="msheet-field">
@@ -981,7 +988,7 @@ export default function Money() {
                             <span className="exp-emoji" style={{ background: c.color + '22' }}>{c.emoji}</span>
                             <div className="exp-main">
                               <span className="exp-title">{e.note || c.label}</span>
-                              <span className="exp-meta">{c.label}</span>
+                              <span className="exp-meta">{subLabel(e.category, e.sub) || c.label}</span>
                             </div>
                             <span className="exp-amt">{kr(e.amount)}</span>
                           </button>
@@ -1095,7 +1102,7 @@ export default function Money() {
       {sheet?.type === 'monthlyTotals' && (
         <MonthlyTotalsSheet y={cursor.y} m={cursor.m} onClose={() => setSheet(null)} />
       )}
-      {sheet?.type === 'bankImport' && <MoneyImportSheet categories={CATEGORIES} onClose={() => setSheet(null)} />}
+      {sheet?.type === 'bankImport' && <MoneyImportSheet onClose={() => setSheet(null)} />}
       {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
     </div>
   )

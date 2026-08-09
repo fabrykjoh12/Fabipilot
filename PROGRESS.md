@@ -2,6 +2,23 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Bedre kategorier + underkategorier, og hele året inn på én import** (ønske fra brukeren).
+  • **Datoene virket allerede** — hver importert rad får sin egen `date`, så én årsfil fyller ut alle
+    månedene. Verifisert i browser: 12 måneder bakover ga 21 297 / 37 105 / 14 065 / 13 426 / … kr.
+    Det som MANGLET var å se det: trendgrafen viste bare 6 måneder → nå 12.
+  • **Ny `src/lib/categories.js`** (flyttet ut av Money.jsx): `CATEGORIES` + `SUBCATEGORIES`. Tre nye
+    toppkategorier — `klaer`, `skjonnhet`, `gaver` — LAGT TIL (ikke omdøpt), så eksisterende rader og
+    nøkler er urørt og ingen migrering trengs. Valgt ut fra hva som faktisk lå igjen i «Øvrig» i
+    brukerens ekte kontoutskrift (klesbutikker, frisør, gullsmed).
+  • **Underkategorier** (`expenses.sub`, uindeksert/valgfri): 2–6 per kategori — drivstoff/parkering/bom/
+    kollektiv under Transport, strøm/mobil/forsikring/interiør/elektronikk under Hjem, osv. Velges i
+    forbruks-arket og i importen; vises i forbrukslista i stedet for kategorinavnet når den finnes.
+  • **Gjettereglene** returnerer nå `{category, sub}` og er utvidet kraftig mot de faktiske butikkene
+    («Vipps:vkt» = Vestfold Kollektivtrafikk, Higgsfield/Adobe → programvare, Big Horn/Tangs → restaurant,
+    Tønsberg Autosenter → verksted). **«Øvrig» falt fra 26 % til 15 % av forbruket** på den ekte fila.
+  • Huskede kategorivalg lagres nå som `{category, sub}`; den gamle formen (bare kategori-streng) leses
+    fortsatt, så tidligere valg ikke går tapt.
+  27 tester i bankImport (164 totalt). Lint + build grønt, e2e-verifisert i Chromium.
 - 2026-08-09 — **Bankimport: kontoutskriften fra DNB rett inn i Penger** (diskusjon om å gjøre
   økonomi-føring lettere → friksjonen er selve loggingen, så nå kan den hoppes over). Ny ren motor
   `src/lib/bankImport.js` (parser DNB-CSVen «Lagre til fil»: semikolon/quotet/CRLF, dd.mm.yyyy,

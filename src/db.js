@@ -398,11 +398,12 @@ export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 :
 export async function listExpenses() {
   return db.expenses.orderBy('date').reverse().toArray()
 }
-export async function addExpense({ amount, category = 'ovrig', note = '', date }) {
+export async function addExpense({ amount, category = 'ovrig', sub = null, note = '', date }) {
   const e = {
     id: uid(),
     amount: Number(amount) || 0,
     category,
+    sub: sub || null, // uindeksert underkategori (valgfri)
     note: note || '',
     date: date || todayKey(),
     createdAt: now(),
@@ -424,6 +425,7 @@ export async function importBankExpenses(rows) {
       id: uid(),
       amount: Number(r.amount),
       category: r.category || 'ovrig',
+      sub: r.sub || null,
       note: r.merchant || '',
       date: r.date,
       importKey: r.key,
