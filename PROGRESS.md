@@ -2,6 +2,15 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Backup-panelet kunne ikke scrolles — man ble sittende fast** (rapportert fra telefon).
+  `.backup-card` hadde hverken `max-height` eller `overflow`, så på en liten skjerm rant panelet ut av
+  viewporten (1125px innhold i 600px høyde). «Eksporter alt (last ned JSON)» OG «Lukk» ligger nederst i
+  kortet, og siden panelet dekket hele skjermen fantes det heller ikke noe «utenfor» å trykke på for å
+  lukke — altså ingen vei ut, og ingen mulighet til å ta backup. Nå: `max-height: 100dvh - 40px` +
+  `overflow-y: auto` på kortet, med `overflow-y: auto` på sløret som nødutgang. Samme sikring lagt på
+  `.more-sheet` (12 moduler + innstillinger blir høyere enn en liten telefonskjerm). `.backup-card` bruker
+  nå også `--surface-solid` i stedet for glass, etter regelen i CLAUDE.md §4 (den ligger over et mørkt slør).
+  Verifisert på 360×640: kortet scroller, og «Lukk» er nåbar etter scroll. Lint + 137 tester + build grønt.
 - 2026-08-09 — **Datatap-undersøkelse: «last opp i skyen» kunne lyve** (brukeren slettet PWA-en for å
   installere den på nytt, og alt var borte — også gammelt innhold — enda «last opp i skyen» var trykket rett før).
   To reelle feil funnet i opplastings-stien:
