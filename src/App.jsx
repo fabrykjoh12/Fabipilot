@@ -258,6 +258,11 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('theme', theme)
+    // Statuslinja i PWA-en leser <meta name="theme-color">. De statiske taggene i
+    // index.html følger systemtemaet, så de bommer når temaet er valgt manuelt i
+    // appen — hold den uten media-attributt i takt med toppen av lerret-gradienten.
+    const meta = document.querySelector('meta[name="theme-color"]:not([media])')
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#161b26' : '#eaf0fb')
   }, [theme])
 
   useEffect(() => {

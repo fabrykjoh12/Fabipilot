@@ -2,6 +2,20 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Tre feil i det nye designet, funnet på ekte telefon**:
+  • **Innleggingsfeltet nederst var gjennomsiktig** — oppgave-radene malte seg rett oppå det. To årsaker:
+    `.screen-bar` hadde ingen `z-index`, mens de sveipbare radene har `z-index: 1` (DOM-rekkefølge taper mot
+    en eksplisitt z-index), OG fadingen var definert i PROSENT, så feltet havnet i den gjennomsiktige delen
+    av gradienten da paddingen vokste for å gi plass til den flytende pilla. Nå `z-index: 10` + en bakgrunn
+    i to lag med FASTE mål (34px fading øverst, heldekkende lerret under).
+  • **Bunnmenyen lå for høyt** — `10px + env(safe-area-inset-bottom)` la fast avstand oppå hjemme-indikatorens
+    egen safe-area. Nå `max(10px, calc(env(safe-area-inset-bottom) - 10px))` (44px → 24px på iPhone).
+  • **Hvit stripe øverst** — PWA-ens `theme-color` var aksent-blå og fulgte ikke temaet. Nå matcher den
+    toppen av lerret-gradienten, med egne `prefers-color-scheme`-tagger i index.html + oppdatering fra
+    App.jsx når temaet byttes manuelt (de statiske taggene bommer når temaet er valgt i appen).
+  Målene for pilla ligger nå i `--nav-h`/`--nav-gap`/`--nav-space` i `:root`, så bar, FAB og toast ikke kan
+  komme i utakt med navet igjen. Verifisert med simulert iPhone-safe-area i Chromium (lys + mørk, alle
+  moduler med bunnlinje + PC). Lint + 130 tester + build grønt.
 - 2026-08-08 — **«Fabipilot 2.0»-redesignet fra Claude Design lagt inn**. Prototypen (et bundlet
   artifact) ble pakket ut, og designspråket portert inn i appen via design-tokens i stedet for å skrive om
   komponentene — siden alt allerede brukte `var(--…)` fulgte hele appen med «gratis»:

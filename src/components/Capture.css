@@ -171,8 +171,8 @@
 .cap-fab {
   position: fixed;
   right: 18px;
-  /* over den flytende bunnpillen (nav: 10px + ~64px høyde) */
-  bottom: calc(92px + env(safe-area-inset-bottom));
+  /* over den flytende bunnpillen — se --nav-space i AppShell.css */
+  bottom: var(--nav-space);
   z-index: 60;
   width: 56px;
   height: 56px;

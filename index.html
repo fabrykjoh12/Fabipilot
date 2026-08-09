@@ -12,7 +12,12 @@
       name="description"
       content="Fabipilot is an AI project cockpit for builders — turn messy ideas into roadmaps, prompt queues, next steps and shipped projects. Local-first, works offline."
     />
-    <meta name="theme-color" content="#0a84ff" />
+    <!-- Statuslinja tar farge herfra. Må matche TOPPEN av lerret-gradienten,
+         ikke aksenten — ellers får du en fremmed stripe over appen. Oppdateres
+         også fra App.jsx når temaet byttes manuelt. -->
+    <meta name="theme-color" content="#eaf0fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#161b26" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eaf0fb" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Fabipilot" />

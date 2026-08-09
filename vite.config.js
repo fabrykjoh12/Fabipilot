@@ -18,7 +18,8 @@ export default defineConfig({
         short_name: 'Fabipilot',
         description: 'Fabipilot — ADHD-vennlig cockpit for deg som bygger med AI. Lokal-først.',
         lang: 'nb',
-        theme_color: '#0a84ff',
+        // toppen av lerret-gradienten, ikke aksenten — se index.html
+        theme_color: '#eaf0fb',
         background_color: '#eaf0fb',
         display: 'standalone',
         orientation: 'portrait',

@@ -45,6 +45,15 @@
   --r-full: 999px;
   --radius: var(--r-lg); /* bakoverkompat */
 
+  /* ---- Den flytende bunnpillen (mobil) ----
+     Alt som ligger nederst må holde klaring til pilla. Hold målene HER, ikke
+     spredt utover i filene, så bar/FAB/toast aldri kommer i utakt med navet.
+     --nav-gap trekker fra hjemme-indikatorens egen safe-area, ellers svever
+     pilla altfor høyt på iPhone (safe-area + fast avstand ble lagt oppå hverandre). */
+  --nav-h: 72px;
+  --nav-gap: max(10px, calc(env(safe-area-inset-bottom) - 10px));
+  --nav-space: calc(var(--nav-h) + var(--nav-gap) + 14px);
+
   /* ---- Mellomrom-skala ---- */
   --s-1: 4px;
   --s-2: 8px;
@@ -189,10 +198,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  /* mobil: hold innholdet klar av den flytende bunnpillen, og la fadingen
-     strekke seg helt ned bak den så teksten toner ut i stedet for å kuttes */
-  padding: 14px 16px calc(84px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--canvas) 72%, transparent);
+  /* MÅ ligge over innholdet: de sveipbare oppgave-radene har z-index 1 og malte
+     seg ellers rett oppå innleggingsfeltet (DOM-rekkefølge hjelper ikke mot en
+     eksplisitt z-index). Under navet (60) og dato-popoveren (31). */
+  z-index: 10;
+  /* Mobil: hold innholdet klar av den flytende bunnpillen.
+     Bakgrunnen er to lag med FASTE mål (ikke prosent): en 34px fading øverst,
+     og heldekkende lerret under den. Med prosent flyttet feltet seg opp i den
+     gjennomsiktige delen av gradienten når paddingen vokste, og oppgavene bak
+     skinte rett gjennom innleggingsfeltet. */
+  padding: 34px 16px var(--nav-space);
+  background:
+    linear-gradient(to bottom, transparent, var(--canvas)) left top / 100% 34px no-repeat,
+    linear-gradient(var(--canvas), var(--canvas)) left 34px / 100% calc(100% - 34px) no-repeat;
 }
 
 /* ===== Navigasjon =====
@@ -205,7 +223,7 @@
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  bottom: var(--nav-gap);
   z-index: 60;
   width: min(calc(100% - 24px), 520px);
   background: var(--surface);
@@ -788,7 +806,7 @@
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 96px;
+  bottom: calc(var(--nav-space) + 10px);
   transform: translateX(-50%) translateY(10px);
   /* fast mørk flate (ikke --ink, som er nesten hvit i mørk modus → hvit på hvit) */
   background: #23262e;
