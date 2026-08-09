@@ -14,6 +14,9 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Sparemodus («Plan»-fanen): budsjett for en periode uten lønn — dagsbeløp, foran/bak-status,
+  prognose og realitetssjekk mot faktisk forbruk (`src/lib/plan.js`, `plans`-store v13).
+  Budsjettforslag per kategori fra egen historikk.
 - Bankimport i Penger: CSV fra DNB-nettbanken → plan gruppert per butikk med kategori-gjetting og
   huskede valg, trygg re-import (`importKey`-dedup), månedsvelger + dagsgruppert forbruksliste.
 - **«Fabipilot 2.0»-redesign** (fra Claude Design-prototypen): mykt farget lerret-gradient + frostet

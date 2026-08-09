@@ -78,7 +78,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **12**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **13**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -113,6 +113,10 @@ Synces via Dexie Cloud (se §3).
   fjerner raden.
 - **incomes** (Penger/Inntekt) — `id, name, amount, createdAt`
   Månedlig inntektskilde. Sum = «igjen å bruke» på Oversikt-fanen.
+- **plans** (Penger/Plan — sparemodus) — `id, name, startDate, endDate, startAmount, income, fixedMonthly, createdAt`
+  En periode uten (eller med lite) inntekt, f.eks. en lang reise. `income` = samlet inntekt i HELE
+  perioden (0 = uten lønn), `fixedMonthly` = faste utgifter som løper videre mens du er borte.
+  Alt annet er utledet i `src/lib/plan.js` — ingenting beregnet lagres. v13 la til storen.
 - **goals** (Penger/Sparing) — `id, name, target, saved, createdAt`
   Sparemål. `addToGoal(id, delta)` justerer `saved` (min 0).
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
@@ -207,6 +211,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   brukt av ⌘K-paletten i `Capture.jsx`
 - `src/lib/notify.js` — påminnelser: permission, daglig «planlegg dagen»-varsel via Notification Triggers
   (best-effort, lukket app der støttet), `fireTest`, app-ikon-badge (`setBadge`). Prefs i localStorage per enhet.
+- `src/lib/plan.js` — sparemodus/reiseplan: `dailyAllowance` (dagsbeløp for at pengene skal vare hele
+  perioden, med skille mellom «alt per dag» og «fritt per dag» etter faste utgifter), `planProgress`
+  (ligger du foran/bak, prognose, når går det tomt), `runway`, `monthlyAverages` (snittforbruk fra
+  faktisk historikk) og `suggestBudgets`. Alt utledet, ingenting lagret; testet i `plan.test.js`
 - `src/lib/categories.js` — `CATEGORIES` + `SUBCATEGORIES` for Penger, med `catMeta`/`catKey`/`subsFor`/
   `subLabel`. Delt av Money.jsx, MoneyImport.jsx og bankImport.js — importen må gjette både kategori og
   underkategori, så alle tre trenger samme fasit
@@ -236,6 +244,9 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
+  - `MoneyPlan.jsx` — «Plan»-fanen i Penger: sparemodus for en periode uten lønn. Skjema med live
+    forhåndsvisning av dagsbeløpet, hero med «trygt å bruke per dag», fremdriftslinje, foran/bak-status
+    og en realitetssjekk mot hva du FAKTISK pleier å bruke per måned
   - `MoneyImport.jsx` — bankimport-arket (Penger → Forbruk): velg CSV fra DNB-nettbanken → plan
     gruppert per butikk (kategori-select + ta-med-avkryssing per butikk) → lagres via
     `importBankExpenses` (db.js). Kategorivalg huskes per butikk i localStorage (`bankCatOverrides`)

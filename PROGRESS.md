@@ -2,6 +2,23 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Sparemodus: budsjett for en periode uten lønn** (brukeren skal til Japan i 5 måneder
+  uten inntekt). Et vanlig månedsbudsjett svarer på feil spørsmål her — det forutsetter at det kommer lønn
+  neste måned. Dette svarer på «hvor lenge varer det jeg har, og hvor mye er det per dag?».
+  • Ny ren `src/lib/plan.js`: `dailyAllowance` (dagsbeløp for hele perioden, med skille mellom «alt per
+    dag» og «fritt per dag» etter faste utgifter som løper videre hjemme), `planProgress` (foran/bak plan,
+    prognose for sluttsaldo, hvilken dag pengene tar slutt med dagens tempo, justert dagsbeløp for resten),
+    `runway`, `monthlyAverages` og `suggestBudgets`.
+  • **Snittforbruket regnes over måneder som FAKTISK har data** — tomme måneder ville dratt snittet ned og
+    fått turen til å se billigere ut enn den er.
+  • **Progresjonen måles mot `available`, ikke `free`** — bankimporterte utgifter inneholder allerede de
+    faste trekkene, så å trekke dem fra igjen ville telt dem to ganger.
+  • Ny `plans`-store (v13) + «Plan»-fane i Penger: skjema med live forhåndsvisning, hero, fremdriftslinje,
+    foran/bak-status og en **realitetssjekk** mot faktisk snittforbruk («du pleier å bruke X, planen gir Y»).
+  • **Budsjettforslag fra historikk** på Oversikt: ett trykk setter månedsbudsjett per kategori fra snittet
+    de siste 6 månedene, avrundet til nærmeste hundrelapp (3 247 kr er falsk presisjon).
+  Testet mot Japan-scenariet i browser med den ekte årsfila: 150 000 kr fra 1. sep til 31. jan = 915 kr/dag
+  i 153 dager, mot et faktisk snitt på 19 222 kr/mnd. 22 nye tester (186 totalt). Lint + build grønt.
 - 2026-08-09 — **Bedre kategorier + underkategorier, og hele året inn på én import** (ønske fra brukeren).
   • **Datoene virket allerede** — hver importert rad får sin egen `date`, så én årsfil fyller ut alle
     månedene. Verifisert i browser: 12 måneder bakover ga 21 297 / 37 105 / 14 065 / 13 426 / … kr.

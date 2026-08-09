@@ -9,6 +9,7 @@ import {
   getMonthlyTotals, setMonthlyTotal,
   listIncomes, addIncome, updateIncome, deleteIncome,
   listGoals, addGoal, updateGoal, addToGoal,
+  listPlans,
   deleteWithRestore, restoreRecord,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
@@ -17,6 +18,8 @@ import { SWATCH } from '../lib/palette.js'
 import { CATEGORIES, catMeta, catKey, subsFor, subLabel } from '../lib/categories.js'
 import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve, upcomingCharges } from '../lib/money.js'
 import MoneyImportSheet from './MoneyImport.jsx'
+import MoneyPlan from './MoneyPlan.jsx'
+import { suggestBudgets } from '../lib/plan.js'
 import './Money.css'
 
 
@@ -162,6 +165,7 @@ const TABS = [
   { k: 'oversikt', label: 'Oversikt' },
   { k: 'forbruk', label: 'Forbruk' },
   { k: 'faste', label: 'Faste' },
+  { k: 'plan', label: 'Plan' },
   { k: 'sparing', label: 'Sparing' },
 ]
 
@@ -566,6 +570,7 @@ export default function Money() {
   const budgets = useLiveQuery(() => listBudgets(), [], [])
   const incomes = useLiveQuery(() => listIncomes(), [], [])
   const goals = useLiveQuery(() => listGoals(), [], [])
+  const plans = useLiveQuery(() => listPlans(), [], [])
 
   const [tab, setTab] = useState('oversikt')
   const [cursor, setCursor] = useState(() => {
@@ -645,6 +650,17 @@ export default function Money() {
   function shiftMonth(d) {
     const dt = new Date(cursor.y, cursor.m + d, 1)
     setCursor({ y: dt.getFullYear(), m: dt.getMonth() })
+  }
+
+  // Budsjettforslag fra faktisk historikk — mye bedre utgangspunkt enn blanke felt.
+  const budgetSuggestion = suggestBudgets(expenses, { monthsBack: 6 })
+  async function applySuggestedBudgets() {
+    const entries = Object.entries(budgetSuggestion.budgets)
+    for (const [cat, amt] of entries) await setBudget(cat, amt)
+    vibrate(12)
+    toast.success(`Satte budsjett for ${entries.length} kategorier`, {
+      description: 'Basert på snittet ditt. Juster fritt — det er bare et utgangspunkt.',
+    })
   }
 
   async function addSub() {
@@ -817,6 +833,13 @@ export default function Money() {
                   )
                 })}
               </div>
+            )}
+
+            {budgetSuggestion.monthsCounted >= 2 && totalBudget === 0 && (
+              <button type="button" className="budget-suggest" onClick={applySuggestedBudgets}>
+                ✨ Foreslå budsjett fra de siste {budgetSuggestion.monthsCounted} månedene
+                <span>Du har brukt {kr(Math.round(budgetSuggestion.perMonth))} i snitt per måned</span>
+              </button>
             )}
 
             <button type="button" className="budget-add" onClick={() => setSheet({ type: 'budget' })}>
@@ -1001,6 +1024,9 @@ export default function Money() {
             )}
           </>
         )}
+
+        {/* ===== PLAN (sparemodus / reise uten lønn) ===== */}
+        {tab === 'plan' && <MoneyPlan plans={plans} expenses={expenses} />}
 
         {/* ===== FASTE (abonnement) ===== */}
         {tab === 'faste' && (

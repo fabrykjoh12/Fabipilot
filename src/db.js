@@ -202,6 +202,11 @@ db.version(12).stores({
   workdays: 'id, date, owner, createdAt',
 })
 
+// v13: sparemodus / reiseplan — «pengene skal vare til dato X uten lønn».
+db.version(13).stores({
+  plans: 'id, startDate, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -861,7 +866,35 @@ export async function stopSharingProject(projectId) {
 /* =========================================================
    BACKUP — eksport/import av HELE dashboardet
    ========================================================= */
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals']
+/* =========================================================
+   SPAREMODUS / REISEPLAN  (src/lib/plan.js regner, dette lagrer)
+   ---------------------------------------------------------
+   Én rad per plan. `fixedMonthly` = faste utgifter som løper videre mens du er
+   borte; `income` = samlet inntekt i HELE perioden (0 = uten lønn).
+   ========================================================= */
+export async function listPlans() {
+  return db.plans.orderBy('startDate').reverse().toArray()
+}
+export async function addPlan({ name, startDate, endDate, startAmount, income = 0, fixedMonthly = 0 }) {
+  const n = (name || '').trim()
+  if (!n || !startDate || !endDate) return null
+  const p = {
+    id: uid(),
+    name: n,
+    startDate,
+    endDate,
+    startAmount: Number(startAmount) || 0,
+    income: Number(income) || 0,
+    fixedMonthly: Number(fixedMonthly) || 0,
+    createdAt: now(),
+  }
+  await db.plans.add(p)
+  return p
+}
+export const updatePlan = (id, patch) => db.plans.update(id, patch)
+export const deletePlan = (id) => db.plans.delete(id)
+
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals', 'plans']
 
 export async function exportAll() {
   const out = { type: 'dashboard-backup', version: 8, exportedAt: new Date().toISOString() }
