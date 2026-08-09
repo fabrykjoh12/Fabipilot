@@ -50,7 +50,7 @@
      spredt utover i filene, så bar/FAB/toast aldri kommer i utakt med navet.
      --nav-gap trekker fra hjemme-indikatorens egen safe-area, ellers svever
      pilla altfor høyt på iPhone (safe-area + fast avstand ble lagt oppå hverandre). */
-  --nav-h: 72px;
+  --nav-h: 64px;
   --nav-gap: max(10px, calc(env(safe-area-inset-bottom) - 10px));
   --nav-space: calc(var(--nav-h) + var(--nav-gap) + 14px);
 
@@ -294,6 +294,77 @@
 .nav-more svg {
   fill: currentColor;
   stroke: none;
+}
+
+/* ===== Mobil: ikon-pille med «+» i midten =====
+   Rekkefølgen nederst settes med `order`, ikke DOM — DOM-rekkefølgen tilhører
+   PC-sidemenyen (Oversikt, Prosjekter, Oppgaver, Idébank, Verktøy …). */
+@media (max-width: 859px) {
+  .nav-lbl {
+    /* ikon-only: teksten er fortsatt tilgjengelig via aria-label på knappen */
+    display: none;
+  }
+  .nav-item {
+    min-width: 0;
+    padding: 10px 2px;
+    border-radius: var(--r-full);
+  }
+  .nav-item svg {
+    width: 25px;
+    height: 25px;
+  }
+  .nav-item[data-k='overview'] { order: 1; }
+  .nav-item[data-k='today'] { order: 2; }
+  .nav-plus { order: 3; }
+  .nav-item[data-k='projects'] { order: 4; }
+  .nav-more { order: 5; }
+}
+
+/* «+» midt i pilla — hevet blå sirkel */
+.nav-plus {
+  position: relative; /* forankrer den hevede sirkelen i ::before */
+  flex: 1 0 auto;
+  min-width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: #fff;
+}
+.nav-plus::before {
+  content: '';
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  box-shadow: var(--sh-accent);
+  transition: background var(--t-mid), transform var(--t-fast);
+}
+.nav-plus svg {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  transition: transform var(--t-fast) var(--ease-spring);
+}
+.nav-plus:active svg {
+  transform: scale(0.86);
+}
+.nav-plus:active::before {
+  transform: scale(0.92);
+}
+/* PC: sidemenyen har ingen «+» — der ligger den flytende knappen nede til høyre */
+@media (min-width: 860px) {
+  .nav-plus {
+    display: none;
+  }
 }
 /* Mobil: skjul sekundære moduler (de ligger i «Mer»), vis «Mer»-knappen */
 .nav-secondary {

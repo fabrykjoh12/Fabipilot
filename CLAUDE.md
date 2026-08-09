@@ -44,9 +44,17 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
      `--surface` — gjennomsiktig glass over tekst/mørkt slør blir uleselig. Ekte `backdrop-filter`
      (`--glass-blur`) trengs bare der innhold faktisk scroller under, i praksis den flytende bunnmenyen;
      over lerret-gradienten gjør blur ingen synlig forskjell.
-- Mobil-navigasjonen er en **flytende pille** (`position: fixed`, `--r-full`, glass + blur) som svever
-  over innholdet. Ting som ligger nederst må derfor holde klaring: `.screen-bar` har ekstra bunn-padding
-  og `.cap-fab` ligger over pilla. På PC (`min-width: 860px`) nullstilles dette tilbake til sidemenyen.
+- Mobil-navigasjonen er en **flytende ikon-pille** (`position: fixed`, `--r-full`, glass + blur) som svever
+  over innholdet: Oversikt · Oppgaver · **«+»** · Prosjekter · Mer. Ingen tekst-etiketter (kun ikoner —
+  `aria-label` bærer navnet), og «+» er en hevet blå sirkel midt i pilla (`.nav-plus`) som åpner
+  hurtiglagring; den flytende `.cap-fab` finnes derfor bare på PC. Målene ligger i `--nav-h`/`--nav-gap`/
+  `--nav-space` i `:root` — alt som ligger nederst (`.screen-bar`, toast, FAB) henter klaringen derfra,
+  så de ikke kan komme i utakt med navet. På PC (`min-width: 860px`) nullstilles alt tilbake til sidemenyen.
+- To lister styrer navigasjonen, og de er **ikke** de samme: `PRIMARY` (App.jsx) er PC-sidemenyens
+  gruppe over «Verktøy»-skillet, mens `MOBILE_TABS` er de tre destinasjonene i bunnpilla. Alt som ikke er
+  i `MOBILE_TABS` MÅ ligge i «Mer»-arket (som derfor også filtrerer på `MOBILE_TABS`) — ellers blir
+  modulen uåpnelig på mobil. Rekkefølgen nederst settes med CSS `order`, ikke DOM-rekkefølge, siden
+  DOM-rekkefølgen tilhører sidemenyen.
 - Aksent = blå `#0A84FF` som standard, med rosa som valgfri personlig enhets-preferanse (`[data-accent='pink']`
   i AppShell.css, samme H/S/L-forhold som blå bare dreid til rosa — kun `--accent`-familien + `--surface-focus`
   påvirkes). Lagres i `localStorage` og settes via `document.documentElement.dataset.accent`, akkurat som

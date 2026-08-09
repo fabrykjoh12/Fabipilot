@@ -45,7 +45,12 @@ function ScreenFallback() {
 /* Primærflyten (bygge-løpet): faste faner nederst på mobil + øverste gruppe i
    sidemenyen på PC. Idé → Prosjekt → byggeoppgaver → Oversikt. Resten er
    støtteverktøy og ligger i «Mer» (mobil) / «Verktøy»-gruppen (PC). */
+// PC-sidemenyen: hva som ligger over «Verktøy»-skillet.
 const PRIMARY = ['overview', 'projects', 'today', 'ideas']
+// Mobilens bunnpille: kun disse tre + «+» + «Mer». Resten (inkl. Idébank) ligger
+// i «Mer». Rekkefølgen nederst styres av CSS `order`, ikke av denne lista —
+// DOM-rekkefølgen må stå urørt for PC-sidemenyen.
+const MOBILE_TABS = ['overview', 'today', 'projects']
 
 /* Moduler med egen «legg til»-linje nederst — der skjuler vi den flytende capture-knappen. */
 const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow', 'shared', 'shopping'])
@@ -72,8 +77,10 @@ function NavButton({ m, active, onClick }) {
   return (
     <button
       type="button"
-      className={'nav-item' + (on ? ' active' : '') + (PRIMARY.includes(m.k) ? '' : ' nav-secondary')}
+      className={'nav-item' + (on ? ' active' : '') + (MOBILE_TABS.includes(m.k) ? '' : ' nav-secondary')}
+      data-k={m.k}
       aria-current={on ? 'page' : undefined}
+      aria-label={m.label}
       onClick={() => onClick(m.k)}
     >
       {on && (
@@ -90,7 +97,8 @@ function NavButton({ m, active, onClick }) {
 }
 
 export default function App() {
-  const [active, setActive] = useState('overview')
+  // Oppgaver er hovedpunktet — appen åpner her, ikke på Oversikt.
+  const [active, setActive] = useState('today')
   const [backupOpen, setBackupOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [theme, setTheme] = useState(() => {
@@ -373,16 +381,26 @@ export default function App() {
           onClick={() => setBackupOpen(true)}
         >
           <NavIcon name="backup" />
-          Backup
+          <span className="nav-lbl">Backup</span>
+        </button>
+        {/* «+» midt i bunnpilla (kun mobil — PC har den flytende knappen nede til høyre) */}
+        <button
+          type="button"
+          className="nav-plus"
+          aria-label="Legg til noe (⌘K)"
+          title="Legg til noe (⌘K)"
+          onClick={() => setCaptureOpen(true)}
+        >
+          <Plus />
         </button>
         <button
           type="button"
-          className={'nav-item nav-more' + (PRIMARY.includes(active) ? '' : ' active')}
+          className={'nav-item nav-more' + (MOBILE_TABS.includes(active) ? '' : ' active')}
           aria-label="Mer"
           onClick={() => setMoreOpen(true)}
         >
           <NavIcon name="more" />
-          Mer
+          <span className="nav-lbl">Mer</span>
           {(led === 'red' || led === 'grey') && <span className={'sync-dot ' + led} aria-hidden="true" />}
         </button>
       </nav>
@@ -445,7 +463,9 @@ export default function App() {
             <div className="more-grip" />
             <h2 className="more-title">Mer</h2>
             <div className="more-grid">
-              {MODULES.filter((m) => !PRIMARY.includes(m.k)).map((m) => (
+              {/* MOBILE_TABS, ikke PRIMARY: «Mer» er mobilens ark, og alt som ikke
+                  ligger i bunnpilla må være her — ellers blir Idébank uåpnelig. */}
+              {MODULES.filter((m) => !MOBILE_TABS.includes(m.k)).map((m) => (
                 <button
                   key={m.k}
                   type="button"

@@ -167,11 +167,12 @@
   height: 16px;
 }
 
-/* ===== Flytende capture-knapp (FAB) ===== */
+/* ===== Flytende capture-knapp (FAB) — kun PC =====
+   På mobil ligger «+» midt i bunnpilla (.nav-plus), så denne ville vært duplikat. */
 .cap-fab {
+  display: none;
   position: fixed;
   right: 18px;
-  /* over den flytende bunnpillen — se --nav-space i AppShell.css */
   bottom: var(--nav-space);
   z-index: 60;
   width: 56px;
@@ -199,6 +200,7 @@
 }
 @media (min-width: 860px) {
   .cap-fab {
+    display: grid;
     right: 28px;
     bottom: 28px;
   }

@@ -2,6 +2,19 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Bunnmenyen bygget om etter prototypen — Oppgaver er hovedpunktet** (ønske fra brukeren).
+  Mobilnavet er nå ikon-only (ingen tekst under ikonene; `aria-label` bærer navnet) med en hevet blå
+  «+»-sirkel midt i pilla, slik Claude Design-prototypen viser: Oversikt · Oppgaver · **+** · Prosjekter · Mer.
+  • **Appen åpner på Oppgaver** i stedet for Oversikt.
+  • **«+» flyttet inn i pilla** (`.nav-plus`) — den frittsvevende `.cap-fab` er nå kun PC, der navet er sidemeny.
+  • **Idébank flyttet til «Mer»** for å gi plass. Ny `MOBILE_TABS` skiller bunnpilla fra `PRIMARY`, som
+    fortsatt styrer PC-sidemenyens «Verktøy»-skille — DOM-rekkefølgen er urørt, rekkefølgen nederst
+    settes med CSS `order`.
+  Fanget under verifisering: «Mer»-arket filtrerte fortsatt på `PRIMARY`, så Idébank falt ut av BÅDE
+  bunnlinja og arket og ble uåpnelig på mobil. Arket filtrerer nå på `MOBILE_TABS`. Etikettene på
+  «Mer»/«Backup» lå som løse tekstnoder og ble ikke skjult av ikon-only-regelen — pakket i `.nav-lbl`.
+  PC-sidemenyen er uendret (full liste med tekst). Verifisert i Chromium (lys + mørk, mobil + PC).
+  Lint + 130 tester + build grønt.
 - 2026-08-09 — **Tre feil i det nye designet, funnet på ekte telefon**:
   • **Innleggingsfeltet nederst var gjennomsiktig** — oppgave-radene malte seg rett oppå det. To årsaker:
     `.screen-bar` hadde ingen `z-index`, mens de sveipbare radene har `z-index: 1` (DOM-rekkefølge taper mot
