@@ -763,3 +763,67 @@
   font-size: 13px;
   color: var(--muted);
 }
+
+/* ===== Forbruk: dagsgrupper ===== */
+.exp-day { display: flex; flex-direction: column; gap: 6px; }
+.exp-day + .exp-day { margin-top: 14px; }
+.exp-day-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 0 6px;
+}
+.exp-day-lbl {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.exp-day-sum { font-size: 12.5px; font-weight: 600; color: var(--faint); font-variant-numeric: tabular-nums; }
+.exp-tools { display: flex; gap: 8px; margin-bottom: 16px; }
+.exp-tools .budget-add { flex: 1; }
+
+/* ===== Bankimport-arket ===== */
+.imp-sheet { max-width: 640px; }
+.imp-help { font-size: 14px; line-height: 1.55; color: var(--muted); margin: 0 0 14px; }
+.imp-note { font-size: 12.5px; line-height: 1.5; color: var(--faint); margin: 12px 0 4px; }
+.imp-file-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px; border-radius: var(--r-md); cursor: pointer;
+  background: var(--accent); color: #fff; font-size: 16px; font-weight: 600;
+  box-shadow: var(--sh-accent);
+}
+.imp-file-btn input { display: none; }
+.imp-error {
+  font-size: 13.5px; line-height: 1.5; color: var(--danger);
+  background: var(--danger-soft); border-radius: var(--r-sm);
+  padding: 10px 12px; margin: 10px 0 0;
+}
+.imp-summary {
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 10px;
+}
+.imp-sum-big { font-size: 17px; font-weight: 700; }
+.imp-sum-sub { font-size: 13px; color: var(--muted); }
+.imp-sum-skip { font-size: 12px; color: var(--faint); margin-top: 4px; }
+.imp-hint { font-size: 12.5px; color: var(--faint); margin: 0 2px 8px; }
+.imp-groups { display: flex; flex-direction: column; margin-bottom: 14px; }
+.imp-group {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 2px; border-top: 1px solid var(--line);
+}
+.imp-group.off .imp-merchant,
+.imp-group.off .imp-meta { opacity: 0.4; text-decoration: line-through; }
+.imp-check input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.imp-group-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.imp-merchant {
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.imp-meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.imp-cat {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px;
+  border-radius: var(--r-full); padding: 5px 8px; cursor: pointer;
+}
+.imp-cat select {
+  border: 0; background: transparent; font-family: inherit; font-size: 12.5px;
+  font-weight: 600; color: var(--ink); cursor: pointer; outline: none;
+  max-width: 118px;
+}

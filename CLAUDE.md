@@ -94,8 +94,10 @@ Synces via Dexie Cloud (se §3).
   (Money.jsx): `dagligvarer | restaurant | kjoretoy | fritid | helse | hjem | ovrig` — matcher
   kategoriene i brukerens bank-app 1:1 («Daglige utgifter»), `ovrig` sist = felles utfallskurv/fallback.
   `renewDay` = dag i måneden (1–31) abonnementet trekkes, eller `null` (uindeksert).
-- **expenses** (Penger/Forbruk) — `id, amount, category, note, date, bulk, createdAt`
-  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `category` = nøkkel i `CATEGORIES` (se subscriptions over).
+- **expenses** (Penger/Forbruk) — `id, amount, category, note, date, bulk, importKey, createdAt`
+  `date` = `YYYY-MM-DD`. Logget engangsforbruk. `importKey` (uindeksert, valgfri): `dato|beløp|butikk`
+  satt av bankimporten — dedup-grunnlag så samme/overlappende CSV-eksport kan importeres flere ganger
+  uten dobbeltføring (`listExpenseImportKeys` teller som multiset; to like kjøp samme dag er lov). `category` = nøkkel i `CATEGORIES` (se subscriptions over).
   `bulk` (uindeksert, valgfri): `true` for rader satt via «Fyll inn hele måneden» (`setMonthlyTotal`/
   `getMonthlyTotals`) i stedet for enkeltregistrert kjøp — raskere alternativ til å logge hvert kjøp, én
   rad per kategori per måned. Telles likt med vanlige rader i alle summeringer (bruk av begge for samme
@@ -201,6 +203,11 @@ Alle stores er med i JSON-eksport/import (se §8).
   brukt av ⌘K-paletten i `Capture.jsx`
 - `src/lib/notify.js` — påminnelser: permission, daglig «planlegg dagen»-varsel via Notification Triggers
   (best-effort, lukket app der støttet), `fireTest`, app-ikon-badge (`setBadge`). Prefs i localStorage per enhet.
+- `src/lib/bankImport.js` — bankimport (DNB/Sbanken CSV), rene funksjoner: `parseBankCSV` (semikolon/
+  quotet/CRLF), `cleanMerchant` (prefikser/valuta/koder/dato-haler vekk), `guessCategory` (nøkkelord →
+  `CATEGORIES`-nøkkel, spesifikke før generelle), `isTransfer` (overføring/kontoregulering hoppes over),
+  `importKey` + `buildImportPlan` (plan gruppert per butikk, med dedup mot eksisterende nøkler og
+  brukerens huskede kategorivalg). Testet i `bankImport.test.js`
 - `src/lib/parse.js` — `parseEntry(text)`: tolker norsk dato/tid + typehint for hurtiglagring → `{title, type, dueDate, time}`
   (testet i `parse.test.js`)
 - `src/components/ErrorBoundary.jsx` — fanger renderfeil (rot + rundt aktiv modul): rolig fallback med
@@ -222,6 +229,9 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `WhatNow.jsx` — «Hva nå?»: ett forslag av gangen + energifilter + hurtiglegg-til
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
+  - `MoneyImport.jsx` — bankimport-arket (Penger → Forbruk): velg CSV fra DNB-nettbanken → plan
+    gruppert per butikk (kategori-select + ta-med-avkryssing per butikk) → lagres via
+    `importBankExpenses` (db.js). Kategorivalg huskes per butikk i localStorage (`bankCatOverrides`)
   - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt («Trygt å bruke i dag»-hero øverst +
     måneds-prognose-setning + «Kommende trekk»-kort med årlig-reframe og årlig-avsetning (alt utledet i
     `src/lib/money.js`); budsjett vs forbruk per måned, 6-måneders trendgraf, «vs forrige måned»-endringsmerke

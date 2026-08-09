@@ -413,6 +413,34 @@ export async function addExpense({ amount, category = 'ovrig', note = '', date }
 export const updateExpense = (id, patch) => db.expenses.update(id, patch)
 export const deleteExpense = (id) => db.expenses.delete(id)
 
+/* Bankimport (src/lib/bankImport.js): lagre godkjente rader fra CSV-fila.
+   `importKey` (uindeksert, dato|beløp|butikk) gjør re-import av samme/
+   overlappende eksport trygg — se listExpenseImportKeys. */
+export async function importBankExpenses(rows) {
+  const t = now()
+  const recs = (rows || [])
+    .filter((r) => Number(r.amount) > 0 && r.date)
+    .map((r, i) => ({
+      id: uid(),
+      amount: Number(r.amount),
+      category: r.category || 'ovrig',
+      note: r.merchant || '',
+      date: r.date,
+      importKey: r.key,
+      createdAt: t + i, // stigende, så rekkefølgen innen én import er stabil
+    }))
+  if (recs.length) await db.expenses.bulkAdd(recs)
+  return recs.length
+}
+
+// Map<importKey, antall> over alt som allerede er importert — dedup-grunnlaget.
+export async function listExpenseImportKeys() {
+  const all = await db.expenses.toArray()
+  const map = new Map()
+  for (const e of all) if (e.importKey) map.set(e.importKey, (map.get(e.importKey) || 0) + 1)
+  return map
+}
+
 /** Nåværende månedstotaler (kun «Fyll inn måned»-rader) for `ym` ('YYYY-MM'), per
     kategori — brukes til å forhåndsutfylle skjemaet. */
 export async function getMonthlyTotals(ym) {

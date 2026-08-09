@@ -15,6 +15,7 @@ import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
 import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
 import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve, upcomingCharges } from '../lib/money.js'
+import MoneyImportSheet from './MoneyImport.jsx'
 import './Money.css'
 
 /* Matcher kategoriene i brukerens bank-app («Daglige utgifter») 1:1, så Penger-oversikten
@@ -32,6 +33,15 @@ const catMeta = (k) => CATEGORIES.find((c) => c.k === k) || CATEGORIES[CATEGORIE
 const catKey = (k) => (CATEGORIES.some((c) => c.k === k) ? k : 'ovrig')
 
 const MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember']
+const WEEKDAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag']
+
+// "2026-08-08" → «Fredag 8. august» (i dag/i går der det passer)
+function dayLabel(iso, todayIso) {
+  if (iso === todayIso) return 'I dag'
+  const d = new Date(iso + 'T12:00:00')
+  const label = `${WEEKDAYS[d.getDay()]} ${d.getDate()}. ${MONTHS[d.getMonth()]}`
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
 const pad = (n) => String(n).padStart(2, '0')
 
 function barColor(ratio) {
@@ -915,37 +925,71 @@ export default function Money() {
         {/* ===== FORBRUK ===== */}
         {tab === 'forbruk' && (
           <>
+            {/* samme månedsvelger som Oversikt — uten den er importert historikk usynlig */}
+            <div className="month-nav">
+              <button type="button" className="cal-arrow" aria-label="Forrige måned" onClick={() => shiftMonth(-1)}>
+                <ChevronLeft />
+              </button>
+              <span className="month-nav-lbl">{monthLabel}</span>
+              <button type="button" className="cal-arrow" aria-label="Neste måned" disabled={isCurrentMonth} onClick={() => shiftMonth(1)}>
+                <ChevronRight />
+              </button>
+            </div>
+
             <div className="budget-summary slim">
-              <span className="bs-label">logget denne måneden</span>
+              <span className="bs-label">logget i {MONTHS[cursor.m]}</span>
               <AnimatedNumber className="bs-amount" value={expTotal} format={kr} />
               <span className="bs-sub">{monthExpenses.length} kjøp</span>
             </div>
 
-            <button type="button" className="budget-add" onClick={() => setSheet({ type: 'monthlyTotals' })}>
-              📊 Fyll inn hele måneden
-            </button>
+            <div className="exp-tools">
+              <button type="button" className="budget-add" onClick={() => setSheet({ type: 'bankImport' })}>
+                🏦 Importer fra banken
+              </button>
+              <button type="button" className="budget-add" onClick={() => setSheet({ type: 'monthlyTotals' })}>
+                📊 Fyll inn hele måneden
+              </button>
+            </div>
 
             {monthExpenses.length === 0 ? (
               <div className="empty">
                 <div className="glyph">🧾</div>
                 <p className="em-ttl">Ingen forbruk logget</p>
-                <p>Trykk knappen nederst hver gang du bruker penger — så ser du hvor de tar veien.</p>
+                <p>Importer kontoutskriften fra banken over — eller logg kjøp med knappen nederst.</p>
               </div>
             ) : (
               <div className="exp-list">
-                {monthExpenses.map((e) => {
-                  const c = catMeta(e.category)
-                  return (
-                    <button key={e.id} type="button" className="exp-row" onClick={() => setSheet({ type: 'expense', expense: e })}>
-                      <span className="exp-emoji" style={{ background: c.color + '22' }}>{c.emoji}</span>
-                      <div className="exp-main">
-                        <span className="exp-title">{e.note || c.label}</span>
-                        <span className="exp-meta">{c.label} · {e.date.slice(8)}.{e.date.slice(5, 7)}</span>
+                {(() => {
+                  // gruppér per dag (lista er allerede sortert dato synkende)
+                  const days = []
+                  for (const e of monthExpenses) {
+                    const last = days[days.length - 1]
+                    if (last && last.date === e.date) { last.items.push(e); last.total += e.amount || 0 }
+                    else days.push({ date: e.date, items: [e], total: e.amount || 0 })
+                  }
+                  const todayIso = todayKey()
+                  return days.map((d) => (
+                    <div key={d.date} className="exp-day">
+                      <div className="exp-day-head">
+                        <span className="exp-day-lbl">{dayLabel(d.date, todayIso)}</span>
+                        <span className="exp-day-sum">{kr(Math.round(d.total))}</span>
                       </div>
-                      <span className="exp-amt">{kr(e.amount)}</span>
-                    </button>
-                  )
-                })}
+                      {d.items.map((e) => {
+                        const c = catMeta(e.category)
+                        return (
+                          <button key={e.id} type="button" className="exp-row" onClick={() => setSheet({ type: 'expense', expense: e })}>
+                            <span className="exp-emoji" style={{ background: c.color + '22' }}>{c.emoji}</span>
+                            <div className="exp-main">
+                              <span className="exp-title">{e.note || c.label}</span>
+                              <span className="exp-meta">{c.label}</span>
+                            </div>
+                            <span className="exp-amt">{kr(e.amount)}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ))
+                })()}
               </div>
             )}
           </>
@@ -1051,6 +1095,7 @@ export default function Money() {
       {sheet?.type === 'monthlyTotals' && (
         <MonthlyTotalsSheet y={cursor.y} m={cursor.m} onClose={() => setSheet(null)} />
       )}
+      {sheet?.type === 'bankImport' && <MoneyImportSheet categories={CATEGORIES} onClose={() => setSheet(null)} />}
       {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
     </div>
   )

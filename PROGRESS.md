@@ -2,6 +2,23 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Bankimport: kontoutskriften fra DNB rett inn i Penger** (diskusjon om å gjøre
+  økonomi-føring lettere → friksjonen er selve loggingen, så nå kan den hoppes over). Ny ren motor
+  `src/lib/bankImport.js` (parser DNB-CSVen «Lagre til fil»: semikolon/quotet/CRLF, dd.mm.yyyy,
+  punktum-desimaler) + `MoneyImport.jsx`-ark under Penger → Forbruk. Nøkkelgrep:
+  • **Plan gruppert per butikk** (294 grupper i stedet for 1000 rader): antall, sum og gjettet kategori
+    per butikk — rett kategori én gang, valget huskes (localStorage) og gjenbrukes neste import.
+  • **Kategori-gjetting** med nøkkelordregler bygget fra brukerens faktiske butikker (Meny/Rema→dagligvarer,
+    EasyPark/St1→kjøretøy, SSN/Subway→restaurant, Vitusapotek/Volvat→helse, Telia/Elkjøp→hjem, …);
+    valuta-prefikser («Nok 23490,00 Klarna:…») og interne koder strippes (koder FØR valuta — rekkefølgefeil
+    fanget i browser-test).
+  • **Trygg re-import**: `importKey` (dato|beløp|butikk, multiset-dedup) på hver rad + reserverte
+    transaksjoner og overføringer/kontoreguleringer hoppes over. Verifisert e2e i Chromium med den ekte
+    fila (1297 rader → 846 kjøp/227k kr inn, re-import → 0 nye).
+  • **Forbruk-fanen ryddet**: månedsvelger (fantes bare på Oversikt — et års historikk var usynlig),
+    dagsgrupperte rader med dagsum, importknapp ved siden av «Fyll inn hele måneden».
+  Fanget underveis: `.cap-fab` hadde `display: none` øverst og gammel `display: grid` lenger ned i SAMME
+  regel (sistnevnte vant — spøkelses-«+» over Penger på mobil). 25 nye tester (162 totalt). Lint + build grønt.
 - 2026-08-09 — **Backup-panelet kunne ikke scrolles — man ble sittende fast** (rapportert fra telefon).
   `.backup-card` hadde hverken `max-height` eller `overflow`, så på en liten skjerm rant panelet ut av
   viewporten (1125px innhold i 600px høyde). «Eksporter alt (last ned JSON)» OG «Lukk» ligger nederst i

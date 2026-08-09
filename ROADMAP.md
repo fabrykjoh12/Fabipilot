@@ -14,6 +14,8 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Bankimport i Penger: CSV fra DNB-nettbanken → plan gruppert per butikk med kategori-gjetting og
+  huskede valg, trygg re-import (`importKey`-dedup), månedsvelger + dagsgruppert forbruksliste.
 - **«Fabipilot 2.0»-redesign** (fra Claude Design-prototypen): mykt farget lerret-gradient + frostet
   glass, iOS-blå aksent `#0A84FF`, flytende bunn-pille på mobil, nye radius-/skygge-skalaer. Gjennomført
   i design-tokens, så hele appen fulgte med.

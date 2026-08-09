@@ -170,7 +170,7 @@
 /* ===== Flytende capture-knapp (FAB) — kun PC =====
    På mobil ligger «+» midt i bunnpilla (.nav-plus), så denne ville vært duplikat. */
 .cap-fab {
-  display: none;
+  display: none; /* mobil: skjult — PC-media-queryen under slår den på igjen */
   position: fixed;
   right: 18px;
   bottom: var(--nav-space);
@@ -181,7 +181,6 @@
   border: 0;
   background: var(--accent);
   color: #fff;
-  display: grid;
   place-items: center;
   cursor: pointer;
   box-shadow: var(--sh-accent-lg);
