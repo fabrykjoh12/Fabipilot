@@ -2,6 +2,16 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Kategori-detalj: hva gikk pengene faktisk til** (ønske fra brukeren). «Dagligvarer:
+  9 735 kr» sier ingenting om HVA. Kategoriradene på Oversikt åpnet før budsjett-arket; nå åpner de et
+  detalj-ark. Ny ren `categoryBreakdown` (`src/lib/money.js`) bryter én kategori ned på to måter, fordi
+  de svarer på hvert sitt spørsmål: **type** (underkategori — matbutikk vs kiosk) og **sted** (butikk,
+  fra `note` som bankimporten setter), begge sortert på beløp med andelsbarer. Under ligger alle kjøpene,
+  trykkbare rett til redigering. Budsjett-arket nås fortsatt via en knapp i bunnen.
+  Detaljer: butikker slås sammen uansett store/små bokstaver (men viser navnet slik det først dukket opp),
+  og rader uten butikknavn havner under «Uten navn» i stedet for å bli usynlige — summen av stedene skal
+  alltid være lik kategoritotalen. Verifisert mot den ekte årsfila: juli/dagligvarer = 9 735 kr fordelt på
+  matbutikk 8 013 / kiosk 1 721, med Maximat Nordby øverst. 6 nye tester (200 totalt). Lint + build grønt.
 - 2026-08-09 — **Planen ble måned-for-måned** (ønske: «hvor mye har jeg igjen denne måneden, også videre»).
   Ett dagsbeløp for 153 dager er vanskelig å styre etter — man tenker i måneder. Ny `planMonths` deler
   perioden i kalendermåneder (første/siste teller bare dagene inni perioden) og gir hver måned budsjett,

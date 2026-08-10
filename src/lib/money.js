@@ -84,3 +84,47 @@ export function projectMonthEnd({ spentVariable = 0, subsMonthly = 0 } = {}, tod
   const projectedVariable = dom > 0 ? (spentVariable / dom) * dim : 0
   return Math.round(projectedVariable + subsMonthly)
 }
+
+
+/* categoryBreakdown(expenses, category) - «hva gikk pengene til i denne kategorien?»
+
+   Summen alene («Dagligvarer: 8 200 kr») sier ingenting om HVA. Denne bryter
+   den ned pa to mater, fordi de svarer pa hvert sitt spørsmål:
+   - `bySub`: hvilken TYPE (drivstoff vs parkering vs bom)
+   - `byMerchant`: hvilke STEDER (Meny 12 kjøp, Rema 8 kjøp) - `note` er
+     butikknavnet bankimporten satte.
+   Begge sorteres på beløp, størst først. Rader uten butikknavn samles under
+   «Uten navn» i stedet for å bli usynlige. */
+export function categoryBreakdown(expenses, category) {
+  const rows = (expenses || []).filter(
+    (e) => e && (e.category || 'ovrig') === category && Number(e.amount) > 0,
+  )
+  const total = rows.reduce((s, e) => s + Number(e.amount), 0)
+
+  const subMap = new Map()
+  const merchantMap = new Map()
+  for (const e of rows) {
+    const sub = e.sub || null
+    const s = subMap.get(sub) || { sub, total: 0, count: 0 }
+    s.total += Number(e.amount)
+    s.count++
+    subMap.set(sub, s)
+
+    // Slå sammen på småbokstaver, men vis navnet slik det først dukket opp.
+    const raw = (e.note || '').trim()
+    const key = raw.toLowerCase() || ' ukjent'
+    const m = merchantMap.get(key) || { name: raw || 'Uten navn', total: 0, count: 0 }
+    m.total += Number(e.amount)
+    m.count++
+    merchantMap.set(key, m)
+  }
+
+  const bySum = (a, b) => b.total - a.total
+  return {
+    total,
+    count: rows.length,
+    bySub: [...subMap.values()].sort(bySum),
+    byMerchant: [...merchantMap.values()].sort(bySum),
+    rows: [...rows].sort((a, b) => (b.date || '').localeCompare(a.date || '')),
+  }
+}

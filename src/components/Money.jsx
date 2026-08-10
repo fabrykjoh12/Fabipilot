@@ -16,7 +16,7 @@ import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
 import { AnimatedNumber, toast, useEscape } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
 import { CATEGORIES, catMeta, catKey, subsFor, subLabel } from '../lib/categories.js'
-import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve, upcomingCharges } from '../lib/money.js'
+import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve, upcomingCharges, categoryBreakdown } from '../lib/money.js'
 import MoneyImportSheet from './MoneyImport.jsx'
 import MoneyPlan from './MoneyPlan.jsx'
 import { suggestBudgets } from '../lib/plan.js'
@@ -156,6 +156,105 @@ function CategoryDonut({ rows, total }) {
             </li>
           ))}
         </ul>
+      </div>
+    </div>
+  )
+}
+
+/* ============ bunn-sheet: hva gikk pengene til i én kategori ============
+   «Dagligvarer: 8 200 kr» sier ingenting om HVA. Her brytes summen ned på
+   type (underkategori) og sted (butikk), med alle kjøpene under. */
+function CategorySheet({ cat, expenses, monthLabel, budget, prevSpent, onEdit, onSetBudget, onClose }) {
+  useEscape(onClose)
+  const c = catMeta(cat)
+  const b = categoryBreakdown(expenses, cat)
+  const ratio = budget > 0 ? b.total / budget : 0
+
+  return (
+    <div className="msheet-overlay" onClick={onClose}>
+      <div className="msheet cs-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="msheet-grip" />
+
+        <div className="cs-head">
+          <span className="cs-emoji" style={{ background: c.color + '22' }}>{c.emoji}</span>
+          <div>
+            <h2 className="msheet-title">{c.label}</h2>
+            <span className="cs-month">{monthLabel}</span>
+          </div>
+        </div>
+
+        <div className="cs-hero">
+          <AnimatedNumber className="cs-total" value={b.total} format={kr} />
+          <div className="cs-hero-meta">
+            <span>{b.count} {b.count === 1 ? 'kjøp' : 'kjøp'}</span>
+            <ChangeBadge cur={b.total} prev={prevSpent} />
+          </div>
+          {budget > 0 && (
+            <>
+              <div className="bc-bar cs-bar">
+                <i style={{ width: Math.min(100, ratio * 100) + '%', background: barColor(ratio) }} />
+              </div>
+              <span className="cs-budget">
+                {ratio > 1
+                  ? `${kr(b.total - budget)} over budsjettet på ${kr(budget)}`
+                  : `${kr(budget - b.total)} igjen av ${kr(budget)}`}
+              </span>
+            </>
+          )}
+        </div>
+
+        {b.count === 0 ? (
+          <p className="cs-empty">Ingenting registrert i denne kategorien denne måneden.</p>
+        ) : (
+          <>
+            {b.bySub.length > 1 && (
+              <>
+                <span className="msheet-lbl">Type</span>
+                <div className="cs-list">
+                  {b.bySub.map((s) => (
+                    <div key={s.sub || 'ingen'} className="cs-row">
+                      <span className="cs-row-name">{subLabel(cat, s.sub) || 'Uten type'}</span>
+                      <span className="cs-row-bar"><i style={{ width: (b.total ? (s.total / b.total) * 100 : 0) + '%', background: c.color }} /></span>
+                      <span className="cs-row-amt">{kr(Math.round(s.total))}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <span className="msheet-lbl">Steder</span>
+            <div className="cs-list">
+              {b.byMerchant.slice(0, 12).map((m) => (
+                <div key={m.name} className="cs-row">
+                  <span className="cs-row-name">
+                    {m.name}
+                    {m.count > 1 && <small> · {m.count}x</small>}
+                  </span>
+                  <span className="cs-row-bar"><i style={{ width: (b.total ? (m.total / b.total) * 100 : 0) + '%', background: c.color }} /></span>
+                  <span className="cs-row-amt">{kr(Math.round(m.total))}</span>
+                </div>
+              ))}
+              {b.byMerchant.length > 12 && (
+                <p className="cs-more">+ {b.byMerchant.length - 12} steder til</p>
+              )}
+            </div>
+
+            <span className="msheet-lbl">Alle kjøp</span>
+            <div className="cs-txs">
+              {b.rows.map((e) => (
+                <button key={e.id} type="button" className="cs-tx" onClick={() => onEdit(e)}>
+                  <span className="cs-tx-date">{e.date.slice(8)}.{e.date.slice(5, 7)}</span>
+                  <span className="cs-tx-name">{e.note || subLabel(cat, e.sub) || c.label}</span>
+                  <span className="cs-tx-amt">{kr(e.amount)}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <button type="button" className="budget-add" onClick={onSetBudget}>
+          {budget > 0 ? 'Endre budsjett' : 'Sett budsjett for denne kategorien'}
+        </button>
       </div>
     </div>
   )
@@ -813,7 +912,7 @@ export default function Money() {
                 {catRows.map((c) => {
                   const ratio = c.budget > 0 ? c.spent / c.budget : 0
                   return (
-                    <button key={c.k} type="button" className="budget-cat" onClick={() => setSheet({ type: 'budget', cat: c.k })}>
+                    <button key={c.k} type="button" className="budget-cat" onClick={() => setSheet({ type: 'catDetail', cat: c.k })}>
                       <span className="bc-emoji">{c.emoji}</span>
                       <div className="bc-main">
                         <div className="bc-top">
@@ -1129,6 +1228,18 @@ export default function Money() {
         <MonthlyTotalsSheet y={cursor.y} m={cursor.m} onClose={() => setSheet(null)} />
       )}
       {sheet?.type === 'bankImport' && <MoneyImportSheet onClose={() => setSheet(null)} />}
+      {sheet?.type === 'catDetail' && (
+        <CategorySheet
+          cat={sheet.cat}
+          expenses={monthExpenses}
+          monthLabel={monthLabel}
+          budget={budgetByCat[sheet.cat] || 0}
+          prevSpent={prevSpentByCat[sheet.cat] || 0}
+          onEdit={(e) => setSheet({ type: 'expense', expense: e })}
+          onSetBudget={() => setSheet({ type: 'budget', cat: sheet.cat })}
+          onClose={() => setSheet(null)}
+        />
+      )}
       {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
     </div>
   )

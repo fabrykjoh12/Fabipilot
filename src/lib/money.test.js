@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   daysInMonth, daysLeftInMonth, daysLeftInWeek, daysUntilRenew,
-  upcomingCharges, remainingChargesThisMonth, yearlyReserve,
+  upcomingCharges, remainingChargesThisMonth, yearlyReserve, categoryBreakdown,
   safeToSpend, projectMonthEnd,
 } from './money.js'
 
@@ -102,5 +102,55 @@ describe('projectMonthEnd', () => {
   it('ekstrapolerer forbruket til månedsslutt og legger til faste trekk', () => {
     // brukt 2000 på 15 dager → 4000 for hele måneden (30 dager) + 2000 faste = 6000
     expect(projectMonthEnd({ spentVariable: 2000, subsMonthly: 2000 }, APR15)).toBe(6000)
+  })
+})
+
+
+describe('categoryBreakdown', () => {
+  const rows = [
+    { date: '2026-08-01', amount: 400, category: 'dagligvarer', sub: 'matbutikk', note: 'Rema Eik' },
+    { date: '2026-08-03', amount: 600, category: 'dagligvarer', sub: 'matbutikk', note: 'rema eik' },
+    { date: '2026-08-05', amount: 250, category: 'dagligvarer', sub: 'kiosk', note: 'Narvesen' },
+    { date: '2026-08-06', amount: 100, category: 'dagligvarer', note: '' },
+    { date: '2026-08-07', amount: 999, category: 'kjoretoy', sub: 'drivstoff', note: 'Shell' },
+  ]
+
+  it('summerer bare den valgte kategorien', () => {
+    const b = categoryBreakdown(rows, 'dagligvarer')
+    expect(b.total).toBe(1350)
+    expect(b.count).toBe(4)
+  })
+
+  it('grupperer på underkategori, størst først', () => {
+    const b = categoryBreakdown(rows, 'dagligvarer')
+    expect(b.bySub.map((s) => [s.sub, s.total])).toEqual([
+      ['matbutikk', 1000],
+      ['kiosk', 250],
+      [null, 100],
+    ])
+  })
+
+  it('slår sammen samme butikk uansett store/små bokstaver', () => {
+    const b = categoryBreakdown(rows, 'dagligvarer')
+    const rema = b.byMerchant[0]
+    expect(rema.name).toBe('Rema Eik')
+    expect(rema.total).toBe(1000)
+    expect(rema.count).toBe(2)
+  })
+
+  it('mister ikke rader uten butikknavn', () => {
+    const b = categoryBreakdown(rows, 'dagligvarer')
+    expect(b.byMerchant.find((m) => m.name === 'Uten navn').total).toBe(100)
+    expect(b.byMerchant.reduce((s, m) => s + m.total, 0)).toBe(1350)
+  })
+
+  it('sorterer kjøpene nyest først', () => {
+    const b = categoryBreakdown(rows, 'dagligvarer')
+    expect(b.rows.map((r) => r.date)).toEqual(['2026-08-06', '2026-08-05', '2026-08-03', '2026-08-01'])
+  })
+
+  it('takler tom/ukjent kategori', () => {
+    expect(categoryBreakdown([], 'hjem').total).toBe(0)
+    expect(categoryBreakdown(rows, 'finnesikke').count).toBe(0)
   })
 })
