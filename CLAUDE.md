@@ -213,8 +213,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   (best-effort, lukket app der støttet), `fireTest`, app-ikon-badge (`setBadge`). Prefs i localStorage per enhet.
 - `src/lib/plan.js` — sparemodus/reiseplan: `dailyAllowance` (dagsbeløp for at pengene skal vare hele
   perioden, med skille mellom «alt per dag» og «fritt per dag» etter faste utgifter), `planProgress`
-  (ligger du foran/bak, prognose, når går det tomt), `runway`, `monthlyAverages` (snittforbruk fra
-  faktisk historikk) og `suggestBudgets`. Alt utledet, ingenting lagret; testet i `plan.test.js`
+  (ligger du foran/bak, prognose, når går det tomt; `daysLeft` INKLUDERER i dag), `planMonths`
+  (periodens kalendermåneder — ferdige måneder mot opprinnelig andel, inneværende/kommende budsjettert
+  av det som FAKTISK er igjen, så et sprekk én måned krymper de neste), `runway`, `monthlyAverages`
+  (snittforbruk fra faktisk historikk) og `suggestBudgets`. Alt utledet, ingenting lagret; testet i `plan.test.js`
 - `src/lib/categories.js` — `CATEGORIES` + `SUBCATEGORIES` for Penger, med `catMeta`/`catKey`/`subsFor`/
   `subLabel`. Delt av Money.jsx, MoneyImport.jsx og bankImport.js — importen må gjette både kategori og
   underkategori, så alle tre trenger samme fasit
@@ -245,8 +247,8 @@ Alle stores er med i JSON-eksport/import (se §8).
   - `IdeaBank.jsx` / `IdeaBank.css` — idébanken (+ «Forfremm til prosjekt»)
   - `Habits.jsx` — «Vaner» (7d/28d-oversikt)
   - `MoneyPlan.jsx` — «Plan»-fanen i Penger: sparemodus for en periode uten lønn. Skjema med live
-    forhåndsvisning av dagsbeløpet, hero med «trygt å bruke per dag», fremdriftslinje, foran/bak-status
-    og en realitetssjekk mot hva du FAKTISK pleier å bruke per måned
+    forhåndsvisning, hero med «igjen i <måned>» + dagsbeløp, måned-for-måned-liste (ferdig/nå/kommende),
+    foran/bak-status og en realitetssjekk mot hva du FAKTISK pleier å bruke per måned
   - `MoneyImport.jsx` — bankimport-arket (Penger → Forbruk): velg CSV fra DNB-nettbanken → plan
     gruppert per butikk (kategori-select + ta-med-avkryssing per butikk) → lagres via
     `importBankExpenses` (db.js). Kategorivalg huskes per butikk i localStorage (`bankCatOverrides`)

@@ -2,6 +2,20 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-09 — **Planen ble måned-for-måned** (ønske: «hvor mye har jeg igjen denne måneden, også videre»).
+  Ett dagsbeløp for 153 dager er vanskelig å styre etter — man tenker i måneder. Ny `planMonths` deler
+  perioden i kalendermåneder (første/siste teller bare dagene inni perioden) og gir hver måned budsjett,
+  brukt, igjen og status ferdig/nå/kommende.
+  • **Selvrettende**: ferdige måneder måles mot sin opprinnelige andel, mens inneværende og kommende
+    budsjetteres av det som FAKTISK er igjen. Sprekker du i juli, krymper august–oktober automatisk —
+    verifisert med en egen test.
+  • **Heroen leder nå med «Igjen i <måned>»** i stedet for dagsbeløpet, med kr/dag og dager igjen av
+    måneden under. Totalen ligger i bunnlinja.
+  • `daysLeft` INKLUDERER nå i dag — «trygt å bruke per dag» skal svare på hva du kan bruke i dag, ikke
+    fra og med i morgen. På siste dag blir det 1, aldri 0 (ingen deling på null).
+  Fanget i browser: heroen viste «igjen denne måneden» i RØDT når man lå over plan totalt — men tallet er
+  penger du HAR. Rødt er nå forbeholdt negative beløp; rammen bærer over-plan-signalet.
+  8 nye tester (194 totalt). Lint + build grønt.
 - 2026-08-09 — **Sparemodus: budsjett for en periode uten lønn** (brukeren skal til Japan i 5 måneder
   uten inntekt). Et vanlig månedsbudsjett svarer på feil spørsmål her — det forutsetter at det kommer lønn
   neste måned. Dette svarer på «hvor lenge varer det jeg har, og hvor mye er det per dag?».

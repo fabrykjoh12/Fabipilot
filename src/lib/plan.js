@@ -138,7 +138,10 @@ export function planProgress(plan, expenses, todayIso) {
   const finished = today > end
   // dag 1 = startdagen; klemmes inn i perioden
   const dayNo = beforeStart ? 0 : Math.min(base.days, Math.round((today - start) / DAY) + 1)
-  const daysLeft = Math.max(0, base.days - dayNo)
+  /* Inkluderer I DAG: «trygt å bruke per dag» skal svare på «hva kan jeg bruke
+     nå», ikke «fra og med i morgen». På siste dag blir daysLeft = 1, aldri 0,
+     så vi heller ikke deler på null. */
+  const daysLeft = finished ? 0 : beforeStart ? base.days : Math.max(1, base.days - dayNo + 1)
 
   const cutoff = finished ? plan.endDate : todayIso
   const spent = (expenses || [])
@@ -185,4 +188,69 @@ export function suggestBudgets(expenses, { monthsBack = 6, endYM } = {}) {
     if (rounded > 0) out[k] = rounded
   }
   return { budgets: out, monthsCounted: avg.monthsCounted, perMonth: avg.perMonth }
+}
+
+/* planMonths(plan, expenses, todayIso) — periodens kalendermåneder, én rad hver.
+
+   Måneder som er FERDIGE viser hva du faktisk brukte mot din andel av potten.
+   Inneværende og kommende måneder budsjetteres av det som FAKTISK er igjen
+   (perDayLeft), ikke av den opprinnelige planen — brukte du for mye i september,
+   krymper oktober automatisk. Det er hele poenget: planen retter seg selv.
+
+   Første og siste måned teller bare dagene som ligger inne i perioden. */
+export function planMonths(plan, expenses, todayIso) {
+  const prog = planProgress(plan, expenses, todayIso)
+  if (!prog.ok) return []
+
+  const pad2 = (n) => String(n).padStart(2, '0')
+  const today = todayIso || ''
+  const rows = []
+
+  let [y, m] = plan.startDate.split('-').map(Number) // m er 1-basert
+  for (let guard = 0; guard < 120; guard++) {
+    const ym = `${y}-${pad2(m)}`
+    const lastDay = new Date(y, m, 0).getDate()
+    const from = `${ym}-01` > plan.startDate ? `${ym}-01` : plan.startDate
+    const to = `${ym}-${pad2(lastDay)}` < plan.endDate ? `${ym}-${pad2(lastDay)}` : plan.endDate
+    if (from > plan.endDate) break
+
+    const days = daysBetween(from, to) || 0
+    const spent = (expenses || [])
+      .filter((e) => e && e.date && e.date >= from && e.date <= to && Number(e.amount) > 0)
+      .reduce((s, e) => s + Number(e.amount), 0)
+
+    const status = to < today ? 'past' : from > today ? 'future' : 'current'
+    // dager igjen i DENNE måneden, inkludert i dag
+    const daysLeftInMonth =
+      status === 'past' ? 0 : status === 'future' ? days : Math.max(0, (daysBetween(today, to) || 0))
+
+    // Ferdige måneder måles mot den opprinnelige, jevne andelen.
+    // Resten budsjetteres av det som faktisk er igjen.
+    const budget =
+      status === 'past'
+        ? prog.perDay * days
+        : status === 'future'
+          ? prog.perDayLeft * days
+          : spent + prog.perDayLeft * daysLeftInMonth
+
+    rows.push({
+      ym,
+      y,
+      month: m - 1, // 0-basert, matcher MONTHS-tabellen i Money.jsx
+      from,
+      to,
+      days,
+      daysLeftInMonth,
+      spent,
+      budget,
+      left: budget - spent,
+      status,
+      pct: budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0,
+      over: spent > budget,
+    })
+
+    m += 1
+    if (m > 12) { m = 1; y += 1 }
+  }
+  return rows
 }

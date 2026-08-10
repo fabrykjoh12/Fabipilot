@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  daysBetween, monthlyAverages, runway, dailyAllowance, planProgress, suggestBudgets,
+  daysBetween, monthlyAverages, runway, dailyAllowance, planProgress, suggestBudgets, planMonths,
 } from './plan.js'
 
 const exp = (date, amount, category = 'dagligvarer') => ({ date, amount, category })
@@ -110,6 +110,13 @@ describe('planProgress — Japan', () => {
     expect(p.spent).toBe(0)
   })
 
+  it('daysLeft inkluderer i dag — dagsbeløpet gjelder dagen du står i', () => {
+    // dag 10 av 153 ⇒ dag 10…153 gjenstår = 144 dager
+    expect(planProgress(JAPAN, [], '2026-09-10').daysLeft).toBe(144)
+    // siste dag: 1 igjen, aldri 0 (ingen deling på null)
+    expect(planProgress(JAPAN, [], '2027-01-31').daysLeft).toBe(1)
+  })
+
   it('teller bare forbruk INNI perioden', () => {
     const rows = [
       exp('2026-08-31', 9999), // før avreise — skal ikke telle
@@ -140,7 +147,7 @@ describe('planProgress — Japan', () => {
   it('justerer dagsbeløpet for resten når du har brukt for mye', () => {
     const p = planProgress(JAPAN, [exp('2026-09-05', 20000)], '2026-09-10')
     expect(p.left).toBe(130000)
-    expect(p.perDayLeft).toBeCloseTo(130000 / 143, 5)
+    expect(p.perDayLeft).toBeCloseTo(130000 / 144, 5) // 144 = dag 10…153, i dag inkludert
     expect(p.perDayLeft).toBeLessThan(p.perDay)
   })
 
@@ -166,5 +173,56 @@ describe('suggestBudgets', () => {
   it('dropper kategorier som runder til null', () => {
     const s = suggestBudgets([exp('2026-08-01', 20, 'ovrig')], { endYM: '2026-08' })
     expect(s.budgets.ovrig).toBeUndefined()
+  })
+})
+
+describe('planMonths — Japan, måned for måned', () => {
+  it('deler perioden i kalendermåneder og teller bare dager INNI den', () => {
+    const rows = planMonths(JAPAN, [], '2026-08-15')
+    expect(rows.map((r) => r.ym)).toEqual(['2026-09', '2026-10', '2026-11', '2026-12', '2027-01'])
+    expect(rows.map((r) => r.days)).toEqual([30, 31, 30, 31, 31])
+    expect(rows.reduce((s, r) => s + r.days, 0)).toBe(153)
+  })
+
+  it('klipper første og siste måned når perioden starter/slutter midt i', () => {
+    const rows = planMonths({ ...JAPAN, startDate: '2026-09-20', endDate: '2026-11-10' }, [], '2026-09-01')
+    expect(rows.map((r) => r.days)).toEqual([11, 31, 10]) // 20.–30. sep, hele okt, 1.–10. nov
+  })
+
+  it('merker måneder som ferdig / inneværende / kommende', () => {
+    const rows = planMonths(JAPAN, [], '2026-11-15')
+    expect(rows.map((r) => r.status)).toEqual(['past', 'past', 'current', 'future', 'future'])
+  })
+
+  it('viser hvor mye som er igjen DENNE måneden', () => {
+    // 3 000 brukt i november, i dag 15.11 ⇒ 16 dager igjen av måneden (15.–30.)
+    const rows = planMonths(JAPAN, [exp('2026-11-05', 3000)], '2026-11-15')
+    const nov = rows.find((r) => r.ym === '2026-11')
+    expect(nov.status).toBe('current')
+    expect(nov.spent).toBe(3000)
+    expect(nov.daysLeftInMonth).toBe(16)
+    expect(nov.left).toBeCloseTo(nov.budget - 3000, 5)
+    expect(nov.left).toBeGreaterThan(0)
+  })
+
+  it('krymper kommende måneder når du har brukt for mye', () => {
+    const sparsomt = planMonths(JAPAN, [exp('2026-09-05', 1000)], '2026-09-10')
+    const sløsete = planMonths(JAPAN, [exp('2026-09-05', 40000)], '2026-09-10')
+    const desSparsomt = sparsomt.find((r) => r.ym === '2026-12').budget
+    const desSløsete = sløsete.find((r) => r.ym === '2026-12').budget
+    expect(desSløsete).toBeLessThan(desSparsomt) // planen retter seg selv
+  })
+
+  it('ferdige måneder måles mot den opprinnelige andelen, og flagges ved sprekk', () => {
+    const rows = planMonths(JAPAN, [exp('2026-09-05', 60000)], '2026-11-15')
+    const sep = rows.find((r) => r.ym === '2026-09')
+    expect(sep.status).toBe('past')
+    expect(sep.budget).toBeCloseTo((150000 / 153) * 30, 5)
+    expect(sep.over).toBe(true)
+    expect(sep.left).toBeLessThan(0)
+  })
+
+  it('er tom uten gyldig plan', () => {
+    expect(planMonths({}, [], '2026-09-01')).toEqual([])
   })
 })

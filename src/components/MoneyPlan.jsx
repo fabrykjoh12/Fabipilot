@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { addPlan, updatePlan, deletePlan, todayKey } from '../db.js'
-import { dailyAllowance, planProgress, monthlyAverages, daysBetween } from '../lib/plan.js'
+import { dailyAllowance, planProgress, planMonths, monthlyAverages, daysBetween } from '../lib/plan.js'
 import { kr, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, toast } from '../lib/ui.jsx'
 
@@ -111,9 +111,47 @@ function PlanForm({ suggestion, onDone, onCancel }) {
   )
 }
 
+const MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember']
+const dm = (iso) => `${iso.slice(8)}.${iso.slice(5, 7)}`
+
+/* Måned-for-måned. Ferdige måneder viser fasit, inneværende viser hva som er
+   igjen, kommende viser hva de får når det som allerede er brukt er trukket fra. */
+function MonthRow({ row }) {
+  const label = `${MONTHS[row.month].charAt(0).toUpperCase()}${MONTHS[row.month].slice(1)}`
+  return (
+    <div className={'pm-row ' + row.status + (row.over ? ' over' : '')}>
+      <div className="pm-top">
+        <span className="pm-name">
+          {label}
+          {row.status === 'current' && <em> · nå</em>}
+          {row.days < 28 && <small> ({row.days} dager)</small>}
+        </span>
+        <span className="pm-amt">
+          {row.status === 'past'
+            ? kr(Math.round(row.spent))
+            : `${kr(Math.round(row.left))} igjen`}
+        </span>
+      </div>
+      <div className="pm-bar">
+        <i style={{ width: Math.min(100, row.pct) + '%' }} />
+      </div>
+      <div className="pm-foot">
+        <span>
+          {row.status === 'future'
+            ? `Budsjett ${kr(Math.round(row.budget))}`
+            : `${kr(Math.round(row.spent))} av ${kr(Math.round(row.budget))}`}
+        </span>
+        {row.status === 'current' && <span>{row.daysLeftInMonth} dager igjen</span>}
+        {row.status === 'past' && <span>{row.over ? `${kr(Math.round(-row.left))} over` : `${kr(Math.round(row.left))} til overs`}</span>}
+      </div>
+    </div>
+  )
+}
+
 function ActivePlan({ plan, expenses, history, onGone }) {
-  const p = planProgress(plan, expenses, todayKey())
-  const [editing, setEditing] = useState(false)
+  const today = todayKey()
+  const p = planProgress(plan, expenses, today)
+  const months = planMonths(plan, expenses, today)
   if (!p.ok) return null
 
   /* Realitetssjekk: tåler planen vanene dine? Sammenligner budsjettet med det du
@@ -122,16 +160,18 @@ function ActivePlan({ plan, expenses, history, onGone }) {
   const usual = history?.monthsCounted >= 2 ? history.perMonth : null
   const gap = usual ? p.freePerMonth - usual : null
 
+  const cur = months.find((m) => m.status === 'current')
   const state = p.beforeStart ? 'soon' : p.finished ? 'done' : p.onTrack ? 'ok' : 'over'
   const totalDays = daysBetween(plan.startDate, plan.endDate)
 
   async function bumpAmount() {
-    const v = window.prompt('Hvor mye har du igjen nå? (kr)', String(Math.round(p.left)))
+    const v = window.prompt('Hvor mye har du igjen på konto nå? (kr)', String(Math.round(p.left)))
     if (v === null) return
     const n = Number(v)
     if (!Number.isFinite(n)) return
-    // Ny startsum fra i dag — behold historikken ved å flytte startdatoen hit.
-    await updatePlan(plan.id, { startAmount: n + p.spent })
+    // Startsummen justeres slik at «igjen» treffer det du oppgir — det du
+    // allerede har brukt i perioden blir stående.
+    await updatePlan(plan.id, { startAmount: n + p.spent - (Number(plan.income) || 0) })
     toast.success('Justert')
   }
 
@@ -153,7 +193,7 @@ function ActivePlan({ plan, expenses, history, onGone }) {
           <>
             <span className="plan-lbl-big">Du kan bruke</span>
             <AnimatedNumber className="plan-amount" value={Math.round(p.freePerDay)} format={kr} />
-            <span className="plan-sub">per dag i {p.days} dager · starter {plan.startDate.slice(8)}.{plan.startDate.slice(5, 7)}</span>
+            <span className="plan-sub">per dag i {p.days} dager · starter {dm(plan.startDate)}</span>
           </>
         ) : p.finished ? (
           <>
@@ -163,10 +203,16 @@ function ActivePlan({ plan, expenses, history, onGone }) {
           </>
         ) : (
           <>
-            <span className="plan-lbl-big">Trygt å bruke per dag</span>
-            <AnimatedNumber className="plan-amount" value={Math.round(p.perDayLeft)} format={kr} />
+            <span className="plan-lbl-big">Igjen i {MONTHS[cur?.month ?? 0]}</span>
+            {/* Rødt tall = du har brukt opp månedens andel. Rammen kan være rød
+                (over plan totalt) uten at selve beløpet er negativt. */}
+            <AnimatedNumber
+              className={'plan-amount' + ((cur?.left ?? 0) < 0 ? ' neg' : '')}
+              value={Math.round(cur?.left ?? 0)}
+              format={kr}
+            />
             <span className="plan-sub">
-              {kr(Math.round(p.left))} igjen · {p.daysLeft} {p.daysLeft === 1 ? 'dag' : 'dager'} til {plan.endDate.slice(8)}.{plan.endDate.slice(5, 7)}
+              {kr(Math.round(p.perDayLeft))} per dag · {cur?.daysLeftInMonth ?? 0} dager igjen av måneden
             </span>
           </>
         )}
@@ -175,8 +221,8 @@ function ActivePlan({ plan, expenses, history, onGone }) {
           <i style={{ width: p.pct + '%' }} />
         </div>
         <div className="plan-bar-foot">
-          <span>Dag {p.dayNo} av {totalDays}</span>
-          <span>{p.pct}%</span>
+          <span>Dag {p.dayNo} av {totalDays} · til {dm(plan.endDate)}</span>
+          <span>{kr(Math.round(p.left))} igjen totalt</span>
         </div>
       </div>
 
@@ -195,6 +241,17 @@ function ActivePlan({ plan, expenses, history, onGone }) {
                 : `Det går fortsatt opp, men marginen er nede i ${kr(Math.round(p.projectedEnd))}.`}
             </>
           )}
+        </div>
+      )}
+
+      {months.length > 0 && (
+        <div className="pm-list card">
+          <span className="trend-lbl">Måned for måned</span>
+          {months.map((row) => <MonthRow key={row.ym} row={row} />)}
+          <p className="pm-note">
+            Bruker du mer én måned, krymper de neste automatisk — beløpene er alltid det som
+            faktisk er igjen.
+          </p>
         </div>
       )}
 
@@ -223,8 +280,6 @@ function ActivePlan({ plan, expenses, history, onGone }) {
       <button type="button" className="budget-add" onClick={bumpAmount}>
         ⚖️ Juster: hvor mye har du igjen nå?
       </button>
-
-      {editing && <PlanForm onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />}
     </>
   )
 }
