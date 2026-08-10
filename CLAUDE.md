@@ -78,7 +78,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **13**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **14**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -117,6 +117,18 @@ Synces via Dexie Cloud (se §3).
   En periode uten (eller med lite) inntekt, f.eks. en lang reise. `income` = samlet inntekt i HELE
   perioden (0 = uten lønn), `fixedMonthly` = faste utgifter som løper videre mens du er borte.
   Alt annet er utledet i `src/lib/plan.js` — ingenting beregnet lagres. v13 la til storen.
+- **inflows** (Penger — alt som kommer INN) — `id, date, kind, amount, merchant, note, importKey, createdAt`
+  (indekser: `date`, `kind`). Speilbildet av `expenses`: satt av bankimporten fra beløp-inn-kolonnen.
+  `kind` = `'inntekt' | 'refusjon' | 'overforing'`, gjettet av `classifyInflow` (`src/lib/bankImport.js`).
+  Skillet er hele poenget: på brukerens ekte konto er 289 223 av 301 833 kr inn bare flyttet fra egne
+  kontoer — telles de som inntekt, ser hver måned ut som en lottogevinst. ALT teller for saldoen (pengene
+  kom jo inn), men bare `inntekt`+`refusjon` regnes som inntekt. `importKey` = samme dedup-form som
+  `expenses` (`listInflowImportKeys` teller som multiset), så re-import ikke dobbeltfører.
+- **balances** (Penger — saldo-holdepunkt) — `id, date, amount, createdAt`
+  (indeks: `date`). Én rad per dato — `setBalanceSnapshot` OPPDATERER dagens rad i stedet for å stable
+  nye. `amount` = saldo ved SLUTTEN av `date`, lest av i banken. Appen ruller den framover med `inflows`
+  minus `expenses` (`balanceAt` i `src/lib/balance.js`); en ny avlesning overstyrer alt før den, så avvik
+  rettes uten sletting. Uten holdepunkt vises ingen saldo — vi gjetter aldri. v14 la til `inflows`+`balances`.
 - **goals** (Penger/Sparing) — `id, name, target, saved, createdAt`
   Sparemål. `addToGoal(id, delta)` justerer `saved` (min 0).
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
@@ -204,6 +216,10 @@ Alle stores er med i JSON-eksport/import (se §8).
   `upcomingCharges`/`remainingChargesThisMonth`/`yearlyReserve` (kommende faste trekk + årlig-avsetning),
   `categoryBreakdown` (én kategori brutt ned på type/underkategori OG sted/butikk + alle kjøpene). Alt
   utledet, ingenting lagret; brukt av Penger/Oversikt, testet i `money.test.js`
+- `src/lib/balance.js` — saldo og pengeflyt: `balanceAt` (holdepunkt rullet framover med inn minus ut —
+  returnerer `null` uten holdepunkt, vi gjetter aldri på saldo), `latestSnapshot`, `monthlyFlow`
+  (inn/ut/netto for én måned, med `income` skilt fra `transfers` og sparerate målt mot ekte inntekt).
+  Alt utledet, ingenting lagret; testet i `balance.test.js`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`/`ScreenSkeleton`, `PageTransition`,
   `Reveal`, `toast` (sonner-wrapper), `useEscape` (lukk ark/dialoger på Escape). Bygd på `motion`; respekterer
@@ -223,9 +239,12 @@ Alle stores er med i JSON-eksport/import (se §8).
   underkategori, så alle tre trenger samme fasit
 - `src/lib/bankImport.js` — bankimport (DNB/Sbanken CSV), rene funksjoner: `parseBankCSV` (semikolon/
   quotet/CRLF), `cleanMerchant` (prefikser/valuta/koder/dato-haler vekk), `guessCategory` (nøkkelord →
-  `{category, sub}`, spesifikke regler før generelle), `isTransfer` (overføring/kontoregulering hoppes over),
+  `{category, sub}`, spesifikke regler før generelle), `isTransfer` (overføring/kontoregulering — telles
+  ikke som kjøp), `classifyInflow` (innbetaling → `'inntekt' | 'refusjon' | 'overforing'`; treff i
+  `guessCategory` betyr penger tilbake fra et sted du handlet, altså refusjon),
   `importKey` + `buildImportPlan` (plan gruppert per butikk, med dedup mot eksisterende nøkler og
-  brukerens huskede kategorivalg). Testet i `bankImport.test.js`
+  brukerens huskede kategorivalg; returnerer også `inflows`/`inflowTotal`/`inflowByKind` med egen dedup
+  mot `existingInflowKeys`). Testet i `bankImport.test.js`
 - `src/lib/parse.js` — `parseEntry(text)`: tolker norsk dato/tid + typehint for hurtiglagring → `{title, type, dueDate, time}`
   (testet i `parse.test.js`)
 - `src/components/ErrorBoundary.jsx` — fanger renderfeil (rot + rundt aktiv modul): rolig fallback med
@@ -252,8 +271,12 @@ Alle stores er med i JSON-eksport/import (se §8).
     foran/bak-status og en realitetssjekk mot hva du FAKTISK pleier å bruke per måned
   - `MoneyImport.jsx` — bankimport-arket (Penger → Forbruk): velg CSV fra DNB-nettbanken → plan
     gruppert per butikk (kategori-select + ta-med-avkryssing per butikk) → lagres via
-    `importBankExpenses` (db.js). Kategorivalg huskes per butikk i localStorage (`bankCatOverrides`)
-  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt («Trygt å bruke i dag»-hero øverst +
+    `importBankExpenses` (db.js). Kategorivalg huskes per butikk i localStorage (`bankCatOverrides`).
+    Samme import tar også med INNbetalingene (`importBankInflows`) — vist som eget grønt kort med
+    inntekt/refusjon skilt fra overføringer, så saldoen holder seg riktig uten ekstra arbeid
+  - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (saldo-hero «På konto nå» øverst — trykk for å
+    lese av saldoen i banken, deretter ruller den seg selv (`src/lib/balance.js`) — + «Inn og ut»-kort
+    som skiller ekte inntekt fra flyttede penger, + «Trygt å bruke i dag»-hero +
     måneds-prognose-setning + «Kommende trekk»-kort med årlig-reframe og årlig-avsetning (alt utledet i
     `src/lib/money.js`); budsjett vs forbruk per måned, 6-måneders trendgraf, «vs forrige måned»-endringsmerke
     på totalen og på hver kategori — rødt ved økt bruk, grønt ved redusert; kategoriradene åpner

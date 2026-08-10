@@ -208,18 +208,31 @@ export function importKey(date, amount, merchant) {
    - overrides: { butikknavn-lowercase → {category, sub} } — brukerens tidligere
      valg (godtar også gammel form der verdien bare er kategori-strengen)
    - skipped: { reserved, transfers, incoming, duplicates } (antall) */
-export function buildImportPlan(csvText, { existingKeys, overrides } = {}) {
+export function buildImportPlan(csvText, { existingKeys, existingInflowKeys, overrides } = {}) {
   const parsed = parseBankCSV(csvText)
   if (!parsed.ok) return parsed
 
   const seen = new Map(existingKeys || [])
+  const inflowSeen = new Map(existingInflowKeys || [])
+  const inflows = []
   const skipped = { reserved: 0, transfers: 0, incoming: 0, duplicates: 0 }
   const byMerchant = new Map()
   let from = null
   let to = null
 
   for (const tx of parsed.transactions) {
-    if (tx.amountOut == null || tx.amountOut <= 0) { skipped.incoming++; continue }
+    if (tx.amountOut == null || tx.amountOut <= 0) {
+      // Innbetaling: samles opp for saldo/inntekt i stedet for bare a telles bort.
+      if (tx.amountIn > 0 && !tx.reserved) {
+        const merchant = cleanMerchant(tx.text)
+        const key = importKey(tx.date, tx.amountIn, merchant)
+        const have = inflowSeen.get(key) || 0
+        if (have > 0) inflowSeen.set(key, have - 1)
+        else inflows.push({ date: tx.date, amount: tx.amountIn, merchant, kind: classifyInflow(tx.text), key })
+      }
+      skipped.incoming++
+      continue
+    }
     if (tx.reserved) { skipped.reserved++; continue } // kommer tilbake som bokført i neste eksport
     if (isTransfer(tx.text)) { skipped.transfers++; continue }
 
@@ -257,5 +270,38 @@ export function buildImportPlan(csvText, { existingKeys, overrides } = {}) {
   const groups = [...byMerchant.values()].sort((a, b) => b.total - a.total)
   const count = groups.reduce((s, g) => s + g.count, 0)
   const total = groups.reduce((s, g) => s + g.total, 0)
-  return { ok: true, groups, skipped, from, to, count, total }
+
+  // Innbetalinger oppsummert per type, sa UI-et kan si «X inn, herav Y overfort».
+  const inflowByKind = { inntekt: 0, refusjon: 0, overforing: 0 }
+  for (const i of inflows) inflowByKind[i.kind] = (inflowByKind[i.kind] || 0) + i.amount
+  const inflowTotal = inflows.reduce((s, i) => s + i.amount, 0)
+
+  return {
+    ok: true, groups, skipped, from, to, count, total,
+    inflows, inflowTotal, inflowByKind,
+  }
+}
+
+/* ---------- Innbetalinger ---------- */
+
+/* classifyInflow(merchant, text) -> 'overforing' | 'refusjon' | 'inntekt'
+
+   VIKTIG skille, og grunnen til at innbetalinger ikke bare kan summeres som
+   «inntekt»: i brukerens egen kontoutskrift var 290 423 av 303 033 kr inn rene
+   OVERFØRINGER fra egne kontoer. De øker saldoen på denne kontoen, men er ikke
+   penger tjent. Bare 12 611 kr var faktiske innbetalinger.
+
+   - overforing: flyttede penger (overføring/kontoregulering) - teller for SALDO,
+     ikke for inntekt.
+   - refusjon: penger tilbake fra en butikk vi kjenner igjen (Telia, Apple) -
+     altså et kjøp som ble reversert, ikke inntekt.
+   - inntekt: alt annet (lønn, betaling fra andre). */
+export function classifyInflow(text) {
+  if (isTransfer(text)) return 'overforing'
+  const merchant = cleanMerchant(text)
+  // Treffer den en ekte butikk-regel (ikke sekkeposten «ovrig»), er det penger
+  // tilbake fra et kjøp - ikke inntekt.
+  const guess = guessCategory(merchant)
+  if (guess.category !== 'ovrig') return 'refusjon'
+  return 'inntekt'
 }

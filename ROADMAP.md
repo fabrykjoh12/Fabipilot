@@ -14,6 +14,9 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Saldo + inntekt i Penger: bankimporten tar med innbetalingene (`inflows`, v14) og skiller ekte inntekt
+  fra penger flyttet mellom egne kontoer; saldoen holdes oppdatert fra ett holdepunkt (`balances`,
+  `src/lib/balance.js`) og vises som hero øverst på Oversikt sammen med et «Inn og ut»-kort.
 - Sparemodus («Plan»-fanen): budsjett for en periode uten lønn — dagsbeløp, foran/bak-status,
   prognose og realitetssjekk mot faktisk forbruk (`src/lib/plan.js`, `plans`-store v13).
   Budsjettforslag per kategori fra egen historikk.

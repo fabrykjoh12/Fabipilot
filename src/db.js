@@ -207,6 +207,12 @@ db.version(13).stores({
   plans: 'id, startDate, createdAt',
 })
 
+// v14: saldo og innbetalinger — «hvor mye har jeg?» + inn vs ut per måned.
+db.version(14).stores({
+  inflows: 'id, date, kind, createdAt',
+  balances: 'id, date, createdAt',
+})
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -894,7 +900,59 @@ export async function addPlan({ name, startDate, endDate, startAmount, income = 
 export const updatePlan = (id, patch) => db.plans.update(id, patch)
 export const deletePlan = (id) => db.plans.delete(id)
 
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals', 'plans']
+/* =========================================================
+   SALDO OG INNBETALINGER  (src/lib/balance.js regner, dette lagrer)
+   ---------------------------------------------------------
+   - inflows:  alt som kom INN. `kind` = 'inntekt' | 'refusjon' | 'overforing'.
+               Overføringer teller for saldo, men ikke som inntekt (se
+               classifyInflow i bankImport.js).
+   - balances: holdepunkter — saldo ved SLUTTEN av en dato, lest av i banken.
+               Et nytt holdepunkt overstyrer alt før det.
+   ========================================================= */
+export async function listInflows() {
+  return db.inflows.orderBy('date').reverse().toArray()
+}
+export async function importBankInflows(rows) {
+  const t = now()
+  const recs = (rows || [])
+    .filter((r) => Number(r.amount) > 0 && r.date)
+    .map((r, i) => ({
+      id: uid(),
+      amount: Number(r.amount),
+      date: r.date,
+      kind: r.kind || 'inntekt',
+      note: r.merchant || '',
+      importKey: r.key,
+      createdAt: t + i,
+    }))
+  if (recs.length) await db.inflows.bulkAdd(recs)
+  return recs.length
+}
+export async function listInflowImportKeys() {
+  const all = await db.inflows.toArray()
+  const map = new Map()
+  for (const r of all) if (r.importKey) map.set(r.importKey, (map.get(r.importKey) || 0) + 1)
+  return map
+}
+
+export async function listBalances() {
+  return db.balances.orderBy('date').reverse().toArray()
+}
+export async function setBalanceSnapshot({ date, amount, note = '' }) {
+  if (!date || !Number.isFinite(Number(amount))) return null
+  // Én avlesning per dato — en ny erstatter den gamle i stedet for å stable seg.
+  const existing = await db.balances.where('date').equals(date).first()
+  if (existing) {
+    await db.balances.update(existing.id, { amount: Number(amount), note })
+    return { ...existing, amount: Number(amount), note }
+  }
+  const rec = { id: uid(), date, amount: Number(amount), note, createdAt: now() }
+  await db.balances.add(rec)
+  return rec
+}
+export const deleteBalanceSnapshot = (id) => db.balances.delete(id)
+
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals', 'plans', 'inflows', 'balances']
 
 export async function exportAll() {
   const out = { type: 'dashboard-backup', version: 8, exportedAt: new Date().toISOString() }

@@ -949,3 +949,29 @@
 .cs-tx-date { font-size: 12.5px; color: var(--faint); font-variant-numeric: tabular-nums; flex: 0 0 auto; width: 42px; }
 .cs-tx-name { flex: 1; min-width: 0; font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cs-tx-amt { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.imp-inflow { display: flex; flex-direction: column; gap: 2px; background: var(--forest-soft); border-radius: var(--r-md); padding: 11px 13px; margin-bottom: 10px; font-size: 13.5px; }
+.imp-inflow span { color: var(--muted); font-size: 12.5px; }
+.imp-inflow-note { color: var(--faint); }
+
+/* ===== Saldo-hero + pengeflyt ===== */
+.bal-hero {
+  display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl); box-shadow: var(--sh-3);
+  padding: 18px 20px 16px; margin-bottom: 12px; cursor: pointer; font-family: inherit;
+}
+.bal-lbl { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bal-amount { font-family: var(--font-display); font-size: 38px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: 1.15; }
+.bal-sub { font-size: 12.5px; color: var(--faint); }
+.bal-hero.prompt { border-style: dashed; box-shadow: none; }
+.bal-prompt-txt { font-size: 14px; line-height: 1.5; color: var(--muted); margin-top: 4px; }
+.flow { padding: 14px 16px 12px; margin-bottom: 12px; }
+.flow-cols { display: flex; gap: 8px; margin-top: 8px; }
+.flow-col { flex: 1; display: flex; flex-direction: column; gap: 1px; background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 11px; }
+.flow-lbl { font-size: 12px; color: var(--muted); }
+.flow-amt { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.flow-col.in .flow-amt { color: var(--forest); }
+.flow-col.net.pos .flow-amt { color: var(--forest); }
+.flow-col.net.neg .flow-amt { color: var(--danger); }
+.flow-note { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 10px 0 0; }

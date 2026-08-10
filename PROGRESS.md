@@ -2,6 +2,17 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-10 — **Saldo og inntekt: fra forbruksdagbok til økonomioversikt** (svar på «hvordan kan den
+  bli enda bedre?»). Appen visste hva jeg BRUKTE, men ikke hva jeg HAR — det er det første man lurer på.
+  Nå leses innbetalingene ut av den samme bankfila (ny `inflows`-store, v14), og saldoen holdes oppdatert
+  fra ett holdepunkt jeg oppgir én gang (`balances`-store + `src/lib/balance.js`).
+  Det viktigste valget her var å ikke lure meg selv: 289 223 av 301 833 kr «inn» i året var overføringer
+  mellom mine egne kontoer. Telles de som inntekt, ser hver måned ut som en lottogevinst og spareraten
+  blir tull. Derfor får hver innbetaling en `kind` (inntekt/refusjon/overføring) — ALT teller for saldoen,
+  bare de to første regnes som inntekt, og «Inn og ut»-kortet sier det rett ut i klartekst.
+  Saldoen gjettes aldri: uten holdepunkt vises et spørsmål i stedet for et tall, og en ny avlesning
+  overstyrer alt før den, så avvik rettes uten at noe må slettes. Verifisert i nettleser mot ekte fil:
+  846 kjøp + 291 innbetalinger, re-import ga 0 nye, og saldoen rullet nøyaktig som fasiten fra basen.
 - 2026-08-09 — **Kategori-detalj: hva gikk pengene faktisk til** (ønske fra brukeren). «Dagligvarer:
   9 735 kr» sier ingenting om HVA. Kategoriradene på Oversikt åpnet før budsjett-arket; nå åpner de et
   detalj-ark. Ny ren `categoryBreakdown` (`src/lib/money.js`) bryter én kategori ned på to måter, fordi

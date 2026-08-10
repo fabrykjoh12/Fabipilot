@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { buildImportPlan } from '../lib/bankImport.js'
 import { CATEGORIES, subsFor } from '../lib/categories.js'
-import { importBankExpenses, listExpenseImportKeys } from '../db.js'
+import { importBankExpenses, listExpenseImportKeys, importBankInflows, listInflowImportKeys } from '../db.js'
 import { toast, useEscape } from '../lib/ui.jsx'
 import { kr, vibrate } from '../lib/fx.js'
 
@@ -43,9 +43,10 @@ export default function MoneyImportSheet({ onClose }) {
     try {
       const text = await file.text()
       const existingKeys = await listExpenseImportKeys()
-      const p = buildImportPlan(text, { existingKeys, overrides: loadOverrides() })
+      const existingInflowKeys = await listInflowImportKeys()
+      const p = buildImportPlan(text, { existingKeys, existingInflowKeys, overrides: loadOverrides() })
       if (!p.ok) { setError(p.error); return }
-      if (p.count === 0) {
+      if (p.count === 0 && p.inflows.length === 0) {
         const d = p.skipped.duplicates
         setError(d > 0 ? `Alt i fila (${d} kjøp) er importert fra før — ingenting nytt å hente.` : 'Fant ingen kjøp å importere i fila.')
         return
@@ -68,13 +69,17 @@ export default function MoneyImportSheet({ onClose }) {
     try {
       const rows = activeGroups.flatMap((g) => g.rows.map((r) => ({ ...r, category: chosenCat(g), sub: chosenSub(g) })))
       const n = await importBankExpenses(rows)
+      // Innbetalinger lagres alltid — de trenger ingen kategorisering, og de er
+      // det saldoen rulles framover med.
+      const nIn = await importBankInflows(plan.inflows)
       // husk kategorivalget per butikk til neste import
       const overrides = loadOverrides()
       for (const g of plan.groups) overrides[gkey(g)] = { category: chosenCat(g), sub: chosenSub(g) }
       localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides))
       vibrate(12)
       toast.success(`Importerte ${n} kjøp fra banken`, {
-        description: `${kr(Math.round(activeTotal))} fordelt på ${activeGroups.length} steder.`,
+        description: `${kr(Math.round(activeTotal))} fordelt på ${activeGroups.length} steder`
+          + (nIn ? ` · ${nIn} innbetalinger` : ''),
       })
       onClose()
     } catch (err) {
@@ -125,6 +130,19 @@ export default function MoneyImportSheet({ onClose }) {
                 </span>
               )}
             </div>
+
+            {plan.inflows.length > 0 && (
+              <div className="imp-inflow">
+                <strong>{plan.inflows.length} innbetalinger · {kr(Math.round(plan.inflowTotal))}</strong>
+                <span>
+                  {kr(Math.round(plan.inflowByKind.inntekt + plan.inflowByKind.refusjon))} inntekt og refusjon ·{' '}
+                  {kr(Math.round(plan.inflowByKind.overforing))} overført fra egne kontoer
+                </span>
+                <span className="imp-inflow-note">
+                  Alt teller for saldoen. Bare det som ikke er overføringer regnes som inntekt.
+                </span>
+              </div>
+            )}
 
             <p className="imp-hint">Sjekk kategoriene — valgene huskes til neste import.</p>
 
@@ -181,7 +199,7 @@ export default function MoneyImportSheet({ onClose }) {
               })}
             </div>
 
-            <button type="button" className="msheet-save" disabled={busy || activeCount === 0} onClick={doImport}>
+            <button type="button" className="msheet-save" disabled={busy || (activeCount === 0 && plan.inflows.length === 0)} onClick={doImport}>
               {busy ? 'Importerer…' : `Importer ${activeCount} kjøp (${kr(Math.round(activeTotal))})`}
             </button>
           </>

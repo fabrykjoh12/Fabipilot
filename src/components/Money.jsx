@@ -9,7 +9,7 @@ import {
   getMonthlyTotals, setMonthlyTotal,
   listIncomes, addIncome, updateIncome, deleteIncome,
   listGoals, addGoal, updateGoal, addToGoal,
-  listPlans,
+  listPlans, listInflows, listBalances, setBalanceSnapshot,
   deleteWithRestore, restoreRecord,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
@@ -20,6 +20,7 @@ import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve,
 import MoneyImportSheet from './MoneyImport.jsx'
 import MoneyPlan from './MoneyPlan.jsx'
 import { suggestBudgets } from '../lib/plan.js'
+import { balanceAt, monthlyFlow } from '../lib/balance.js'
 import './Money.css'
 
 
@@ -670,6 +671,8 @@ export default function Money() {
   const incomes = useLiveQuery(() => listIncomes(), [], [])
   const goals = useLiveQuery(() => listGoals(), [], [])
   const plans = useLiveQuery(() => listPlans(), [], [])
+  const inflows = useLiveQuery(() => listInflows(), [], [])
+  const balances = useLiveQuery(() => listBalances(), [], [])
 
   const [tab, setTab] = useState('oversikt')
   const [cursor, setCursor] = useState(() => {
@@ -751,6 +754,23 @@ export default function Money() {
     setCursor({ y: dt.getFullYear(), m: dt.getMonth() })
   }
 
+  /* Saldo + pengeflyt. `bal` er null helt til du har oppgitt saldoen én gang —
+     vi gjetter ikke på hva du har. */
+  const bal = balanceAt(balances, inflows, expenses, todayKey())
+  const flow = monthlyFlow(inflows, expenses, monthPrefix)
+  async function askBalance() {
+    const v = window.prompt(
+      'Hva står det på kontoen nå? (kr)\n\nAppen holder saldoen oppdatert med kjøpene og innbetalingene du importerer.',
+      bal ? String(Math.round(bal.balance)) : '',
+    )
+    if (v === null) return
+    const n = Number(String(v).replace(/[\s\u00a0]/g, '').replace(',', '.'))
+    if (!Number.isFinite(n)) { toast.error('Skjønte ikke beløpet'); return }
+    await setBalanceSnapshot({ date: todayKey(), amount: n })
+    vibrate(12)
+    toast.success('Saldo lagret', { description: 'Den oppdateres nå automatisk ved hver import.' })
+  }
+
   // Budsjettforslag fra faktisk historikk — mye bedre utgangspunkt enn blanke felt.
   const budgetSuggestion = suggestBudgets(expenses, { monthsBack: 6 })
   async function applySuggestedBudgets() {
@@ -803,6 +823,58 @@ export default function Money() {
         {/* ===== OVERSIKT ===== */}
         {tab === 'oversikt' && (
           <>
+            {/* Saldo først: «hva har jeg?» før «hva kan jeg bruke?». */}
+            {bal ? (
+              <button type="button" className="bal-hero" onClick={askBalance}>
+                <span className="bal-lbl">På konto nå</span>
+                <AnimatedNumber className="bal-amount" value={Math.round(bal.balance)} format={kr} />
+                <span className="bal-sub">
+                  {bal.exact
+                    ? `avlest ${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)}`
+                    : `${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)} + ${kr(Math.round(bal.inSince))} inn − ${kr(Math.round(bal.outSince))} ut`}
+                </span>
+              </button>
+            ) : (
+              <button type="button" className="bal-hero prompt" onClick={askBalance}>
+                <span className="bal-lbl">På konto</span>
+                <span className="bal-prompt-txt">
+                  Skriv inn saldoen din én gang — så holder appen den oppdatert med det du importerer fra banken.
+                </span>
+              </button>
+            )}
+
+            {(flow.in > 0 || flow.out > 0) && (
+              <div className="flow card">
+                <span className="trend-lbl">Inn og ut i {MONTHS[cursor.m]}</span>
+                <div className="flow-cols">
+                  <div className="flow-col in">
+                    <span className="flow-lbl">Inn</span>
+                    <span className="flow-amt">+{kr(Math.round(flow.in))}</span>
+                  </div>
+                  <div className="flow-col out">
+                    <span className="flow-lbl">Ut</span>
+                    <span className="flow-amt">−{kr(Math.round(flow.out))}</span>
+                  </div>
+                  <div className={'flow-col net' + (flow.net >= 0 ? ' pos' : ' neg')}>
+                    <span className="flow-lbl">Netto</span>
+                    <span className="flow-amt">{flow.net >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.net)))}</span>
+                  </div>
+                </div>
+                {flow.transfers > 0 && (
+                  <p className="flow-note">
+                    {kr(Math.round(flow.transfers))} av innbetalingene er overført fra egne kontoer — det er
+                    flyttede penger, ikke inntekt.
+                    {flow.income > 0 && ` Ekte inntekt: ${kr(Math.round(flow.income))}.`}
+                  </p>
+                )}
+                {flow.savingRate !== null && flow.transfers === 0 && (
+                  <p className="flow-note">
+                    Du satt igjen med {Math.round(flow.savingRate * 100)} % av inntekten denne måneden.
+                  </p>
+                )}
+              </div>
+            )}
+
             {isCurrentMonth && (
               safe.available ? (
                 <div className={'safe-hero ' + safeState}>
