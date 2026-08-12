@@ -2,6 +2,24 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-12 — **Designrydding: mindre type, mer luft, ett tall om gangen** («alt virker så trangt»).
+  Appen var bygget med hardkodede px-størrelser per komponent, og de hadde krøpet oppover: 44px-tall
+  ved siden av 30px-titler gjorde at alt ropte samtidig — og når alt roper, blir det trangt.
+  La inn en type- og tetthetsskala i `:root` (`--t-*`, `--lh-*`, `--card-pad`/`--card-gap`/`--sec-gap`)
+  og senket de største tallene mest, så luften mellom elementene får bære hierarkiet i stedet.
+  Fire konkrete ting fulgte av samme prinsipp:
+  **(1)** Penger/Oversikt hadde tre helter på rad. Saldo og «Inn og ut» var to kort med hver sin skygge
+  som kjempet om blikket — nå er de ETT kort: heltetallet øverst, flyten som lave rader med hårstrek
+  imellom. Og «Trygt å bruke» var en heldekkende blå slab; den er nå et vanlig glasskort der bare tallet
+  bærer aksentfargen. Fargeflate er spart til advarslene (lav/over).
+  **(2)** «Ut −11 235 kr» og «Brukt denne måneden 12 284 kr» så ut som en selvmotsigelse. Differansen er
+  nøyaktig de faste trekkene, som ikke ligger som egne kjøp — regnestykket står nå under tallet.
+  **(3)** «Mer» var 12 like store ruter der Penger lå sidestilt med «Rosa aksent». Moduler er steder du
+  GÅR, innstillinger er brytere du VRIR: moduler beholdt rutenettet, innstillinger ble linjerader med
+  Lucide-ikoner i stedet for 🌙/💗.
+  **(4)** Oppgaver viste «Neste opp» i toppkortet — alltid nøyaktig samme oppgave som øverste rad i lista
+  rett under, bare avkuttet. Raden er fjernet, og lista fikk plassen (en hel seksjon mer synlig).
+  Verifisert i nettleser på mobil og PC, i lys og mørk modus.
 - 2026-08-10 — **Saldo og inntekt: fra forbruksdagbok til økonomioversikt** (svar på «hvordan kan den
   bli enda bedre?»). Appen visste hva jeg BRUKTE, men ikke hva jeg HAR — det er det første man lurer på.
   Nå leses innbetalingene ut av den samme bankfila (ny `inflows`-store, v14), og saldoen holdes oppdatert

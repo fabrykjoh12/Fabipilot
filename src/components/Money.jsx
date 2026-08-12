@@ -823,57 +823,60 @@ export default function Money() {
         {/* ===== OVERSIKT ===== */}
         {tab === 'oversikt' && (
           <>
-            {/* Saldo først: «hva har jeg?» før «hva kan jeg bruke?». */}
-            {bal ? (
-              <button type="button" className="bal-hero" onClick={askBalance}>
-                <span className="bal-lbl">På konto nå</span>
-                <AnimatedNumber className="bal-amount" value={Math.round(bal.balance)} format={kr} />
-                <span className="bal-sub">
-                  {bal.exact
-                    ? `avlest ${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)}`
-                    : `${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)} + ${kr(Math.round(bal.inSince))} inn − ${kr(Math.round(bal.outSince))} ut`}
-                </span>
-              </button>
-            ) : (
-              <button type="button" className="bal-hero prompt" onClick={askBalance}>
-                <span className="bal-lbl">På konto</span>
-                <span className="bal-prompt-txt">
-                  Skriv inn saldoen din én gang — så holder appen den oppdatert med det du importerer fra banken.
-                </span>
-              </button>
-            )}
+            {/* Saldo først: «hva har jeg?» før «hva kan jeg bruke?».
+                Pengeflyten henger UNDER saldoen som en tynn linjerad i samme kort — den
+                forklarer tallet over, og fortjener ikke et eget kort som konkurrerer om blikket. */}
+            <div className="bal-card">
+              {bal ? (
+                <button type="button" className="bal-hero" onClick={askBalance}>
+                  <span className="bal-lbl">På konto nå</span>
+                  <AnimatedNumber className="bal-amount" value={Math.round(bal.balance)} format={kr} />
+                  <span className="bal-sub">
+                    {bal.exact
+                      ? `avlest ${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)}`
+                      : `${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)} + ${kr(Math.round(bal.inSince))} inn − ${kr(Math.round(bal.outSince))} ut`}
+                  </span>
+                </button>
+              ) : (
+                <button type="button" className="bal-hero prompt" onClick={askBalance}>
+                  <span className="bal-lbl">På konto</span>
+                  <span className="bal-prompt-txt">
+                    Skriv inn saldoen din én gang — så holder appen den oppdatert med det du importerer fra banken.
+                  </span>
+                </button>
+              )}
 
-            {(flow.in > 0 || flow.out > 0) && (
-              <div className="flow card">
-                <span className="trend-lbl">Inn og ut i {MONTHS[cursor.m]}</span>
-                <div className="flow-cols">
-                  <div className="flow-col in">
-                    <span className="flow-lbl">Inn</span>
-                    <span className="flow-amt">+{kr(Math.round(flow.in))}</span>
+              {(flow.in > 0 || flow.out > 0) && (
+                <div className="flow">
+                  <div className="flow-row">
+                    <span className="flow-lbl">Inn i {MONTHS[cursor.m]}</span>
+                    <span className="flow-amt pos">+{kr(Math.round(flow.in))}</span>
                   </div>
-                  <div className="flow-col out">
+                  <div className="flow-row">
                     <span className="flow-lbl">Ut</span>
                     <span className="flow-amt">−{kr(Math.round(flow.out))}</span>
                   </div>
-                  <div className={'flow-col net' + (flow.net >= 0 ? ' pos' : ' neg')}>
+                  <div className="flow-row net">
                     <span className="flow-lbl">Netto</span>
-                    <span className="flow-amt">{flow.net >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.net)))}</span>
+                    <span className={'flow-amt' + (flow.net >= 0 ? ' pos' : ' neg')}>
+                      {flow.net >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.net)))}
+                    </span>
                   </div>
+                  {flow.transfers > 0 && (
+                    <p className="flow-note">
+                      {kr(Math.round(flow.transfers))} av innbetalingene er overført fra egne kontoer — det er
+                      flyttede penger, ikke inntekt.
+                      {flow.income > 0 && ` Ekte inntekt: ${kr(Math.round(flow.income))}.`}
+                    </p>
+                  )}
+                  {flow.savingRate !== null && flow.transfers === 0 && (
+                    <p className="flow-note">
+                      Du satt igjen med {Math.round(flow.savingRate * 100)} % av inntekten denne måneden.
+                    </p>
+                  )}
                 </div>
-                {flow.transfers > 0 && (
-                  <p className="flow-note">
-                    {kr(Math.round(flow.transfers))} av innbetalingene er overført fra egne kontoer — det er
-                    flyttede penger, ikke inntekt.
-                    {flow.income > 0 && ` Ekte inntekt: ${kr(Math.round(flow.income))}.`}
-                  </p>
-                )}
-                {flow.savingRate !== null && flow.transfers === 0 && (
-                  <p className="flow-note">
-                    Du satt igjen med {Math.round(flow.savingRate * 100)} % av inntekten denne måneden.
-                  </p>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
             {isCurrentMonth && (
               safe.available ? (
@@ -909,6 +912,14 @@ export default function Money() {
             <div className="budget-summary">
               <span className="bs-label">brukt denne måneden</span>
               <AnimatedNumber className="bs-amount" value={totalSpent} format={kr} />
+              {/* Regnestykket må stå der. Uten det ser tallet ut som om det motsier «Ut»
+                  i saldo-kortet over — forskjellen er nettopp de faste trekkene, som
+                  ikke ligger som egne kjøp. */}
+              {subTotal > 0 && (
+                <span className="bs-split">
+                  {kr(expTotal)} kjøp + {kr(subTotal)} faste
+                </span>
+              )}
               {totalBudget > 0 ? (
                 <>
                   <div className="bs-bar">

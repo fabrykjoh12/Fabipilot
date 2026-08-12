@@ -3,32 +3,34 @@
 }
 
 .ov-date {
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--muted);
   font-weight: 500;
   margin: 0 0 4px;
   text-transform: lowercase;
 }
 
+/* Hilsenen brakk over to linjer på 402px og spiste halve skjermen før noe innhold.
+   Den skal si god morgen, ikke være en plakat. */
 .ov-greeting {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 34px;
+  font-size: var(--t-h1);
   letter-spacing: -0.02em;
-  margin: 0 0 6px;
-  line-height: 1.1;
+  margin: 0 0 5px;
+  line-height: var(--lh-tight);
 }
 .ov-peptalk {
-  font-size: 14.5px;
+  font-size: var(--t-sm);
   color: var(--muted);
-  margin: 0 0 24px;
+  margin: 0 0 var(--sec-gap);
   font-weight: 500;
 }
 
 .ov-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--card-gap);
 }
 
 /* Cellen (wrapper rundt hvert kort) er grid-elementet */
@@ -92,7 +94,7 @@
     gap: 14px;
   }
   .ov-greeting {
-    font-size: 40px;
+    font-size: 32px;
   }
 }
 
@@ -423,17 +425,17 @@
 .ov-total {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 30px;
+  font-size: 26px;
   letter-spacing: -0.02em;
   color: var(--accent);
-  line-height: 1.1;
+  line-height: var(--lh-tight);
 }
 
 /* Tekst-beskrivelse */
 .ov-desc {
-  font-size: 13px;
+  font-size: var(--t-sm);
   color: var(--muted);
-  line-height: 1.45;
+  line-height: var(--lh-body);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -484,19 +486,32 @@
   margin-top: 10px;
 }
 .ov-week-lbl {
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .ov-week-chip {
-  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-xs);
   font-weight: 600;
   color: var(--ink-soft);
   background: var(--surface-2);
   border-radius: var(--r-full);
-  padding: 4px 11px;
+  padding: 4px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.ov-week-chip svg {
+  width: 13px;
+  height: 13px;
+  stroke: var(--muted);
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ===== Ukeslutt — søndagskortet ===== */

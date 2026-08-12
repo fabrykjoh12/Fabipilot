@@ -1,6 +1,8 @@
 :root {
   font-family: var(--font-body, system-ui, sans-serif);
-  line-height: 1.5;
+  /* Brødteksten trenger luft mellom linjene — 1.5 var i overkant tett når
+     teksten samtidig ble mindre. Titler og store tall setter sin egen. */
+  line-height: var(--lh-body, 1.55);
   color: var(--ink, #1a1c22);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

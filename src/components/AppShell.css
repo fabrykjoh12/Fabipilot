@@ -85,6 +85,33 @@
   /* ---- Typografi ---- */
   --font-body: 'Plus Jakarta Sans Variable', system-ui, -apple-system, sans-serif;
   --font-display: 'Plus Jakarta Sans Variable', system-ui, -apple-system, sans-serif;
+
+  /* ---- Type-skala ----
+     Appen ble bygget med hardkodede px-verdier per komponent, og de krøp oppover:
+     38–44px-tall side om side med 30px-titler gjorde skjermene trange fordi ALT
+     ropte. Skalaen her er bevisst rolig — de STORE tallene er tonet ned mest, så
+     luften mellom elementene får bli det som skaper hierarkiet i stedet.
+     Bruk disse i stedet for nye px-verdier. */
+  --t-hero: 32px; /* det ene tallet som eier skjermen (saldo, trygt å bruke) */
+  --t-h1: 25px; /* skjermtittel */
+  --t-h2: 18px; /* korttittel */
+  --t-lg: 16px;
+  --t-md: 14px; /* brødtekst */
+  --t-sm: 13px;
+  --t-xs: 12px;
+  --t-2xs: 11px; /* seksjonsetikett i majuskel */
+
+  /* ---- Linjehøyder ---- */
+  --lh-tight: 1.12; /* store tall og titler */
+  --lh-snug: 1.35;
+  --lh-body: 1.55; /* brødtekst — luft mellom linjene */
+
+  /* ---- Tetthet ----
+     Rytmen mellom kortene. Hold avstandene HER, ikke spredt i hver fil, så
+     skjermene puster likt. */
+  --card-pad: 16px 18px;
+  --card-gap: 14px; /* mellom kort */
+  --sec-gap: 26px; /* mellom seksjoner */
 }
 
 /* ===== Mørk modus (grafitt med samme glass-oppskrift) ===== */
@@ -191,7 +218,7 @@
 .screen-scroll {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 30px 20px 130px;
+  padding: 24px 18px 130px;
 }
 .screen-bar {
   position: absolute;
@@ -414,34 +441,48 @@
 }
 .more-title {
   font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-h2);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--s-4);
+}
+/* Seksjonsetikett: rolig grå majuskel, ingen boks (samme språk som i modulene). */
+.more-sec {
+  font-size: var(--t-2xs);
   font-weight: 600;
-  font-size: 20px;
-  margin: 0 0 14px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 2px 9px;
+}
+.more-sec + .more-grid,
+.more-sec + .more-rows {
+  margin-bottom: var(--s-5);
 }
 .more-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 9px;
 }
 .more-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 16px 6px;
+  gap: 7px;
+  padding: 14px 6px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-md);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-xs);
   font-weight: 600;
   color: var(--ink);
   cursor: pointer;
 }
 .more-item svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   stroke: var(--muted);
   stroke-width: 2;
   fill: none;
@@ -458,6 +499,69 @@
 }
 .more-item:active {
   transform: scale(0.97);
+}
+
+/* Innstillinger: linjerader, ikke ruter — de er brytere, ikke destinasjoner. */
+.more-rows {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.more-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 15px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  font-family: inherit;
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.more-row:first-child { border-top: 0; }
+.more-row:active { background: var(--canvas-2); }
+.more-row-ic {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  stroke: var(--muted);
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.more-row-lbl { flex: 1; min-width: 0; }
+.more-row-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--muted);
+}
+.more-swatch {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+.more-row-chev {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  stroke: var(--faint);
+  stroke-width: 2;
+  fill: none;
 }
 
 /* ===== Desktop: sidemeny ===== */
@@ -551,7 +655,7 @@
 
 /* ===== Felles overskrifter ===== */
 .scr-eyebrow {
-  font-size: 13px;
+  font-size: var(--t-sm);
   letter-spacing: 0.04em;
   color: var(--muted);
   text-transform: lowercase;
@@ -561,8 +665,8 @@
 .scr-title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 30px;
-  line-height: 1.08;
+  font-size: var(--t-h1);
+  line-height: var(--lh-tight);
   letter-spacing: -0.025em;
   margin: 0;
 }
@@ -607,8 +711,8 @@
 .card {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 15px 16px;
-  margin-bottom: 10px;
+  padding: var(--card-pad);
+  margin-bottom: var(--card-gap);
   box-shadow: var(--sh-2);
   border: 1px solid var(--line);
   transition: box-shadow var(--t-mid) var(--ease), transform var(--t-mid) var(--ease),

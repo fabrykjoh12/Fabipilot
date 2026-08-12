@@ -13,7 +13,15 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - Generell polish: tilgjengelighet, ytelse.
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
+## Neste
+- Automatisk oppdagelse av faste utgifter fra bankhistorikken («Telia trekker ~811 kr den 20. hver
+  måned — legg til som fast utgift?»). Gjør Japan-planen mer presis, siden den hviler på `fixedMonthly`.
+- Japan-nedtelling på Oversikt: planen ligger begravd som fane 4 i Penger.
+
 ## Ferdig
+- Designrydding: type- og tetthetsskala i `:root` (`--t-*`, `--lh-*`, `--card-pad`/`--card-gap`/
+  `--sec-gap`), ett tall som eier skjermen i stedet for tre konkurrerende helter, «Mer» delt i moduler
+  vs innstillinger, og duplisert «Neste opp»-rad fjernet fra Oppgaver.
 - Saldo + inntekt i Penger: bankimporten tar med innbetalingene (`inflows`, v14) og skiller ekte inntekt
   fra penger flyttet mellom egne kontoer; saldoen holdes oppdatert fra ett holdepunkt (`balances`,
   `src/lib/balance.js`) og vises som hero øverst på Oversikt sammen med et «Inn og ut»-kort.

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useObservable, useLiveQuery } from 'dexie-react-hooks'
 import { Toaster } from 'sonner'
 import { motion } from 'motion/react'
-import { Plus } from 'lucide-react'
+import { Plus, Moon, Sun, Palette, ChevronRight } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Tasks from './components/Tasks.jsx'
@@ -462,6 +462,10 @@ export default function App() {
           <div className="more-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="more-grip" />
             <h2 className="more-title">Mer</h2>
+            {/* Arket var 12 like store ruter der Penger lå sidestilt med «Rosa aksent».
+                Moduler er steder du GÅR, innstillinger er brytere du VRIR — de skal
+                ikke se like ut. Moduler får rutenettet, innstillinger blir linjerader. */}
+            <p className="more-sec">Moduler</p>
             <div className="more-grid">
               {/* MOBILE_TABS, ikke PRIMARY: «Mer» er mobilens ark, og alt som ikke
                   ligger i bunnpilla må være her — ellers blir Idébank uåpnelig. */}
@@ -476,29 +480,38 @@ export default function App() {
                   <span>{m.label}</span>
                 </button>
               ))}
+            </div>
+            <p className="more-sec">Innstillinger</p>
+            <div className="more-rows">
               <button
                 type="button"
-                className="more-item"
-                onClick={() => { setMoreOpen(false); setBackupOpen(true) }}
-              >
-                <NavIcon name="backup" />
-                <span>Backup</span>
-              </button>
-              <button
-                type="button"
-                className="more-item"
+                className="more-row"
                 onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
               >
-                <span className="more-theme-glyph">{theme === 'dark' ? '☀️' : '🌙'}</span>
-                <span>{theme === 'dark' ? 'Lys modus' : 'Mørk modus'}</span>
+                {theme === 'dark' ? <Sun className="more-row-ic" /> : <Moon className="more-row-ic" />}
+                <span className="more-row-lbl">Utseende</span>
+                <span className="more-row-val">{theme === 'dark' ? 'Mørk' : 'Lys'}</span>
               </button>
               <button
                 type="button"
-                className="more-item"
+                className="more-row"
                 onClick={() => setAccent((a) => (a === 'pink' ? 'blue' : 'pink'))}
               >
-                <span className="more-theme-glyph">{accent === 'pink' ? '💙' : '💗'}</span>
-                <span>{accent === 'pink' ? 'Blå aksent' : 'Rosa aksent'}</span>
+                <Palette className="more-row-ic" />
+                <span className="more-row-lbl">Aksentfarge</span>
+                <span className="more-row-val">
+                  <i className="more-swatch" />
+                  {accent === 'pink' ? 'Rosa' : 'Blå'}
+                </span>
+              </button>
+              <button
+                type="button"
+                className="more-row"
+                onClick={() => { setMoreOpen(false); setBackupOpen(true) }}
+              >
+                <NavIcon name="backup" className="more-row-ic" />
+                <span className="more-row-lbl">Sky-sync og backup</span>
+                <ChevronRight className="more-row-chev" />
               </button>
             </div>
           </div>

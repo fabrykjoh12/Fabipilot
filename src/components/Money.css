@@ -242,16 +242,17 @@
 }
 .budget-summary.slim { padding: 16px 20px; }
 .bs-label {
-  font-size: 12px; font-weight: 600;
-  letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: var(--t-2xs); font-weight: 600;
+  letter-spacing: 0.07em; text-transform: uppercase;
   color: var(--muted);
 }
 .bs-amount {
   font-family: var(--font-display);
-  font-weight: 700; font-size: 34px;
+  font-weight: 700; font-size: 28px;
   letter-spacing: -0.02em; color: var(--accent);
-  line-height: 1.1;
+  line-height: var(--lh-tight);
 }
+.bs-split { font-size: var(--t-xs); color: var(--faint); font-weight: 500; margin-top: 1px; }
 .bs-bar {
   height: 8px; border-radius: 99px;
   background: var(--canvas); overflow: hidden;
@@ -262,24 +263,24 @@
   display: block; height: 100%; border-radius: 99px;
   transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.bs-sub { font-size: 13px; color: var(--muted); font-weight: 500; }
+.bs-sub { font-size: var(--t-sm); color: var(--muted); font-weight: 500; }
 .bs-delta { font-size: 12.5px; color: var(--muted); font-weight: 500; margin-top: 2px; }
 
 /* budsjett per kategori */
-.budget-cats { display: flex; flex-direction: column; gap: 8px; }
+.budget-cats { display: flex; flex-direction: column; gap: 9px; }
 .budget-cat {
   display: flex; align-items: center; gap: 12px;
   width: 100%; text-align: left;
   background: var(--surface); border: 1px solid transparent;
-  border-radius: 14px; padding: 13px 14px;
+  border-radius: var(--r-md); padding: 14px 15px;
   box-shadow: var(--shadow); cursor: pointer; font-family: inherit;
   animation: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .budget-cat:active { transform: scale(0.99); }
-.bc-emoji { flex: 0 0 auto; font-size: 22px; }
+.bc-emoji { flex: 0 0 auto; font-size: 19px; }
 .bc-main { flex: 1; min-width: 0; }
 .bc-top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-.bc-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+.bc-name { font-size: var(--t-md); font-weight: 600; color: var(--ink); }
 .bc-amt-wrap { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 .bc-amt { font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .bc-of { color: var(--muted); font-weight: 500; }
@@ -637,56 +638,61 @@
 .trend-col.on .trend-mlbl { color: var(--ink); }
 
 /* ===== «Trygt å bruke»-hero ===== */
+/* «Trygt å bruke» var en heldekkende blå slab med 44px-tall — den ropte like høyt som
+   saldoen rett over, og to helter på rad blir ingen helt. Nå er den et vanlig glasskort
+   der bare TALLET bærer aksentfargen; fargeflate er spart til advarslene (lav/over). */
 .safe-hero {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   width: 100%;
   text-align: left;
-  border: 0;
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 20px 22px;
-  margin-bottom: 16px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  padding: var(--card-pad);
+  margin-bottom: var(--card-gap);
+  color: var(--ink);
+  background: var(--surface);
   box-shadow: var(--sh-2);
   overflow: hidden;
 }
-.safe-hero.low { background: linear-gradient(135deg, #e6a23c, #d1841f); }
-.safe-hero.over { background: linear-gradient(135deg, #f2685c, #d33f33); }
+.safe-hero.low { border-color: rgba(214, 138, 32, 0.3); background: rgba(230, 162, 60, 0.08); }
+.safe-hero.over { border-color: rgba(211, 63, 51, 0.28); background: var(--danger-soft); }
 .safe-lbl {
-  font-size: 12px;
+  font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  opacity: 0.9;
+  color: var(--muted);
 }
 .safe-amount {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 44px;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  font-weight: 700;
+  font-size: 27px;
+  letter-spacing: -0.025em;
+  line-height: var(--lh-tight);
+  color: var(--accent);
 }
+.safe-hero.low .safe-amount { color: #b9761a; }
+.safe-hero.over .safe-amount { color: var(--danger); }
 .safe-sub {
-  font-size: 13.5px;
+  font-size: var(--t-xs);
   font-weight: 500;
-  opacity: 0.92;
-  margin-top: 2px;
+  color: var(--muted);
+  line-height: var(--lh-snug);
+  margin-top: 1px;
 }
 .safe-hero.prompt {
-  background: var(--surface);
   border: 1px dashed var(--line-strong);
-  color: var(--ink);
+  box-shadow: none;
   cursor: pointer;
 }
-.safe-hero.prompt .safe-lbl { color: var(--muted); }
 .safe-prompt-txt {
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--muted);
-  line-height: 1.5;
-  margin-top: 4px;
+  line-height: var(--lh-body);
+  margin-top: 5px;
 }
 
 /* pace-setning i budsjett-summary */
@@ -858,7 +864,7 @@
 .plan-del { border: 0; background: none; cursor: pointer; color: var(--faint); padding: 4px; }
 .plan-del svg { width: 16px; height: 16px; }
 .plan-lbl-big { font-size: 13px; font-weight: 600; color: var(--muted); }
-.plan-amount { font-family: var(--font-display); font-size: 40px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: 1.1; }
+.plan-amount { font-family: var(--font-display); font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: var(--lh-tight); }
 .plan-amount.neg { color: var(--danger); }
 .plan-sub { font-size: 13.5px; color: var(--muted); }
 .plan-bar { height: 8px; border-radius: 99px; background: var(--canvas-2); margin-top: 14px; overflow: hidden; }
@@ -930,7 +936,7 @@
 .cs-head .msheet-title { margin: 0; }
 .cs-month { font-size: 13px; color: var(--muted); }
 .cs-hero { display: flex; flex-direction: column; gap: 4px; background: var(--surface-2); border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 16px; }
-.cs-total { font-family: var(--font-display); font-size: 32px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: 1.1; }
+.cs-total { font-family: var(--font-display); font-size: 27px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: var(--lh-tight); }
 .cs-hero-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
 .cs-bar { margin-top: 8px; }
 .cs-budget { font-size: 13px; color: var(--muted); }
@@ -954,24 +960,44 @@
 .imp-inflow span { color: var(--muted); font-size: 12.5px; }
 .imp-inflow-note { color: var(--faint); }
 
-/* ===== Saldo-hero + pengeflyt ===== */
-.bal-hero {
-  display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left;
+/* ===== Saldo-kortet: ett tall som eier skjermen, flyten som tynne linjer under =====
+   Saldoen og «inn og ut» lå før som to separate kort med hver sin skygge, og kjempet
+   om blikket. Nå er de ETT kort: heltetallet øverst, forklaringen som lave rader med
+   hårstrek imellom — ingen bokser inni bokser. */
+.bal-card {
   background: var(--surface); border: 1px solid var(--glass-border);
   border-radius: var(--r-xl); box-shadow: var(--sh-3);
-  padding: 18px 20px 16px; margin-bottom: 12px; cursor: pointer; font-family: inherit;
+  margin-bottom: var(--card-gap); overflow: hidden;
 }
-.bal-lbl { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.bal-amount { font-family: var(--font-display); font-size: 38px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: 1.15; }
-.bal-sub { font-size: 12.5px; color: var(--faint); }
-.bal-hero.prompt { border-style: dashed; box-shadow: none; }
-.bal-prompt-txt { font-size: 14px; line-height: 1.5; color: var(--muted); margin-top: 4px; }
-.flow { padding: 14px 16px 12px; margin-bottom: 12px; }
-.flow-cols { display: flex; gap: 8px; margin-top: 8px; }
-.flow-col { flex: 1; display: flex; flex-direction: column; gap: 1px; background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 11px; }
-.flow-lbl { font-size: 12px; color: var(--muted); }
-.flow-amt { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.flow-col.in .flow-amt { color: var(--forest); }
-.flow-col.net.pos .flow-amt { color: var(--forest); }
-.flow-col.net.neg .flow-amt { color: var(--danger); }
-.flow-note { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 10px 0 0; }
+.bal-hero {
+  display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left;
+  background: none; border: 0; border-radius: 0;
+  padding: 20px 20px 18px; cursor: pointer; font-family: inherit;
+}
+.bal-lbl { font-size: var(--t-2xs); font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.bal-amount {
+  font-family: var(--font-display); font-size: var(--t-hero); font-weight: 700;
+  letter-spacing: -.02em; color: var(--ink); line-height: var(--lh-tight);
+}
+.bal-sub { font-size: var(--t-xs); color: var(--faint); line-height: var(--lh-snug); }
+.bal-card:has(.bal-hero.prompt) { border-style: dashed; box-shadow: none; }
+.bal-prompt-txt { font-size: var(--t-md); line-height: var(--lh-body); color: var(--muted); margin-top: 5px; }
+
+.flow { padding: 0 20px 6px; }
+.flow-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 11px 0; border-top: 1px solid var(--line);
+}
+.flow-lbl { font-size: var(--t-sm); color: var(--muted); font-weight: 500; }
+.flow-amt {
+  font-size: var(--t-md); font-weight: 600; color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.flow-row.net .flow-lbl { color: var(--ink-soft); font-weight: 600; }
+.flow-row.net .flow-amt { font-weight: 700; }
+.flow-amt.pos { color: var(--forest); }
+.flow-amt.neg { color: var(--danger); }
+.flow-note {
+  font-size: var(--t-xs); line-height: var(--lh-body); color: var(--muted);
+  margin: 0; padding: 11px 0 6px; border-top: 1px solid var(--line);
+}

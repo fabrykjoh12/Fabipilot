@@ -64,6 +64,15 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   avledet fra den BLÅ aksenten uansett, ikke direkte bundet til aksent-valget (uendret av rosa-bryteren).
 - Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver) — de ligger
   rett på lerretet; luftige glasskort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
+- **Type- og tetthetsskala** (`--t-hero/h1/h2/lg/md/sm/xs/2xs`, `--lh-tight/snug/body`, `--card-pad`/
+  `--card-gap`/`--sec-gap` i `:root`). Bruk disse — ikke nye px-verdier. Appen ble bygget med hardkodede
+  størrelser per komponent, og de krøp oppover til alt ropte samtidig og skjermene føltes trange.
+  Regelen som følger av det: **ett tall eller én tittel eier skjermen** — resten tones ned, og luften
+  mellom elementene lager hierarkiet. To store tall etter hverandre = ingen helt (derfor er saldoen
+  helten på Penger/Oversikt, mens «Trygt å bruke» er et vanlig glasskort med aksentfarget tall).
+  Fargeflate (heldekkende aksent) er spart til advarsler, ikke til å utheve.
+- Ikonspråk: Lucide-strekikoner. Emoji brukes KUN der brukeren selv har valgt dem (prosjekt-emoji,
+  kategori-emoji) — aldri i appens egen kromtekst, der de bryter mot strekikonene rundt.
 - Fonter: Plus Jakarta Sans (variabel) for både display og brødtekst, via tokens `--font-display`/`--font-body`.
 - Belønning ved fullføring/lagring: gnist-animasjon + `navigator.vibrate`
 - Respekter `prefers-reduced-motion`. Tap-mål min 44px. Synlig tastatur-fokus.
@@ -256,7 +265,10 @@ Alle stores er med i JSON-eksport/import (se §8).
 - `src/components/`
   - `Capture.jsx` / `Capture.css` — universell hurtiglagring (⌘K + flytende «+»): tolker fritekst og ruter til riktig modul
   - `MorningFlow.jsx` / `MorningFlow.css` — «Start dagen»-rituale øverst på Oversikt (én gang/dag via `ritual:<dato>`)
-  - `AppShell.css` — design-tokens (`:root`-skalaer) + skall + delte komponentstiler + skeleton/toast + innloggingsskjerm + auth-dialog
+  - `AppShell.css` — design-tokens (`:root`-skalaer: farger, radius, skygge, bevegelse, **type + tetthet**)
+    + skall + delte komponentstiler + skeleton/toast + innloggingsskjerm + auth-dialog. «Mer»-arket er
+    delt i to: moduler i rutenett (`.more-grid`/`.more-item`) og innstillinger som linjerader
+    (`.more-rows`/`.more-row`) — destinasjoner og brytere skal ikke se like ut
   - `Overview.jsx` / `Overview.css` — «Oversikt» (startside): live kort som lenker til hver modul
   - `Tasks.jsx` / `Tasks.css` — «Oppgaver»: ÉN samlet liste (erstatter «I dag» + «Liste»). Seksjoner Fokus/I dag/Henger igjen/Kommende/Når som helst/Fullført, naturlig-språk-innlegging (`parseEntry`), smarte dato-chips, delpunkter, sveip (fullfør/utsett), fokus maks 3
   - `Calendar.jsx` / `Calendar.css` — «Kalender»: månedsvisning + dag-agenda + hendelse-sheet.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star } from 'lucide-react'
+import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star, Check } from 'lucide-react'
 import { db, todayKey, tomorrowKey, monthlyCost, setTaskDone, setTaskDate } from '../db.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
@@ -367,11 +367,19 @@ export default function Overview({ onNav }) {
               <h1 className="ov-greeting">{greeting()}, Fabi</h1>
               <p className="ov-peptalk">{peptalk()}</p>
               {weekStats && weekStats.tasksDone + weekStats.habitTicks + weekStats.stepsDone > 0 && (
+                /* Chipsene brukte emoji (✅🌿🧩) midt i en app som ellers er tegnet med
+                   strekikoner — samme ikonspråk som kortene under gjør raden rolig. */
                 <div className="ov-week">
                   <span className="ov-week-lbl">Denne uka</span>
-                  {weekStats.tasksDone > 0 && <span className="ov-week-chip">✅ {weekStats.tasksDone}</span>}
-                  {weekStats.habitTicks > 0 && <span className="ov-week-chip">🌿 {weekStats.habitTicks}</span>}
-                  {weekStats.stepsDone > 0 && <span className="ov-week-chip">🧩 {weekStats.stepsDone}</span>}
+                  {weekStats.tasksDone > 0 && (
+                    <span className="ov-week-chip"><Check /> {weekStats.tasksDone}</span>
+                  )}
+                  {weekStats.habitTicks > 0 && (
+                    <span className="ov-week-chip"><Repeat /> {weekStats.habitTicks}</span>
+                  )}
+                  {weekStats.stepsDone > 0 && (
+                    <span className="ov-week-chip"><FolderKanban /> {weekStats.stepsDone}</span>
+                  )}
                 </div>
               )}
             </div>

@@ -243,8 +243,11 @@ function Section({ label, count, sub, collapsible, open, onToggle, children }) {
   )
 }
 
-/* ---------- «I dag»-panel: gjør dagen til hovedsaken ---------- */
-function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onCompleteNext, onSuggest }) {
+/* ---------- «I dag»-panel: gjør dagen til hovedsaken ----------
+   NB: panelet viste før også en «Neste opp»-rad — men den var alltid nøyaktig samme
+   oppgave som øverste rad i lista rett under, bare avkuttet. Samme tekst to ganger på
+   én skjerm er ikke hierarki, det er støy; raden er fjernet og lista fikk plassen. */
+function TodayHero({ done, total, remaining, overdue, onCarry, onSuggest }) {
   const pct = total ? Math.round((done / total) * 100) : 0
   const R = 24
   const C = 2 * Math.PI * R
@@ -276,13 +279,6 @@ function TodayHero({ done, total, remaining, overdue, nextUp, onCarry, onComplet
           )}
         </div>
       </div>
-      {nextUp && (
-        <button type="button" className="th-next" onClick={onCompleteNext}>
-          <span className="th-next-lbl">Neste opp</span>
-          <span className="th-next-check" aria-hidden="true">{CHECK}</span>
-          <span className="th-next-ttl">{nextUp.isFocus && <Star className="th-next-star" />}{nextUp.title}</span>
-        </button>
-      )}
     </div>
   )
 }
@@ -312,17 +308,11 @@ export default function Tasks({ onNav }) {
 
   const todayScope = focus.length + todayList.length + overdue.length
   const totalToday = todayScope + doneToday.length
-  const nextUp = focus[0] || todayList[0] || overdue[0] || null
 
   async function carryOverdue() {
     for (const t of overdue) await setTaskDate(t.id, today)
     vibrate(8)
     toast.message(`${overdue.length} tatt med til i dag`)
-  }
-  function completeNext() {
-    if (!nextUp) return
-    vibrate([12, 30, 12])
-    setTaskDone(nextUp.id, true)
   }
 
   async function add() {
@@ -351,9 +341,7 @@ export default function Tasks({ onNav }) {
             total={totalToday}
             remaining={todayScope}
             overdue={overdue.length}
-            nextUp={nextUp}
             onCarry={carryOverdue}
-            onCompleteNext={completeNext}
             onSuggest={onNav ? () => onNav('whatnow') : undefined}
           />
         )}
