@@ -60,11 +60,15 @@ function ChangeBadge({ cur, prev }) {
 }
 
 /** Dager til neste trekk på en gitt dag i måneden (1–31). */
+/* Dager til neste trekk. Trekkdagen må klemmes til siste dag i måneden: et
+   abonnement med renewDay 31 finnes ikke i februar, og `new Date(2026, 1, 31)`
+   ruller til 3. mars — da ville nedtellingen pekt på feil dag. */
 function daysUntilDay(day) {
   const now = new Date()
   const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  let target = new Date(now.getFullYear(), now.getMonth(), day)
-  if (target < t0) target = new Date(now.getFullYear(), now.getMonth() + 1, day)
+  const clamp = (y, m) => new Date(y, m, Math.min(day, new Date(y, m + 1, 0).getDate()))
+  let target = clamp(now.getFullYear(), now.getMonth())
+  if (target < t0) target = clamp(now.getFullYear(), now.getMonth() + 1)
   return Math.round((target - t0) / 86400000)
 }
 
@@ -631,20 +635,11 @@ function SubCard({ sub, onAsk }) {
 
 /* ============ hovedmodul ============ */
 export default function Money() {
-  /* 13 måneder dekker alt modulen viser (trendgraf 12, snitt 6, faste-oppdagelse
-     12) — resten av historikken trenger vi ikke i minnet. */
-  const since = useMemo(() => {
-    const d = new Date()
-    d.setMonth(d.getMonth() - 13)
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`
-  }, [])
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
-  const expenses = useLiveQuery(() => listExpenses(since), [since], [])
   const budgets = useLiveQuery(() => listBudgets(), [], [])
   const incomes = useLiveQuery(() => listIncomes(), [], [])
   const goals = useLiveQuery(() => listGoals(), [], [])
   const plans = useLiveQuery(() => listPlans(), [], [])
-  const inflows = useLiveQuery(() => listInflows(since), [since], [])
   const balances = useLiveQuery(() => listBalances(), [], [])
 
   const [tab, setTab] = useState('oversikt')
@@ -652,6 +647,24 @@ export default function Money() {
     const [y, m] = todayKey().split('-').map(Number)
     return { y, m: m - 1 }
   })
+
+  /* 13 måneder dekker alt modulen viser som standard (trendgraf 12, snitt 6,
+     faste-oppdagelse 12) — resten av historikken trenger vi ikke i minnet.
+
+     MEN månedsvelgeren har ingen bunn: blar du 18 måneder tilbake finnes dataene,
+     og da må vinduet strekke seg dit. Uten dette viste eldre måneder «0 kr» selv
+     om kjøpene lå i basen. */
+  const since = useMemo(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 13)
+    const def = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`
+    // ta med måneden FØR den viste, siden «vs forrige måned» sammenligner bakover
+    const back = new Date(cursor.y, cursor.m - 1, 1)
+    const atCursor = `${back.getFullYear()}-${pad(back.getMonth() + 1)}-01`
+    return atCursor < def ? atCursor : def
+  }, [cursor.y, cursor.m])
+  const expenses = useLiveQuery(() => listExpenses(since), [since], [])
+  const inflows = useLiveQuery(() => listInflows(since), [since], [])
   const [sheet, setSheet] = useState(null) // {type:'expense', expense?} | {type:'budget', cat?}
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')

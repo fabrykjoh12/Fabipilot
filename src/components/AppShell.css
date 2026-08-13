@@ -3477,3 +3477,9 @@ label.backup-action {
   position: relative;
   z-index: 1;
 }
+
+/* Filbackup øverst i sky-panelet — den viktigste knappen skal ikke ligge bak en scroll. */
+.backup-file { margin-bottom: var(--s-6); }
+.backup-file .backup-action { margin-top: 0; }
+.backup-file .backup-text { margin: 10px 0 12px; }
+.backup-import { margin-top: 0; }

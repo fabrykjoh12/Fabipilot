@@ -5,10 +5,6 @@ import { triggersSupported } from '../lib/notify.js'
 /* Sky-sync & backup-panelet — tema, daglig påminnelse, sync-diagnostikk,
    JSON-eksport/import. Ren visning; all state/handling eies av App. */
 export default function BackupSheet({
-  theme,
-  onToggleTheme,
-  accent,
-  onToggleAccent,
   reminder,
   onToggleReminder,
   onChangeReminderTime,
@@ -30,15 +26,28 @@ export default function BackupSheet({
       <div className="backup-card" onClick={(e) => e.stopPropagation()}>
         <h2 className="backup-title">Sky-sync & backup</h2>
 
-        <button type="button" className="theme-toggle" onClick={onToggleTheme}>
-          <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
-          {theme === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus'}
-        </button>
-
-        <button type="button" className="theme-toggle" onClick={onToggleAccent}>
-          <span>{accent === 'pink' ? '💙' : '💗'}</span>
-          {accent === 'pink' ? 'Bytt til blå aksent' : 'Bytt til rosa aksent'}
-        </button>
+        {/* Filbackup står ØVERST. Panelet het «Sky-sync & backup», men den ene
+            knappen som faktisk redder dataene lå nederst — under tema, varsler,
+            sync-diagnostikk og «Logg ut». Når synken svikter er det denne du
+            trenger, og da skal den ikke ligge bak en scroll. */}
+        <div className="backup-file">
+          <button type="button" className="btn backup-action" onClick={onExport}>
+            Last ned backup (JSON)
+          </button>
+          <p className="backup-text">
+            En kopi på fil, uavhengig av skyen — legg den i iCloud eller Drive.
+            {(() => {
+              const t = Number(localStorage.getItem('lastBackup') || 0)
+              return t
+                ? ` Sist tatt ${new Intl.DateTimeFormat('nb-NO', { day: 'numeric', month: 'long' }).format(new Date(t))}.`
+                : ' Ingen backup tatt ennå.'
+            })()}
+          </p>
+          <label className="btn btn-ghost backup-action backup-import">
+            Importer fra fil…
+            <input type="file" accept="application/json,.json" hidden onChange={onImport} />
+          </label>
+        </div>
 
         <div className="rem-box">
           <div className="rem-head">
@@ -124,22 +133,6 @@ export default function BackupSheet({
           </button>
         </div>
 
-        <p className="backup-text">
-          Vil du ha en kopi på fil i tillegg? Eksporter en JSON og legg den i iCloud/Drive.
-          {(() => {
-            const t = Number(localStorage.getItem('lastBackup') || 0)
-            return t
-              ? ` Sist backup: ${new Intl.DateTimeFormat('nb-NO', { day: 'numeric', month: 'long' }).format(new Date(t))}.`
-              : ' Ingen backup tatt ennå.'
-          })()}
-        </p>
-        <button type="button" className="btn backup-action" onClick={onExport}>
-          Eksporter alt (last ned JSON)
-        </button>
-        <label className="btn backup-action">
-          Importer fra fil…
-          <input type="file" accept="application/json,.json" hidden onChange={onImport} />
-        </label>
         <button
           type="button"
           className="btn btn-ghost backup-action"

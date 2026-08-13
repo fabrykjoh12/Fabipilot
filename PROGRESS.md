@@ -2,6 +2,17 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-13 — **Runde to: tre ekte feil til, og backup-panelet snudd riktig vei.**
+  **Regresjon jeg selv innførte:** 13-måneders-vinduet på Penger-dataene brøt månedsvelgeren, som ikke
+  har noen bunn — blar du 18 måneder tilbake fantes kjøpene i basen, men skjermen sa «0 kr». Vinduet
+  følger nå markøren.
+  **Månedlig gjentakelse den 29.–31. hoppet over en måned.** `new Date(2026, 1, 31)` er ikke 31. februar
+  — JS ruller til 3. mars, så en oppgave satt til den 31. forsvant i februar OG forskjøv seg til den 3.
+  Dagen klemmes nå til siste dag i målmåneden. Samme feil i nedtellingen til abonnementenes trekkdag.
+  **Backup-panelet lå i feil rekkefølge for det det er til.** «Last ned backup» — den ene knappen som
+  faktisk redder dataene når synken svikter — lå nederst, under tema, varsler, sync-diagnostikk og
+  «Logg ut». Den står nå øverst. Tema- og aksentbryterne er fjernet derfra; de har en ordentlig plass
+  i «Mer» → Innstillinger nå, og duplikatet var i tillegg de to siste emojiene i appens krom.
 - 2026-08-13 — **Hele revisjonslista fikset** (22 kodefunn fra gjennomgangen). De viktigste:
   **Dobbelttelling av faste utgifter.** Bankimporten henter abonnementene inn som vanlige kjøp, mens
   «Faste» ble skrevet inn for hånd — summen la dem sammen, så Spotify og Telia telte to ganger.

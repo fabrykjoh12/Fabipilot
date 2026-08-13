@@ -520,10 +520,6 @@ export default function App() {
 
       {backupOpen && (
         <BackupSheet
-          theme={theme}
-          onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-          accent={accent}
-          onToggleAccent={() => setAccent((a) => (a === 'pink' ? 'blue' : 'pink'))}
           reminder={reminder}
           onToggleReminder={toggleReminder}
           onChangeReminderTime={changeReminderTime}

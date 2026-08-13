@@ -18,6 +18,13 @@ export function nextDate(key, repeat) {
   const [y, m, d] = key.split('-').map(Number)
   if (repeat === 'daily') return todayKey(new Date(y, m - 1, d + 1))
   if (repeat === 'weekly') return todayKey(new Date(y, m - 1, d + 7))
-  if (repeat === 'monthly') return todayKey(new Date(y, m, d))
+  if (repeat === 'monthly') {
+    /* Dagen må klemmes til siste dag i målmåneden. `new Date(2026, 1, 31)` er
+       ikke 31. februar — JS ruller videre til 3. mars, så en månedlig gjentakelse
+       den 31. hoppet over februar HELT og forskjøv seg til den 3. Husleie den
+       31. ville forsvunnet en måned i året. */
+    const lastDay = new Date(y, m + 1, 0).getDate() // dag 0 i neste måned = siste i denne
+    return todayKey(new Date(y, m, Math.min(d, lastDay)))
+  }
   return key
 }
