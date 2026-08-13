@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Scale } from 'lucide-react'
 import { addPlan, updatePlan, deletePlan, todayKey } from '../db.js'
 import { dailyAllowance, planProgress, planMonths, monthlyAverages, daysBetween } from '../lib/plan.js'
 import { kr, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, toast } from '../lib/ui.jsx'
+import { useAskSheet } from '../lib/askSheet.jsx'
 
 /* Sparemodus / reiseplan — «pengene skal vare til dato X uten lønn».
 
@@ -149,6 +150,8 @@ function MonthRow({ row }) {
 }
 
 function ActivePlan({ plan, expenses, history, onGone }) {
+  // Hooken må stå FØR den tidlige returen under — ellers brytes hook-rekkefølgen.
+  const { ask, confirm: confirmSheet, sheet } = useAskSheet()
   const today = todayKey()
   const p = planProgress(plan, expenses, today)
   const months = planMonths(plan, expenses, today)
@@ -164,21 +167,31 @@ function ActivePlan({ plan, expenses, history, onGone }) {
   const state = p.beforeStart ? 'soon' : p.finished ? 'done' : p.onTrack ? 'ok' : 'over'
   const totalDays = daysBetween(plan.startDate, plan.endDate)
 
-  async function bumpAmount() {
-    const v = window.prompt('Hvor mye har du igjen på konto nå? (kr)', String(Math.round(p.left)))
-    if (v === null) return
-    const n = Number(v)
-    if (!Number.isFinite(n)) return
-    // Startsummen justeres slik at «igjen» treffer det du oppgir — det du
-    // allerede har brukt i perioden blir stående.
-    await updatePlan(plan.id, { startAmount: n + p.spent - (Number(plan.income) || 0) })
-    toast.success('Justert')
+  function bumpAmount() {
+    ask({
+      title: 'Hvor mye har du igjen på konto nå?',
+      label: 'Les av i banken så retter planen seg etter fasiten.',
+      initial: Math.round(p.left),
+      suffix: 'kr',
+      onSave: async (v) => {
+        const n = Number(String(v).replace(/[\s\u00a0]/g, '').replace(',', '.'))
+        if (String(v).trim() === '' || !Number.isFinite(n)) { toast.error('Skjønte ikke beløpet'); return }
+        // Startsummen justeres slik at «igjen» treffer det du oppgir — det du
+        // allerede har brukt i perioden blir stående.
+        await updatePlan(plan.id, { startAmount: n + p.spent - (Number(plan.income) || 0) })
+        toast.success('Justert')
+      },
+    })
   }
 
-  async function remove() {
-    if (!window.confirm(`Slette planen «${plan.name}»?`)) return
-    await deletePlan(plan.id)
-    onGone()
+  function remove() {
+    confirmSheet({
+      title: `Slette planen «${plan.name}»?`,
+      label: 'Selve forbruket ditt blir stående — det er bare perioden som forsvinner.',
+      confirmLabel: 'Slett planen',
+      danger: true,
+      onSave: async () => { await deletePlan(plan.id); onGone() },
+    })
   }
 
   return (
@@ -278,8 +291,9 @@ function ActivePlan({ plan, expenses, history, onGone }) {
       </div>
 
       <button type="button" className="budget-add" onClick={bumpAmount}>
-        ⚖️ Juster: hvor mye har du igjen nå?
+        <Scale /> Juster: hvor mye har du igjen nå?
       </button>
+      {sheet}
     </>
   )
 }

@@ -62,3 +62,21 @@ describe('launchChecklist', () => {
     expect(res.firstUnmet).toBe(null)
   })
 })
+
+describe('firstUnmet er en handling, ikke en tilstand', () => {
+  /* Knappen skriver «Fiks neste: {cta}». Bruker den `label` i stedet, ber en blå
+     primærknapp deg om å fikse at det ikke er noe å fikse
+     («Fiks neste: Ingen åpne høy-prioritet steg»). */
+  it('har en imperativ cta på hver sjekk', () => {
+    const l = launchChecklist({}, [])
+    for (const c of l.checks) {
+      expect(c.cta, `mangler cta: ${c.key}`).toBeTruthy()
+      expect(c.cta).not.toBe(c.label)
+    }
+  })
+
+  it('gir en cta som leser som en handling etter «Fiks neste:»', () => {
+    const l = launchChecklist({}, [])
+    expect(`Fiks neste: ${l.firstUnmet.cta}`).toBe('Fiks neste: Skriv mål')
+  })
+})

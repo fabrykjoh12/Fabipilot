@@ -497,7 +497,7 @@ export default function Roadmap({ projectId, onBack }) {
             <p className="plaunch-ready-note">Alt er på plass — på tide å publisere.</p>
           ) : (
             <button type="button" className="plaunch-fix" onClick={() => fixCheck(launch.firstUnmet.action)}>
-              Fiks neste: {launch.firstUnmet.label}
+              Fiks neste: {launch.firstUnmet.cta}
             </button>
           )}
           {launchOpen && (

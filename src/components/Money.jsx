@@ -21,6 +21,8 @@ import MoneyImportSheet from './MoneyImport.jsx'
 import MoneyPlan from './MoneyPlan.jsx'
 import { suggestBudgets } from '../lib/plan.js'
 import { balanceAt, monthlyFlow } from '../lib/balance.js'
+import { fixedThisMonth, detectRecurring } from '../lib/recurring.js'
+import { useAskSheet } from '../lib/askSheet.jsx'
 import './Money.css'
 
 
@@ -627,43 +629,6 @@ function SubCard({ sub, onAsk }) {
 }
 
 /* ============ hovedmodul ============ */
-/* Gjenbrukbart tall-/tekst-ark — erstatter window.prompt. */
-function AmountSheet({ cfg, onClose }) {
-  useEscape(onClose)
-  const [val, setVal] = useState(cfg.initial == null || cfg.initial === '' ? '' : String(cfg.initial))
-  const ref = useRef(null)
-  useEffect(() => {
-    const id = setTimeout(() => { ref.current?.focus(); ref.current?.select?.() }, 60)
-    return () => clearTimeout(id)
-  }, [])
-  function save() {
-    cfg.onSave(val)
-    onClose()
-  }
-  return (
-    <div className="msheet-overlay" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="msheet" onClick={(e) => e.stopPropagation()}>
-        <div className="msheet-grip" />
-        <h3 className="msheet-title">{cfg.title}</h3>
-        <div className="msheet-amount">
-          <input
-            ref={ref}
-            className="msheet-amount-in"
-            inputMode={cfg.inputMode || 'numeric'}
-            placeholder={cfg.placeholder ?? '0'}
-            value={val}
-            onChange={(e) => setVal(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') onClose() }}
-          />
-          {cfg.suffix && <span className="msheet-kr">{cfg.suffix}</span>}
-        </div>
-        {cfg.label && <span className="msheet-lbl">{cfg.label}</span>}
-        <button type="button" className="msheet-save" onClick={save}>Lagre</button>
-      </div>
-    </div>
-  )
-}
-
 export default function Money() {
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
   const expenses = useLiveQuery(() => listExpenses(), [], [])
@@ -686,16 +651,20 @@ export default function Money() {
   const [incAmount, setIncAmount] = useState('')
   const [goalName, setGoalName] = useState('')
   const [goalTarget, setGoalTarget] = useState('')
-  const [askCfg, setAskCfg] = useState(null)
-  const [askKey, setAskKey] = useState(0)
-  const ask = (cfg) => { setAskKey((k) => k + 1); setAskCfg(cfg) }
+  const { ask, sheet: askSheet } = useAskSheet()
 
   const totalIncome = incomes.reduce((s, i) => s + (i.amount || 0), 0)
 
   const monthPrefix = `${cursor.y}-${pad(cursor.m + 1)}`
   const monthExpenses = expenses.filter((e) => (e.date || '').startsWith(monthPrefix))
-  const subTotal = subs.reduce((s, x) => s + monthlyCost(x), 0)
   const expTotal = monthExpenses.reduce((s, x) => s + (x.amount || 0), 0)
+  /* Faste trekk som ALLEREDE ligger som importerte kjøp skal ikke legges til igjen —
+     ellers telles Spotify/Telia to ganger (`src/lib/recurring.js`). Bare de som ikke
+     er trukket ennå denne måneden legges oppå kjøpssummen. */
+  const fixedNow = fixedThisMonth(subs, monthExpenses, monthlyCost)
+  const subTotal = fixedNow.total
+  // Hele den faste kostnaden — «Faste»-fanen skal vise alt, ikke bare det som gjenstår.
+  const subsMonthly = subs.reduce((s, x) => s + monthlyCost(x), 0)
   const totalSpent = subTotal + expTotal
   const totalBudget = budgets.reduce((s, b) => s + (b.amount || 0), 0)
 
@@ -704,21 +673,22 @@ export default function Money() {
   const prevMonthLabel = MONTHS[prevDt.getMonth()]
   const prevMonthExpenses = expenses.filter((e) => (e.date || '').startsWith(prevMonthPrefix))
   const prevExpTotal = prevMonthExpenses.reduce((s, x) => s + (x.amount || 0), 0)
-  const prevTotalSpent = subTotal + prevExpTotal
+  const prevFixed = fixedThisMonth(subs, prevMonthExpenses, monthlyCost)
+  const prevTotalSpent = prevFixed.total + prevExpTotal
 
   const budgetByCat = {}
   for (const b of budgets) budgetByCat[b.category] = b.amount
 
   const spentByCat = {}
   for (const e of monthExpenses) spentByCat[e.category] = (spentByCat[e.category] || 0) + (e.amount || 0)
-  for (const s of subs) {
+  for (const s of fixedNow.pending) {
     const k = catKey(s.category || 'ovrig')
     spentByCat[k] = (spentByCat[k] || 0) + monthlyCost(s)
   }
 
   const prevSpentByCat = {}
   for (const e of prevMonthExpenses) prevSpentByCat[e.category] = (prevSpentByCat[e.category] || 0) + (e.amount || 0)
-  for (const s of subs) {
+  for (const s of prevFixed.pending) {
     const k = catKey(s.category || 'ovrig')
     prevSpentByCat[k] = (prevSpentByCat[k] || 0) + monthlyCost(s)
   }
@@ -758,18 +728,27 @@ export default function Money() {
      vi gjetter ikke på hva du har. */
   const bal = balanceAt(balances, inflows, expenses, todayKey())
   const flow = monthlyFlow(inflows, expenses, monthPrefix)
-  async function askBalance() {
-    const v = window.prompt(
-      'Hva står det på kontoen nå? (kr)\n\nAppen holder saldoen oppdatert med kjøpene og innbetalingene du importerer.',
-      bal ? String(Math.round(bal.balance)) : '',
-    )
-    if (v === null) return
-    const n = Number(String(v).replace(/[\s\u00a0]/g, '').replace(',', '.'))
-    if (!Number.isFinite(n)) { toast.error('Skjønte ikke beløpet'); return }
-    await setBalanceSnapshot({ date: todayKey(), amount: n })
-    vibrate(12)
-    toast.success('Saldo lagret', { description: 'Den oppdateres nå automatisk ved hver import.' })
+  // Samme ark som resten av modulen bruker — ikke nettleserens grå systemboks.
+  function askBalance() {
+    ask({
+      title: 'Hva står det på kontoen nå?',
+      label: 'Les av i banken. Så holder appen saldoen oppdatert med det du importerer.',
+      initial: bal ? Math.round(bal.balance) : '',
+      suffix: 'kr',
+      onSave: async (v) => {
+        const n = Number(String(v).replace(/[\s\u00a0]/g, '').replace(',', '.'))
+        if (String(v).trim() === '' || !Number.isFinite(n)) { toast.error('Skjønte ikke beløpet'); return }
+        await setBalanceSnapshot({ date: todayKey(), amount: n })
+        vibrate(12)
+        toast.success('Saldo lagret', { description: 'Den oppdateres nå automatisk ved hver import.' })
+      },
+    })
   }
+
+  /* Faste utgifter appen finner selv i bankhistorikken: samme butikk, stabilt
+     beløp, samme dag, flere måneder på rad. Å legge dem inn her fjerner samtidig
+     dobbelttellingen, siden de da kjennes igjen i kjøpene. */
+  const recurringFound = detectRecurring(expenses, { subs })
 
   // Budsjettforslag fra faktisk historikk — mye bedre utgangspunkt enn blanke felt.
   const budgetSuggestion = suggestBudgets(expenses, { monthsBack: 6 })
@@ -913,11 +892,16 @@ export default function Money() {
               <span className="bs-label">brukt denne måneden</span>
               <AnimatedNumber className="bs-amount" value={totalSpent} format={kr} />
               {/* Regnestykket må stå der. Uten det ser tallet ut som om det motsier «Ut»
-                  i saldo-kortet over — forskjellen er nettopp de faste trekkene, som
-                  ikke ligger som egne kjøp. */}
+                  i saldo-kortet over — forskjellen er nettopp de faste trekkene som ikke
+                  er trukket ennå. De som ER trukket ligger allerede i kjøpssummen. */}
               {subTotal > 0 && (
                 <span className="bs-split">
-                  {kr(expTotal)} kjøp + {kr(subTotal)} faste
+                  {kr(expTotal)} kjøp + {kr(subTotal)} faste som ikke er trukket ennå
+                </span>
+              )}
+              {subTotal === 0 && fixedNow.coveredAmount > 0 && (
+                <span className="bs-split">
+                  inkl. {kr(Math.round(fixedNow.coveredAmount))} i faste trekk
                 </span>
               )}
               {totalBudget > 0 ? (
@@ -1215,8 +1199,8 @@ export default function Money() {
           <>
             <div className="budget-summary slim">
               <span className="bs-label">faste utgifter per måned</span>
-              <AnimatedNumber className="bs-amount" value={subTotal} format={kr} />
-              <span className="bs-sub">{subs.length} abonnement · {kr(subTotal * 12)} per år</span>
+              <AnimatedNumber className="bs-amount" value={Math.round(subsMonthly)} format={kr} />
+              <span className="bs-sub">{subs.length} abonnement · {kr(Math.round(subsMonthly * 12))} per år</span>
             </div>
 
             {upcoming.length > 0 && (
@@ -1232,7 +1216,39 @@ export default function Money() {
               </div>
             )}
 
-            {subs.length === 0 ? (
+            {recurringFound.length > 0 && (
+              <div className="found card">
+                <span className="found-lbl">Funnet i bankhistorikken</span>
+                <p className="found-note">
+                  Disse trekkes jevnlig, men står ikke som faste utgifter ennå. Legger du dem inn,
+                  kjenner appen dem igjen i kjøpene — så de ikke telles to ganger.
+                </p>
+                {recurringFound.slice(0, 6).map((r) => (
+                  <div key={r.name} className="found-row">
+                    <div className="found-main">
+                      <span className="found-name">{r.name}</span>
+                      <span className="found-meta">
+                        {kr(r.amount)} · rundt den {r.day}. · {r.months} måneder på rad
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="found-add"
+                      onClick={async () => {
+                        await addSubscription({
+                          name: r.name, amount: r.amount, cycle: 'monthly',
+                          category: r.category, renewDay: r.day,
+                        })
+                        vibrate(12)
+                        toast.success(`${r.name} lagt inn som fast utgift`)
+                      }}
+                    >Legg inn</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {subs.length === 0 && recurringFound.length === 0 ? (
               <div className="empty">
                 <div className="glyph">💳</div>
                 <p className="em-ttl">Ingen abonnement enda</p>
@@ -1323,7 +1339,7 @@ export default function Money() {
           onClose={() => setSheet(null)}
         />
       )}
-      {askCfg && <AmountSheet key={askKey} cfg={askCfg} onClose={() => setAskCfg(null)} />}
+      {askSheet}
     </div>
   )
 }

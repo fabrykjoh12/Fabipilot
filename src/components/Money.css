@@ -1001,3 +1001,39 @@
   font-size: var(--t-xs); line-height: var(--lh-body); color: var(--muted);
   margin: 0; padding: 11px 0 6px; border-top: 1px solid var(--line);
 }
+
+/* ===== Faste utgifter appen fant selv =====
+   Forslag, ikke fasit — derfor stiplet kant og en «Legg inn»-knapp per rad
+   i stedet for at appen skriver dem inn på egen hånd. */
+.found { border-style: dashed; border-color: var(--line-strong); box-shadow: none; }
+.found-lbl {
+  display: block; font-size: var(--t-2xs); font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+}
+.found-note { font-size: var(--t-xs); line-height: var(--lh-body); color: var(--muted); margin: 6px 0 4px; }
+.found-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-top: 1px solid var(--line);
+}
+.found-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.found-name {
+  font-size: var(--t-md); font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.found-meta { font-size: var(--t-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+.found-add {
+  flex: 0 0 auto; border: 1px solid var(--accent-soft); background: var(--accent-soft);
+  color: var(--accent); border-radius: var(--r-full); padding: 8px 15px;
+  font-family: inherit; font-size: var(--t-sm); font-weight: 650; cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.found-add:hover { background: var(--accent); color: #fff; }
+
+/* Bekreft-varianten av ask-arket */
+.msheet-hint-confirm { margin: -6px 0 18px; }
+.msheet-save.danger { background: var(--danger); box-shadow: none; }
+.msheet-cancel {
+  width: 100%; margin-top: 6px; background: none; border: 0;
+  color: var(--muted); font-family: inherit; font-size: var(--t-md); font-weight: 600;
+  padding: 12px; cursor: pointer;
+}
