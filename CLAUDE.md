@@ -56,8 +56,9 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   modulen uåpnelig på mobil. Rekkefølgen nederst settes med CSS `order`, ikke DOM-rekkefølge, siden
   DOM-rekkefølgen tilhører sidemenyen.
 - Aksent = blå `#0A84FF` som standard, med rosa som valgfri personlig enhets-preferanse (`[data-accent='pink']`
-  i AppShell.css, samme H/S/L-forhold som blå bare dreid til rosa — kun `--accent`-familien + `--surface-focus`
-  påvirkes). Lagres i `localStorage` og settes via `document.documentElement.dataset.accent`, akkurat som
+  i AppShell.css — kun `--accent`-familien + `--surface-focus` + `--on-accent` påvirkes). `--on-accent` er
+  tekstfargen OPPÅ aksentflate: hvit på blå, mørk blekk på rosa. Rosa er for lys til å bære hvit tekst
+  (~2,65:1, under AA); med mørk blekk blir det ~6,6:1. Bruk `var(--on-accent)`, aldri `#fff`, på aksentflate. Lagres i `localStorage` og settes via `document.documentElement.dataset.accent`, akkurat som
   `theme`. Byttes i «Mer»-menyen eller Backup-panelet (App.jsx/BackupSheet.jsx). Semantisk grønn `#30B15C`
   (`--forest`) kun for positiv status (aktivt prosjekt, vane gjort). Kategori-farger (prosjekt/hendelse/
   penger/vaner) er egne valgbare swatcher fra `SWATCH` (`src/lib/palette.js`) — en muset pastell-familie
@@ -225,6 +226,17 @@ Alle stores er med i JSON-eksport/import (se §8).
   `upcomingCharges`/`remainingChargesThisMonth`/`yearlyReserve` (kommende faste trekk + årlig-avsetning),
   `categoryBreakdown` (én kategori brutt ned på type/underkategori OG sted/butikk + alle kjøpene). Alt
   utledet, ingenting lagret; brukt av Penger/Oversikt, testet i `money.test.js`
+- `src/lib/recurring.js` — faste utgifter: `sameMerchant` (kjenner igjen «Telia Norge AS» som
+  abonnementet «Telia»), `fixedThisMonth` (abonnementer som ALLEREDE ligger som importerte kjøp legges
+  ikke til igjen — uten dette telles Spotify/Telia to ganger etter bankimport) og `detectRecurring`
+  (finner faste trekk i historikken: samme butikk, stabilt beløp, samme dag, 3+ måneder → forslag på
+  Faste-fanen). Testet i `recurring.test.js`
+- `src/lib/monthDiff.js` — «hva var annerledes denne måneden?»: `monthDiff` (kategori-for-kategori,
+  største enkeltkjøp, nye butikker) og `explainMonth` (én setning; tar `catLabel` + `kr` som parametre
+  så fila holder seg fri for kategori- og DOM-avhengigheter). Testet i `monthDiff.test.js`
+- `src/lib/askSheet.jsx` — `useAskSheet()`: ark for å spørre om ETT tall eller ETT ja/nei. Erstatter
+  `window.prompt`/`window.confirm`, som ikke kan styles og ser ut som feilmeldinger på mobil.
+  Komponenten bor i `src/components/AskSheet.jsx`, stilene i Money.css (`.msheet-*`)
 - `src/lib/balance.js` — saldo og pengeflyt: `balanceAt` (holdepunkt rullet framover med inn minus ut —
   returnerer `null` uten holdepunkt, vi gjetter aldri på saldo), `latestSnapshot`, `monthlyFlow`
   (inn/ut/netto for én måned, med `income` skilt fra `transfers` og sparerate målt mot ekte inntekt).
@@ -308,9 +320,9 @@ Alle stores er med i JSON-eksport/import (se §8).
     importert i original rekkefølge for uendret cascade. «Kopier som prompt» limer prosjektkontekst
     foran via `buildPrompt` (`src/lib/prompts.js`)
   - `SharedListView.jsx` — motoren bak delte, avhukbare lister (Dexie Cloud realm + e-postinvitasjon),
-    parametrisert på `list`-nøkkel + tekst/tomvisning. `SharedList.jsx` («Delt», `list='general'`) og
-    `ShoppingList.jsx` («Handleliste», `list='handleliste'`) er tynne wrappere rundt den — samme realm/
-    medlemmer, så én invitasjon deler begge listene
+    parametrisert på `list`-nøkkel + tekst/tomvisning. `Lists.jsx` («Lister») er ÉN modul med to faner
+    over den: «Delt» (`list='general'`) og «Handleliste» (`list='handleliste'`). De er samme tabell i
+    samme realm, så én invitasjon deler begge — to menyplasser for én ting var én for mye
   - `Search.jsx` — «Søk»: ett søkefelt på tvers av oppgaver, gjøremål, idéer, prosjekter, prosjektsteg, hendelser, vaner, forbruk, abonnement; treff lenker til modulen (via `onNav`)
   - `Workdays.jsx` / `Workdays.css` — «Jobb»: delt arbeidsplan (månedskalender). Trykk på dagene du
     jobber; kjæresten ser dem, og du ser hennes. Bruker samme delte realm som «Delt»/«Handleliste»

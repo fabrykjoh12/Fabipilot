@@ -1,44 +1,6 @@
-/* ===== Penger: faner + budsjett + forbruk ===== */
-.money-tabs {
-  display: flex;
-  background: var(--canvas-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  padding: 4px;
-  gap: 2px;
-  margin: 16px 0 18px;
-}
-.money-tabs button {
-  position: relative;
-  isolation: isolate;
-  flex: 1;
-  border: 0;
-  background: none;
-  border-radius: var(--r-xs);
-  padding: 9px 6px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color var(--t-mid) var(--ease);
-}
-.money-tabs button.active {
-  color: var(--ink);
-}
-/* glidende segment-indikator (motion layoutId) */
-.seg-pill {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--surface);
-  border-radius: var(--r-xs);
-  box-shadow: var(--sh-2);
-}
-.seg-lbl {
-  position: relative;
-  z-index: 1;
-}
+/* ===== Penger: budsjett + forbruk =====
+   (Segmentkontrollen .money-tabs bor i AppShell.css — den deles med «Lister»,
+   og Money.css lat-lastes, så stilen må ligge i det delte laget.) */
 
 /* kommende betalinger */
 .upcoming {
@@ -1040,4 +1002,15 @@
   width: 100%; margin-top: 6px; background: none; border: 0;
   color: var(--muted); font-family: inherit; font-size: var(--t-md); font-weight: 600;
   padding: 12px; cursor: pointer;
+}
+
+/* «Hva var annerledes?» — én setning under endringsmerket. Prosenten sier at det
+   endret seg; denne sier hva. */
+.bs-why {
+  font-size: var(--t-xs);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
 }

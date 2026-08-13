@@ -3432,3 +3432,48 @@ label.backup-action {
 
 /* Faner i «Lister» — samme segmentkontroll som i Penger. */
 .lists-tabs { margin: 16px 0 4px; }
+
+
+/* ===== Segmentkontroll (faner inne i en modul) =====
+   Delt av Penger og «Lister». Må ligge her, ikke i Money.css: den lat-lastes,
+   og da får «Lister» ustylte knapper. */
+.money-tabs {
+  display: flex;
+  background: var(--canvas-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 4px;
+  gap: 2px;
+  margin: 16px 0 18px;
+}
+.money-tabs button {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  border: 0;
+  background: none;
+  border-radius: var(--r-xs);
+  padding: 9px 6px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--t-mid) var(--ease);
+}
+.money-tabs button.active {
+  color: var(--ink);
+}
+/* glidende segment-indikator (motion layoutId) */
+.seg-pill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--surface);
+  border-radius: var(--r-xs);
+  box-shadow: var(--sh-2);
+}
+.seg-lbl {
+  position: relative;
+  z-index: 1;
+}

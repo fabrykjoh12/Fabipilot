@@ -2,6 +2,33 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-13 — **Hele revisjonslista fikset** (22 kodefunn fra gjennomgangen). De viktigste:
+  **Dobbelttelling av faste utgifter.** Bankimporten henter abonnementene inn som vanlige kjøp, mens
+  «Faste» ble skrevet inn for hånd — summen la dem sammen, så Spotify og Telia telte to ganger.
+  Ny `src/lib/recurring.js` lar kjøpene være fasit: `sameMerchant` kjenner igjen «Telia Norge AS» som
+  abonnementet «Telia», og bare trekk som ikke har kommet ennå legges oppå kjøpssummen. Samme matching
+  driver `detectRecurring`, som finner faste utgifter i historikken og foreslår dem — det fjerner
+  årsaken, ikke bare symptomet.
+  **Systemdialogene ut.** `window.prompt`/`confirm` erstattet av `useAskSheet()` (lib/askSheet.jsx);
+  Penger hadde allerede arket, men saldo-avlesningen brukte fortsatt nettleserboksen.
+  **«Fiks neste: Ingen åpne høy-prioritet steg»** ba deg fikse at det ikke var noe å fikse — sjekklista
+  hadde et imperativt `cta`-felt hele tiden, knappen leste bare `label`.
+  **Prosjektsiden begravde stegene** bak åtte seksjoner metadata på mobil. Nå: helsekort → tavla →
+  «Om prosjektet» sammenlagt. PC-oppsettet urørt (CSS `order`).
+  **«Delt» + «Handleliste» → «Lister»** med to faner: samme tabell, samme realm, én menyplass.
+  **Kalender-agendaen** sorteres kronologisk i stedet for oppgaver-først, med én gruppeoverskrift i
+  stedet for et «OPPGAVE»-merke per rad. **Søket** grupperer forbruk per butikk — «Rema» ga før
+  hundrevis av like treff.
+  **Emoji ut av kromet** (~20 steder + søketypene + tomtilstandene + prompt-maler/-oppskrifter),
+  **linjerader** i Vaner/Forbruk/Idébank, **type-skalaen** innført i resten av filene (187 px-verdier),
+  **`--on-accent`** så rosa aksent ikke lenger har hvit tekst under AA, **aria-labels** på to
+  ikon-knapper, **lat-lasting** av alle moduler utenfor mobilens tre faner, og **13-måneders vindu**
+  på Penger-dataene i stedet for hele historikken i minnet.
+  **Nytt:** Japan-nedtelling på Oversikt (`planProgress` var allerede utledet — den lå bare begravd som
+  fane fire), «hva var annerledes denne måneden?» (`src/lib/monthDiff.js` — peker på enkeltkjøpet bare
+  når det både bærer mesteparten av økningen OG er uvanlig stort for deg), og forbruk med i
+  søndagsoppsummeringen, som før bare dekket oppgaver/vaner/prosjektsteg.
+  248 tester (opp fra 213). Verifisert i nettleser på mobil og PC, i begge temaer.
 - 2026-08-12 — **Designrydding: mindre type, mer luft, ett tall om gangen** («alt virker så trangt»).
   Appen var bygget med hardkodede px-størrelser per komponent, og de hadde krøpet oppover: 44px-tall
   ved siden av 30px-titler gjorde at alt ropte samtidig — og når alt roper, blir det trangt.

@@ -22,6 +22,7 @@ import MoneyPlan from './MoneyPlan.jsx'
 import { suggestBudgets } from '../lib/plan.js'
 import { balanceAt, monthlyFlow } from '../lib/balance.js'
 import { fixedThisMonth, detectRecurring } from '../lib/recurring.js'
+import { monthDiff, explainMonth } from '../lib/monthDiff.js'
 import { useAskSheet } from '../lib/askSheet.jsx'
 import './Money.css'
 
@@ -758,6 +759,11 @@ export default function Money() {
   const recurringFound = detectRecurring(expenses, { subs })
 
   // Budsjettforslag fra faktisk historikk — mye bedre utgangspunkt enn blanke felt.
+  /* «Hva var annerledes?» — endringsmerket sier at du brukte 7 % mer, men ikke
+     HVA som flyttet seg. Ofte er hele utslaget ett kjøp. */
+  const diff = monthDiff(expenses, monthPrefix, prevMonthPrefix)
+  const diffText = explainMonth(diff, (k) => catMeta(k).label, kr)
+
   const budgetSuggestion = suggestBudgets(expenses, { monthsBack: 6 })
   async function applySuggestedBudgets() {
     const entries = Object.entries(budgetSuggestion.budgets)
@@ -931,6 +937,7 @@ export default function Money() {
                   <ChangeBadge cur={totalSpent} prev={prevTotalSpent} /> vs {prevMonthLabel}
                 </span>
               )}
+              {diffText && <span className="bs-why">{diffText}</span>}
               {totalIncome > 0 && (
                 <span className="bs-income">
                   Inntekt {kr(totalIncome)} · {kr(totalIncome - totalSpent)} igjen å bruke

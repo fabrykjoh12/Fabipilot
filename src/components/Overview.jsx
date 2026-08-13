@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star, Check, LayoutGrid } from 'lucide-react'
+import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star, Check, LayoutGrid, Plane, ChevronUp, ChevronDown } from 'lucide-react'
 import { db, todayKey, tomorrowKey, monthlyCost, setTaskDone, setTaskDate } from '../db.js'
+import { planProgress } from '../lib/plan.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
 import { SWATCH } from '../lib/palette.js'
@@ -10,8 +11,8 @@ import { useGardenData, GardenScene } from './Garden.jsx'
 import './Overview.css'
 
 /* Standard rekkefølge på Oversikt-kortene. Lagres tilpasset i localStorage. */
-const DEFAULT_ORDER = ['today', 'habits', 'money', 'projects', 'ideas', 'garden']
-const CARD_LABEL = { today: 'I dag', habits: 'Vaner', money: 'Penger', projects: 'Prosjekter', ideas: 'Idébank', garden: 'Hage' }
+const DEFAULT_ORDER = ['today', 'plan', 'habits', 'money', 'projects', 'ideas', 'garden']
+const CARD_LABEL = { today: 'I dag', plan: 'Spareperiode', habits: 'Vaner', money: 'Penger', projects: 'Prosjekter', ideas: 'Idébank', garden: 'Hage' }
 
 function loadCfg() {
   try {
@@ -34,6 +35,12 @@ function greeting() {
   return 'God natt'
 }
 
+function daysUntil(iso, todayIso) {
+  const a = new Date(todayIso + 'T00:00')
+  const b = new Date(iso + 'T00:00')
+  return Math.max(0, Math.round((b - a) / 86400000))
+}
+
 function fmtDate() {
   return new Intl.DateTimeFormat('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
 }
@@ -50,15 +57,18 @@ function useWeekStats() {
   return useLiveQuery(async () => {
     const ws = weekStartKey()
     const wsMs = new Date(ws + 'T00:00').getTime()
-    const [tasksAll, habitsAll, steps] = await Promise.all([
+    const [tasksAll, habitsAll, steps, spend] = await Promise.all([
       db.tasks.toArray(),
       db.habits.toArray(),
       db.projectItems.toArray(),
+      db.expenses.where('date').aboveOrEqual(ws).toArray(),
     ])
     return {
       tasksDone: tasksAll.filter((t) => t.isDone && t.completedAt && t.completedAt >= wsMs).length,
       habitTicks: habitsAll.reduce((n, h) => n + (h.history || []).filter((k) => k >= ws).length, 0),
       stepsDone: steps.filter((i) => i.doneAt && i.doneAt >= wsMs).length,
+      // Uka handler også om penger — uten dette er «oppsummeringen» bare halve uka.
+      spent: spend.reduce((n, e) => n + (e.amount || 0), 0),
     }
   }, [], null)
 }
@@ -69,6 +79,7 @@ function Ukeslutt({ stats, overdue, onDone }) {
     stats.tasksDone > 0 && `${stats.tasksDone} ${stats.tasksDone === 1 ? 'oppgave' : 'oppgaver'} gjort`,
     stats.habitTicks > 0 && `${stats.habitTicks} vane-avhukinger`,
     stats.stepsDone > 0 && `${stats.stepsDone} prosjektsteg ferdig`,
+    stats.spent > 0 && `${kr(Math.round(stats.spent))} brukt`,
   ].filter(Boolean)
   async function carry(e) {
     const mon = tomorrowKey() // søndag + 1 = mandag
@@ -78,7 +89,7 @@ function Ukeslutt({ stats, overdue, onDone }) {
   }
   return (
     <div className="ov-ukeslutt">
-      <p className="ov-uke-tag">Ukeslutt 🌙</p>
+      <p className="ov-uke-tag">Ukeslutt</p>
       <h2 className="ov-uke-ttl">
         {parts.length ? `Denne uka: ${parts.join(' · ')}.` : 'En rolig uke. Det er også en uke.'}
       </h2>
@@ -90,7 +101,7 @@ function Ukeslutt({ stats, overdue, onDone }) {
           </button>
         )}
         <button type="button" className="ov-uke-done" onClick={onDone}>
-          Klar for ny uke ✓
+          Klar for ny uke
         </button>
       </div>
     </div>
@@ -119,6 +130,7 @@ const ICONS = {
   projects: <FolderKanban />,
   ideas: <Lightbulb />,
   garden: <Flower2 />,
+  plan: <Plane />,
   arrow: <ArrowRight />,
 }
 
@@ -205,6 +217,16 @@ export default function Overview({ onNav }) {
   const subs = useLiveQuery(() => db.subscriptions.toArray(), [], [])
   const projects = useLiveQuery(() => db.projects.where('status').equals('active').toArray(), [], [])
   const ideas = useLiveQuery(() => db.ideas.count(), [], 0)
+  /* Spareperioden lå begravd som fane fire i Penger. Fem måneder uten lønn er
+     det største som skjer i økonomien — den hører hjemme der du ser den daglig. */
+  const plans = useLiveQuery(() => db.plans.toArray(), [], [])
+  const planExpenses = useLiveQuery(
+    async () => (plans?.[0] ? db.expenses.where('date').aboveOrEqual(plans[0].startDate).toArray() : []),
+    [plans?.[0]?.id, plans?.[0]?.startDate],
+    [],
+  )
+  const plan = plans?.[0] || null
+  const planProg = plan ? planProgress(plan, planExpenses, today) : null
   const nowItems = useLiveQuery(() => db.projectItems.where('stage').equals('now').sortBy('sortOrder'), [], [])
   const gardenData = useGardenData()
 
@@ -270,6 +292,32 @@ export default function Overview({ onNav }) {
         </div>
       </OvCard>
     ),
+    plan: planProg?.ok && !planProg.finished ? (
+      <OvCard
+        icon={ICONS.plan}
+        color={SWATCH.pink}
+        title={plan.name}
+        sub={planProg.beforeStart
+          ? `starter om ${planProg.daysLeft > 0 ? '' : ''}${daysUntil(plan.startDate, today)} dager`
+          : `${planProg.daysLeft} ${planProg.daysLeft === 1 ? 'dag' : 'dager'} igjen`}
+        onClick={editing ? undefined : () => onNav('money')}
+      >
+        <div className="ov-plan-body">
+          <AnimatedNumber className="ov-plan-day" value={Math.round(planProg.freePerDay)} format={kr} />
+          <span className="ov-plan-day-lbl">fritt per dag</span>
+          <div className="ov-plan-bar">
+            <i style={{ width: planProg.pct + '%' }} />
+          </div>
+          {!planProg.beforeStart && (
+            <span className={'ov-plan-state' + (planProg.onTrack ? ' ok' : ' over')}>
+              {planProg.onTrack
+                ? `${kr(Math.round(planProg.diff))} foran planen`
+                : `${kr(Math.round(Math.abs(planProg.diff)))} bak planen`}
+            </span>
+          )}
+        </div>
+      </OvCard>
+    ) : null,
     habits: (
       <OvCard
         icon={ICONS.habits}
@@ -406,12 +454,14 @@ export default function Overview({ onNav }) {
         )}
 
         <div className="ov-grid">
-          {visible.map((key, i) => (
+          {/* Kort som ikke har noe å vise (f.eks. spareperiode uten plan) returnerer
+              null og skal da heller ikke legge beslag på en rute. */}
+          {visible.filter((k) => CARDS[k]).map((key, i) => (
             <Reveal key={key} i={i} className={'ov-cell ov-cell-' + key + (editing ? ' editing' : '')}>
               {editing && (
                 <div className="ov-edit-bar">
-                  <button type="button" className="ov-eb" aria-label="Flytt opp" disabled={i === 0} onClick={() => move(key, -1)}>▲</button>
-                  <button type="button" className="ov-eb" aria-label="Flytt ned" disabled={i === visible.length - 1} onClick={() => move(key, 1)}>▼</button>
+                  <button type="button" className="ov-eb" aria-label="Flytt opp" disabled={i === 0} onClick={() => move(key, -1)}><ChevronUp /></button>
+                  <button type="button" className="ov-eb" aria-label="Flytt ned" disabled={i === visible.length - 1} onClick={() => move(key, 1)}><ChevronDown /></button>
                   <button type="button" className="ov-eb ov-eb-hide" onClick={() => toggleHide(key)}>Skjul</button>
                 </div>
               )}
