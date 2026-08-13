@@ -25,6 +25,10 @@
 
   /* ---- Merkefarger ---- */
   --accent: #0a84ff;
+  /* Tekstfargen som ligger OPPÅ aksentflate. Egen token fordi rosa-aksenten er
+     for lys til å bære hvit tekst (~2.65:1, under AA selv for stor tekst) —
+     med mørk blekk på samme rosa blir det ~6.6:1. Blå bærer hvit fint. */
+  --on-accent: #ffffff;
   --accent-bright: #48a4ff;
   --accent-deep: #0868c4;
   --accent-soft: rgba(10, 132, 255, 0.1);
@@ -160,6 +164,8 @@
    Påvirker kun --accent-familien + --surface-focus — kategori-swatchene (SWATCH) er uendret. */
 [data-accent='pink'] {
   --accent: #ff69b4;
+  /* Hot pink beholdes som ønsket — det er teksten oppå som snus. */
+  --on-accent: #1a1c22;
   --accent-bright: #ff94c9;
   --accent-deep: #f23694;
   --accent-soft: rgba(255, 105, 180, 0.12);
@@ -170,6 +176,7 @@
 }
 [data-theme='dark'][data-accent='pink'] {
   --accent: #ff69b4;
+  --on-accent: #14181f;
   --accent-bright: #ffb3d9;
   --accent-deep: #f651a3;
   --accent-soft: rgba(255, 105, 180, 0.16);
@@ -801,7 +808,7 @@
 .btn-primary {
   background: var(--accent);
   border-color: transparent;
-  color: #fff;
+  color: var(--on-accent);
   box-shadow: var(--sh-accent);
 }
 .btn-primary:hover {
@@ -867,7 +874,7 @@
   border-radius: var(--r-md);
   cursor: pointer;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   display: grid;
   place-items: center;
   box-shadow: var(--sh-accent);
@@ -1795,7 +1802,7 @@
   background: var(--surface-2);
 }
 .st-ferdig {
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 .status-cycle {
@@ -2233,7 +2240,7 @@ label.backup-action {
 .sync-push {
   margin-top: 12px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: 0;
   border-radius: 11px;
   font-weight: 600;
@@ -2667,7 +2674,7 @@ label.backup-action {
   justify-content: center;
   gap: 9px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: 0;
   border-radius: 14px;
   padding: 15px 20px;
@@ -2828,7 +2835,7 @@ label.backup-action {
   align-items: center;
   justify-content: center;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: 0;
   border-radius: 13px;
   padding: 14px 20px;
@@ -3064,7 +3071,7 @@ label.backup-action {
 }
 .wn-pomo-start {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: 0;
   border-radius: 13px;
   padding: 13px 32px;
@@ -3238,7 +3245,7 @@ label.backup-action {
 }
 .search-text mark, .search-meta mark {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-radius: 3px;
   padding: 0 1px;
 }
@@ -3302,7 +3309,7 @@ label.backup-action {
   flex: 0 0 auto;
   border: none;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-radius: 11px;
   padding: 0 18px;
   font-family: inherit;
@@ -3359,7 +3366,7 @@ label.backup-action {
   border: 0;
   border-radius: var(--r-md);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -3422,3 +3429,6 @@ label.backup-action {
   width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.2;
   fill: none; stroke-linecap: round; stroke-linejoin: round;
 }
+
+/* Faner i «Lister» — samme segmentkontroll som i Penger. */
+.lists-tabs { margin: 16px 0 4px; }

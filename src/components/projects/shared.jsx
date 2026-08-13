@@ -1,3 +1,4 @@
+import { Bug, Palette, PenLine, Plus, Recycle, Sparkles } from 'lucide-react'
 // Delte konstanter, ikoner og små rene hjelpere for prosjekt-verkstedet.
 // Ingen React-state her — bare det StepSheet/SpineCard/StageBlock/PromptQueue/
 // PromptComposer/Roadmap/ProjectsList har felles.
@@ -26,9 +27,9 @@ export function fmtDeadline(date) {
 export function touchedText(ts) {
   if (!ts) return ''
   const days = Math.floor((Date.now() - ts) / 86400000)
-  if (days <= 0) return 'Rørt sist i dag'
-  if (days === 1) return 'Rørt sist i går'
-  return `Rørt sist for ${days} dager siden`
+  if (days <= 0) return 'Jobbet med i dag'
+  if (days === 1) return 'Jobbet med i går'
+  return `Sist rørt for ${days} dager siden`
 }
 
 export const MORE = (
@@ -52,7 +53,7 @@ export const AI_LABEL = { idea: 'Idé', asked: 'Spurt', built: 'Bygd', verified:
    fra feltene. Felt med `optional` teller ikke mot «kan legges til». */
 export const PROMPT_TEMPLATES = [
   {
-    key: 'component', emoji: '✨', label: 'Komponent',
+    key: 'component', Icon: Sparkles, label: 'Komponent',
     fields: [
       { key: 'what', label: 'Hva skal lages?', placeholder: 'en priskalkulator' },
       { key: 'does', label: 'Hva skal den gjøre?', placeholder: 'regne ut månedspris ut fra antall brukere', big: true },
@@ -60,7 +61,7 @@ export const PROMPT_TEMPLATES = [
     build: (v) => `Build ${v.what || '…'}.\nIt should ${v.does || '…'}.`,
   },
   {
-    key: 'bug', emoji: '🐛', label: 'Fiks bug',
+    key: 'bug', Icon: Bug, label: 'Fiks bug',
     fields: [
       { key: 'problem', label: 'Hva er feil?', placeholder: 'knappen gjør ingenting når jeg trykker', big: true },
       { key: 'expected', label: 'Hva forventet du?', placeholder: 'at skjemaet sendes inn' },
@@ -68,7 +69,7 @@ export const PROMPT_TEMPLATES = [
     build: (v) => `Fix this bug: ${v.problem || '…'}\nExpected: ${v.expected || '…'}`,
   },
   {
-    key: 'design', emoji: '🎨', label: 'Design',
+    key: 'design', Icon: Palette, label: 'Design',
     fields: [
       { key: 'what', label: 'Hva skal forbedres?', placeholder: 'forsiden / en knapp / kortene' },
       { key: 'how', label: 'Hvordan? (mer/mindre av …)', placeholder: 'luftigere, større tekst, roligere farger', big: true },
@@ -76,7 +77,7 @@ export const PROMPT_TEMPLATES = [
     build: (v) => `Improve the design of ${v.what || '…'}.\nMake it ${v.how || '…'}.`,
   },
   {
-    key: 'feature', emoji: '➕', label: 'Ny funksjon',
+    key: 'feature', Icon: Plus, label: 'Ny funksjon',
     fields: [
       { key: 'what', label: 'Hvilken funksjon?', placeholder: 'søkefelt / mørk modus' },
       { key: 'detail', label: 'Hvordan skal den funke?', placeholder: 'filtrerer lista mens jeg skriver', big: true },
@@ -84,7 +85,7 @@ export const PROMPT_TEMPLATES = [
     build: (v) => `Add ${v.what || '…'}.\nIt should ${v.detail || '…'}.`,
   },
   {
-    key: 'refactor', emoji: '♻️', label: 'Refaktorer',
+    key: 'refactor', Icon: Recycle, label: 'Refaktorer',
     fields: [
       { key: 'what', label: 'Hva skal ryddes?', placeholder: 'denne komponenten / denne filen' },
       { key: 'goal', label: 'Mål med opprydningen', placeholder: 'lettere å lese, mindre gjentakelse', big: true },
@@ -92,7 +93,7 @@ export const PROMPT_TEMPLATES = [
     build: (v) => `Refactor ${v.what || '…'} so that it becomes ${v.goal || '…'}.`,
   },
   {
-    key: 'blank', emoji: '✍️', label: 'Tom',
+    key: 'blank', Icon: PenLine, label: 'Tom',
     fields: [
       { key: 'text', label: 'Prompt', placeholder: 'Skriv hva du vil be Claude om …', big: true },
     ],

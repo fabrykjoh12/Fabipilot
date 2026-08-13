@@ -55,7 +55,13 @@ function DateChip({ task, today, tom }) {
   ]
   return (
     <div className="tdate-wrap">
-      <button type="button" className={'tdate ' + status} onClick={(e) => { e.stopPropagation(); setOpen((o) => !o) }}>
+      <button
+        type="button"
+        className={'tdate ' + status}
+        aria-label={label ? `Endre dato (${label})` : 'Sett dato'}
+        aria-expanded={open}
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o) }}
+      >
         {status === 'none' ? <CalendarPlus /> : null}
         {label || 'dato'}
       </button>

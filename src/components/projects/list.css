@@ -86,7 +86,7 @@
   background: var(--surface-2);
 }
 .st-done {
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
 }
 
@@ -113,7 +113,7 @@
 .phealth-badge.h-building { color: var(--forest); background: var(--forest-soft); }
 .phealth-badge.h-ready { color: var(--accent); background: var(--accent-soft); }
 .phealth-badge.h-stuck { color: var(--danger); background: var(--danger-soft); }
-.phealth-badge.h-shipped { color: #fff; background: var(--accent); }
+.phealth-badge.h-shipped { color: var(--on-accent); background: var(--accent); }
 .phealth-badge.h-onice,
 .phealth-badge.h-empty { color: var(--muted); background: var(--surface-2); }
 

@@ -142,7 +142,7 @@
   box-shadow: var(--sh-accent);
 }
 .cal-cell.sel .cal-num {
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 700;
 }
 .cal-cell.sel.today {
@@ -191,7 +191,7 @@
   gap: 6px;
   flex: 0 0 auto;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: 0;
   border-radius: 11px;
   padding: 9px 14px;
@@ -465,7 +465,7 @@
   width: 100%;
   margin-top: 18px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border: 0;
   border-radius: 13px;
   padding: 15px;
@@ -506,3 +506,15 @@
     align-items: center;
   }
 }
+
+/* Gruppe-overskrift i dagsagendaen. Erstatter «OPPGAVE»-merket som ble gjentatt
+   på hver eneste rad — én etikett for bolken sier det samme, én gang. */
+.cal-group-lbl {
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 18px 2px 8px;
+}
+.cal-agenda > .cal-group-lbl:first-of-type { margin-top: 4px; }

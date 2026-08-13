@@ -4,7 +4,48 @@
    så telefon-oppsettet er uendret.
    =================================================================== */
 .plist-grid { display: contents; }
-.rm-workspace { display: contents; }
+
+/* ---- Mobil: tavla FØR oppslagsverket ----
+   Før måtte du scrolle forbi helsekort, lenker, hvorfor, frist, notat,
+   Claude-kontekst, fremdrift, fire statistikk-bokser, launch-panel og ni
+   prompt-oppskrifter før du så det første steget — på siden der stegene er
+   hele poenget. Nå: helsekort (orientering) → tavla (arbeidet) → «Om
+   prosjektet» (oppslag, sammenlagt). Rekkefølgen settes med CSS `order`,
+   så DOM-en er urørt for PC. */
+.rm-workspace {
+  display: flex;
+  flex-direction: column;
+}
+.rm-health { order: 1; }
+.rm-board { order: 2; }
+.rm-rail { order: 3; margin-top: var(--sec-gap); }
+
+.rm-about-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 16px 2px;
+  font-family: inherit;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.rm-about-chev {
+  width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.2;
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform var(--t-mid) var(--ease);
+}
+.rm-about-chev.open { transform: rotate(180deg); }
+/* Alt etter bryteren er skjult til du åpner den. */
+.rm-rail:not(.open) > *:not(.rm-about-toggle) { display: none; }
 
 @media (min-width: 860px) {
   /* ---- Prosjektliste: responsivt kort-rutenett ---- */
@@ -44,6 +85,7 @@
   /* ---- Prosjektside: to-spalte arbeidsbenk (info-skinne + tavle) ---- */
   .roadmap.screen { max-width: 1240px; }
   .roadmap .screen-scroll { padding: 40px 36px 80px; }
+  /* PC: to spalter igjen, og skinna er alltid åpen — bryteren er en mobil-ting. */
   .rm-workspace {
     display: grid;
     grid-template-columns: 330px minmax(0, 1fr);
@@ -51,13 +93,20 @@
     align-items: start;
     margin-top: 10px;
   }
+  .rm-health { order: 0; grid-column: 1; }
   .rm-rail {
+    order: 0;
+    grid-column: 1;
+    margin-top: 12px;
     position: sticky;
     top: 0;
     align-self: start;
     display: flex;
     flex-direction: column;
   }
+  .rm-board { order: 0; grid-column: 2; grid-row: 1 / span 2; }
+  .rm-about-toggle { display: none; }
+  .rm-rail:not(.open) > *:not(.rm-about-toggle) { display: revert; }
   /* skinne-element-marger blir litt strammere i kolonnen */
   .rm-rail .pwhy { margin-top: 0; }
 

@@ -1,5 +1,13 @@
 import { useState, useRef } from 'react'
-import { Play, BrainCircuit } from 'lucide-react'
+import { Play, BrainCircuit, ChevronDown, Search, Sparkles, Bug, Brush, Database, Recycle, Rocket, Megaphone, TrendingUp } from 'lucide-react'
+
+/* Oppskriftene bor i src/lib/prompts.js, som er ren logikk uten React — derfor
+   bærer de ikon-NAVN, og kartet fra navn til komponent ligger her. */
+const RECIPE_ICONS = { Search, Sparkles, Bug, Brush, Database, Recycle, Rocket, Megaphone, TrendingUp }
+function RecipeIcon({ name }) {
+  const Ic = RECIPE_ICONS[name] || Sparkles
+  return <Ic />
+}
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   db,
@@ -56,6 +64,8 @@ export default function Roadmap({ projectId, onBack }) {
   const [linksEditing, setLinksEditing] = useState(false)
   const [queueOpen, setQueueOpen] = useState(false)
   const [launchOpen, setLaunchOpen] = useState(false)
+  // Kun mobil bryr seg — på PC er skinna alltid synlig (CSS nullstiller den).
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [hookOpen, setHookOpen] = useState(false)
   const [composerTpl, setComposerTpl] = useState(null)
   const [quickVal, setQuickVal] = useState('')
@@ -366,8 +376,11 @@ export default function Roadmap({ projectId, onBack }) {
         )}
 
         <div className="rm-workspace">
-        <aside className="rm-rail">
-        <div className={'phealth h-' + health.state}>
+        {/* Helsekortet står øverst på ALLE skjermer: det er orienteringen —
+            hvor står prosjektet, og hva er neste steg. Resten av skinna
+            (hvorfor, lenker, kontekst, statistikk, launch) er oppslagsverk og
+            legger seg under tavla på mobil, sammenleggbart. */}
+        <div className={'phealth h-' + health.state + ' rm-health'}>
           <span className="phealth-top">
             <span className="phealth-dot" />
             <span className="phealth-lbl">{HEALTH_LABEL[health.state]}</span>
@@ -380,6 +393,12 @@ export default function Roadmap({ projectId, onBack }) {
             </button>
           )}
         </div>
+
+        <aside className={'rm-rail' + (aboutOpen ? ' open' : '')}>
+        <button type="button" className="rm-about-toggle" onClick={() => setAboutOpen((o) => !o)}>
+          Om prosjektet
+          <ChevronDown className={'rm-about-chev' + (aboutOpen ? ' open' : '')} />
+        </button>
         {linksEditing ? (
           <div className="plinks-edit">
             <input className="plink-input" placeholder="Live-URL (min-side.vercel.app)" value={liveVal} autoFocus onChange={(e) => setLiveVal(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveLinks(); if (e.key === 'Escape') setLinksEditing(false) }} />
@@ -535,7 +554,7 @@ export default function Roadmap({ projectId, onBack }) {
             <button type="button" className="precipe-rec" onClick={() => copyRecipe(recRecipe)}>
               <span className="precipe-rec-tag">Anbefalt nå</span>
               <span className="precipe-rec-main">
-                <span className="precipe-emoji">{recRecipe.emoji}</span>
+                <span className="precipe-emoji"><RecipeIcon name={recRecipe.icon} /></span>
                 {recRecipe.label}
               </span>
               <span className="precipe-rec-copy">Kopier ›</span>
@@ -547,7 +566,7 @@ export default function Roadmap({ projectId, onBack }) {
               <div className="precipes-chips">
                 {PROJECT_RECIPES.filter((r) => r.group === g).map((r) => (
                   <button key={r.key} type="button" className="precipe-chip" onClick={() => copyRecipe(r)} title="Kopier ferdig prompt med prosjektkontekst">
-                    <span className="precipe-emoji">{r.emoji}</span>{r.label}
+                    <span className="precipe-emoji"><RecipeIcon name={r.icon} /></span>{r.label}
                   </button>
                 ))}
               </div>
@@ -601,7 +620,7 @@ export default function Roadmap({ projectId, onBack }) {
           <span className="tpl-lbl">eller mal</span>
           {PROMPT_TEMPLATES.map((t) => (
             <button key={t.key} type="button" className="tpl-chip" onClick={() => setComposerTpl(t)}>
-              <span className="tpl-emoji">{t.emoji}</span>{t.label}
+              <span className="tpl-emoji"><t.Icon /></span>{t.label}
             </button>
           ))}
         </div>

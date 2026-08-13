@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion } from 'motion/react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
@@ -630,13 +630,20 @@ function SubCard({ sub, onAsk }) {
 
 /* ============ hovedmodul ============ */
 export default function Money() {
+  /* 13 måneder dekker alt modulen viser (trendgraf 12, snitt 6, faste-oppdagelse
+     12) — resten av historikken trenger vi ikke i minnet. */
+  const since = useMemo(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 13)
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`
+  }, [])
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
-  const expenses = useLiveQuery(() => listExpenses(), [], [])
+  const expenses = useLiveQuery(() => listExpenses(since), [since], [])
   const budgets = useLiveQuery(() => listBudgets(), [], [])
   const incomes = useLiveQuery(() => listIncomes(), [], [])
   const goals = useLiveQuery(() => listGoals(), [], [])
   const plans = useLiveQuery(() => listPlans(), [], [])
-  const inflows = useLiveQuery(() => listInflows(), [], [])
+  const inflows = useLiveQuery(() => listInflows(since), [since], [])
   const balances = useLiveQuery(() => listBalances(), [], [])
 
   const [tab, setTab] = useState('oversikt')
@@ -1264,7 +1271,7 @@ export default function Money() {
       {/* ===== bunn-bar per fane ===== */}
       {tab === 'forbruk' && (
         <div className="screen-bar">
-          <button type="button" className="money-fab" onClick={() => setSheet({ type: 'expense' })}>
+          <button type="button" className="money-fab" aria-label="Legg til forbruk" onClick={() => setSheet({ type: 'expense' })}>
             <Plus />
             Legg til forbruk
           </button>

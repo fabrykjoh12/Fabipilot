@@ -114,11 +114,11 @@ describe('buildRecipe', () => {
     expect(out).toContain('brutally honest')
   })
 
-  it('every recipe has a key, label, emoji, ask and a known group', () => {
+  it('every recipe has a key, label, icon, ask and a known group', () => {
     for (const r of PROJECT_RECIPES) {
       expect(r.key).toBeTruthy()
       expect(r.label).toBeTruthy()
-      expect(r.emoji).toBeTruthy()
+      expect(r.icon).toBeTruthy() // ikon-NAVN — Roadmap mapper det til en Lucide-komponent
       expect(r.ask.length).toBeGreaterThan(20)
       expect(RECIPE_GROUPS).toContain(r.group)
     }

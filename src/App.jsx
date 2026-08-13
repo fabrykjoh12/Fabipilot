@@ -6,14 +6,6 @@ import { Plus, Moon, Sun, Palette, ChevronRight, Sprout } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Tasks from './components/Tasks.jsx'
-import Calendar from './components/Calendar.jsx'
-import WhatNow from './components/WhatNow.jsx'
-import IdeaBank from './components/IdeaBank.jsx'
-import Habits from './components/Habits.jsx'
-import SharedList from './components/SharedList.jsx'
-import ShoppingList from './components/ShoppingList.jsx'
-import Workdays from './components/Workdays.jsx'
-import Garden from './components/Garden.jsx'
 import Capture from './components/Capture.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import NavIcon from './components/NavIcon.jsx'
@@ -33,10 +25,19 @@ import {
 } from './lib/notify.js'
 import { db, exportAll, importAll, pushAllToCloud, seedStarterPack, todayKey } from './db.js'
 
-/* Tunge moduler lastes først når de åpnes (Penger drar inn recharts,
-   Prosjekter er den største modulen). */
+/* Alt som ikke er en av mobilens tre faner lastes først når du åpner det.
+   Hovedpakken må ellers lastes ned i sin helhet før første skjerm, og på
+   mobildata merkes det på første besøk. Oversikt/Oppgaver/Prosjekter er
+   startskjermene og lastes med én gang. */
 const Money = lazy(() => import('./components/Money.jsx'))
 const Projects = lazy(() => import('./components/Projects.jsx'))
+const Calendar = lazy(() => import('./components/Calendar.jsx'))
+const WhatNow = lazy(() => import('./components/WhatNow.jsx'))
+const IdeaBank = lazy(() => import('./components/IdeaBank.jsx'))
+const Habits = lazy(() => import('./components/Habits.jsx'))
+const Lists = lazy(() => import('./components/Lists.jsx'))
+const Workdays = lazy(() => import('./components/Workdays.jsx'))
+const Garden = lazy(() => import('./components/Garden.jsx'))
 
 function ScreenFallback() {
   return <ScreenSkeleton />
@@ -53,7 +54,7 @@ const PRIMARY = ['overview', 'projects', 'today', 'ideas']
 const MOBILE_TABS = ['overview', 'today', 'projects']
 
 /* Moduler med egen «legg til»-linje nederst — der skjuler vi den flytende capture-knappen. */
-const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow', 'shared', 'shopping'])
+const HAS_COMPOSER = new Set(['today', 'ideas', 'habits', 'projects', 'whatnow', 'lists'])
 
 const MODULES = [
   // Primærflyt (rekkefølge = bunnfaner på mobil)
@@ -67,8 +68,7 @@ const MODULES = [
   { k: 'whatnow', label: 'Hva nå?', Comp: WhatNow },
   { k: 'habits', label: 'Vaner', Comp: Habits },
   { k: 'money', label: 'Penger', Comp: Money },
-  { k: 'shared', label: 'Delt', Comp: SharedList },
-  { k: 'shopping', label: 'Handleliste', Comp: ShoppingList },
+  { k: 'lists', label: 'Lister', Comp: Lists },
   { k: 'garden', label: 'Hage', Comp: Garden },
 ]
 

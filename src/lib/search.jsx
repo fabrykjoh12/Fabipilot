@@ -40,7 +40,26 @@ export function useSearchIndex(enabled = true) {
       for (const s of steps) out.push({ id: 's' + s.id, type: 'step', text: s.text, sub: (s.result || '').slice(0, 80) })
       for (const e of events) out.push({ id: 'e' + e.id, type: 'event', text: e.title, sub: [e.date, e.time].filter(Boolean).join(' ') })
       for (const h of habits) out.push({ id: 'h' + h.id, type: 'habit', text: h.name, sub: '' })
-      for (const x of expenses) out.push({ id: 'x' + x.id, type: 'expense', text: x.note || '(forbruk)', sub: x.date || '' })
+      /* Forbruk grupperes per BUTIKK, ikke per kjøp. Etter en bankimport er det
+         over tusen rader, og et søk på «Rema» ga hundrevis av nesten identiske
+         treff som skjøv oppgaver, prosjekter og idéer ut av lista. Ett treff per
+         butikk sier mer: hvor mange kjøp og hvor mye det er blitt. */
+      const byMerchant = new Map()
+      for (const x of expenses) {
+        const name = (x.note || '').trim() || 'Uten navn'
+        const key = name.toLowerCase()
+        const hit = byMerchant.get(key)
+        if (hit) { hit.count++; hit.total += x.amount || 0; if (x.date > hit.last) hit.last = x.date || '' }
+        else byMerchant.set(key, { name, count: 1, total: x.amount || 0, last: x.date || '' })
+      }
+      for (const [key, m] of byMerchant) {
+        out.push({
+          id: 'x' + key,
+          type: 'expense',
+          text: m.name,
+          sub: m.count === 1 ? `${Math.round(m.total)} kr · ${m.last}` : `${m.count} kjøp · ${Math.round(m.total)} kr`,
+        })
+      }
       for (const s of subs) out.push({ id: 'b' + s.id, type: 'sub', text: s.name, sub: '' })
       return out
     },

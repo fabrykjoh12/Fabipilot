@@ -180,6 +180,39 @@ function EventSheet({ initial, defaultDate, onClose }) {
 }
 
 /* ============ Hovedmodul ============ */
+/* Én oppgave i dagsagendaen — hak av rett i kalenderen. */
+function TaskRow({ task }) {
+  return (
+    <div className="cal-row cal-task">
+      <button
+        type="button"
+        className="cal-check"
+        aria-label={`Fullfør «${task.title}»`}
+        onClick={(e) => { vibrate([12, 30, 12]); burst(e.currentTarget); setTaskDone(task.id, true) }}
+      >
+        {CHECK}
+      </button>
+      <span className="cal-row-txt">{task.title}</span>
+    </div>
+  )
+}
+
+/* Én hendelse. */
+function EventRow({ ev, onOpen }) {
+  return (
+    <button type="button" className="cal-row cal-event" onClick={onOpen}>
+      <span className="cal-ev-bar" style={{ background: colorVal(ev.color) }} />
+      {ev.time && <span className="cal-time">{ev.time}</span>}
+      <span className="cal-row-txt">{ev.title}</span>
+      {ev.repeat && ev.repeat !== 'none' && <span className="cal-note-mark" aria-label="Gjentar">↻</span>}
+      {ev.note && <span className="cal-note-mark" aria-label="Har notat">≡</span>}
+      {!isPrivateRealm(ev.realmId) && (
+        <Users size={14} className="cal-note-mark" aria-label="Delt med kjæresten" />
+      )}
+    </button>
+  )
+}
+
 export default function Calendar() {
   const today = todayKey()
   const [cursor, setCursor] = useState(() => {
@@ -244,6 +277,19 @@ export default function Calendar() {
 
   const selEvents = eventsOn(selected)
   const selTasks = tasksByDate[selected] || []
+
+  /* Dagsagendaen skal leses ovenfra og ned som en dag: det som har klokkeslett
+     kommer i tidsrekkefølge, det uten tid samles øverst under én overskrift.
+     Før lå alle oppgaver først og alle hendelser etter, så en tannlegetime 14:30
+     havnet under en oppgave uten tid. */
+  const untimed = [
+    ...selTasks.map((t) => ({ kind: 'task', id: t.id, data: t })),
+    ...selEvents.filter((e) => !e.time).map((e) => ({ kind: 'event', id: e.id, data: e })),
+  ]
+  const timed = selEvents
+    .filter((e) => e.time)
+    .sort((a, b) => a.time.localeCompare(b.time))
+    .map((e) => ({ kind: 'event', id: e.id, data: e }))
   const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
 
   return (
@@ -324,37 +370,24 @@ export default function Calendar() {
             </div>
           )}
 
-          {selTasks.map((t) => (
-            <div key={t.id} className="cal-row cal-task">
-              <button
-                type="button"
-                className="cal-check"
-                aria-label="Fullfør oppgave"
-                onClick={(e) => {
-                  vibrate([12, 30, 12])
-                  burst(e.currentTarget)
-                  setTaskDone(t.id, true)
-                }}
-              >
-                {CHECK}
-              </button>
-              <span className="cal-row-txt">{t.title}</span>
-              <span className="cal-tag">oppgave</span>
-            </div>
-          ))}
+          {untimed.length > 0 && (
+            <>
+              {/* Én overskrift for hele bolken — ikke ett «OPPGAVE»-merke per rad. */}
+              <p className="cal-group-lbl">Uten klokkeslett</p>
+              {untimed.map((r) => (r.kind === 'task'
+                ? <TaskRow key={'t' + r.id} task={r.data} />
+                : <EventRow key={'e' + r.id} ev={r.data} onOpen={() => setSheet({ event: r.data })} />))}
+            </>
+          )}
 
-          {selEvents.map((ev) => (
-            <button key={ev.id} type="button" className="cal-row cal-event" onClick={() => setSheet({ event: ev })}>
-              <span className="cal-ev-bar" style={{ background: colorVal(ev.color) }} />
-              {ev.time && <span className="cal-time">{ev.time}</span>}
-              <span className="cal-row-txt">{ev.title}</span>
-              {ev.repeat && ev.repeat !== 'none' && <span className="cal-note-mark" aria-label="Gjentar">↻</span>}
-              {ev.note && <span className="cal-note-mark" aria-label="Har notat">≡</span>}
-              {!isPrivateRealm(ev.realmId) && (
-                <Users size={14} className="cal-note-mark" aria-label="Delt med kjæresten" />
-              )}
-            </button>
-          ))}
+          {timed.length > 0 && (
+            <>
+              {untimed.length > 0 && <p className="cal-group-lbl">Gjennom dagen</p>}
+              {timed.map((r) => (
+                <EventRow key={'e' + r.id} ev={r.data} onOpen={() => setSheet({ event: r.data })} />
+              ))}
+            </>
+          )}
         </div>
       </div>
 

@@ -406,8 +406,18 @@ export const monthlyCost = (s) => (s.cycle === 'yearly' ? (s.amount || 0) / 12 :
      vanlige rader i alle summeringer, bare skilt ut for gjenfinning/redigering.
    - budgets:  id, category, amount, createdAt  (én rad per kategori; månedsbeløp)
    ========================================================= */
-export async function listExpenses() {
-  return db.expenses.orderBy('date').reverse().toArray()
+/* Forbruk, nyeste først.
+
+   `since` (YYYY-MM-DD) begrenser hvor langt tilbake vi henter. Penger-modulen
+   trenger 13 måneder (trendgrafen, snitt over 6, faste-oppdagelsen over 12) —
+   ikke hele historikken. Uten grensen vokser minnebruken og hver omregning med
+   hver bankimport; med den er den konstant uansett hvor lenge du har brukt appen. */
+export async function listExpenses(since = null) {
+  const q = since
+    ? db.expenses.where('date').aboveOrEqual(since)
+    : db.expenses.orderBy('date')
+  const rows = await q.toArray()
+  return rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 }
 export async function addExpense({ amount, category = 'ovrig', sub = null, note = '', date }) {
   const e = {
@@ -909,8 +919,13 @@ export const deletePlan = (id) => db.plans.delete(id)
    - balances: holdepunkter — saldo ved SLUTTEN av en dato, lest av i banken.
                Et nytt holdepunkt overstyrer alt før det.
    ========================================================= */
-export async function listInflows() {
-  return db.inflows.orderBy('date').reverse().toArray()
+/** Innbetalinger, nyeste først. `since` som i listExpenses. */
+export async function listInflows(since = null) {
+  const q = since
+    ? db.inflows.where('date').aboveOrEqual(since)
+    : db.inflows.orderBy('date')
+  const rows = await q.toArray()
+  return rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 }
 export async function importBankInflows(rows) {
   const t = now()

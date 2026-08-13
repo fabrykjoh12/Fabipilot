@@ -332,7 +332,7 @@
 .money-fab {
   width: 100%;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--accent); color: #fff; border: 0;
+  background: var(--accent); color: var(--on-accent); border: 0;
   border-radius: 14px; padding: 15px;
   font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
   box-shadow: 0 6px 16px rgba(204, 136, 43, 0.26);
@@ -393,7 +393,7 @@
 .msheet-in:focus { border-color: var(--accent); }
 .msheet-save {
   width: 100%; margin-top: 18px;
-  background: var(--accent); color: #fff; border: 0;
+  background: var(--accent); color: var(--on-accent); border: 0;
   border-radius: 13px; padding: 15px;
   font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
   box-shadow: 0 6px 16px rgba(204, 136, 43, 0.26);
@@ -796,7 +796,7 @@
 .imp-file-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; padding: 15px; border-radius: var(--r-md); cursor: pointer;
-  background: var(--accent); color: #fff; font-size: 16px; font-weight: 600;
+  background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 600;
   box-shadow: var(--sh-accent);
 }
 .imp-file-btn input { display: none; }
@@ -903,7 +903,7 @@
 .plan-preview.bad { background: var(--danger-soft); color: var(--danger); }
 .plan-actions { display: flex; gap: 8px; }
 .plan-save {
-  flex: 1; border: 0; border-radius: var(--r-md); background: var(--accent); color: #fff;
+  flex: 1; border: 0; border-radius: var(--r-md); background: var(--accent); color: var(--on-accent);
   padding: 14px; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: var(--sh-accent);
 }
 .plan-save:disabled { background: var(--line-strong); box-shadow: none; cursor: default; }
@@ -1031,7 +1031,7 @@
   font-family: inherit; font-size: var(--t-sm); font-weight: 650; cursor: pointer;
   transition: background var(--t-fast), color var(--t-fast);
 }
-.found-add:hover { background: var(--accent); color: #fff; }
+.found-add:hover { background: var(--accent); color: var(--on-accent); }
 
 /* Bekreft-varianten av ask-arket */
 .msheet-hint-confirm { margin: -6px 0 18px; }

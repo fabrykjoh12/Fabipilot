@@ -1053,7 +1053,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
   padding: 3px 7px;
   border-radius: 999px;
@@ -1212,7 +1212,7 @@
   border: 0;
   border-radius: 10px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-xs);
   font-weight: 700;
@@ -1368,4 +1368,11 @@
   color: var(--ink-soft);
   overflow-x: auto;
   white-space: pre;
+}
+
+/* Mal- og oppskrift-merkene er appens egne ikoner, ikke brukervalgte emoji. */
+.tpl-emoji, .precipe-emoji { display: inline-grid; place-items: center; }
+.tpl-emoji svg, .precipe-emoji svg {
+  width: 15px; height: 15px; stroke: currentColor; stroke-width: 2;
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
 }

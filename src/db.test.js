@@ -1,6 +1,9 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { db, addTask, setTaskDone, addIdea, addProject, addHabit, addProjectItem, exportAll, importAll } from './db.js'
+import { db, addTask, setTaskDone, addIdea, addProject, addHabit, addProjectItem, exportAll, importAll,
+  listExpenses,
+  listInflows,
+} from './db.js'
 import { legacyMoneyCategory } from './lib/migrations.js'
 
 // Domenetabellene vi rører i disse testene — nullstilles mellom hver test.
@@ -104,5 +107,30 @@ describe('exportAll / importAll', () => {
 
   it('rejects a non-object backup', async () => {
     await expect(importAll(null)).rejects.toThrow()
+  })
+})
+
+describe('listExpenses/listInflows med tidsvindu', () => {
+  /* Penger holder bare 13 måneder i minnet. Grensen må faktisk kutte, og
+     rekkefølgen (nyeste først) må overleve at vi bytter fra orderBy til where. */
+  it('henter bare fra og med `since`, nyeste først', async () => {
+    await db.expenses.clear()
+    await db.expenses.bulkAdd([
+      { id: 'a', date: '2024-01-15', amount: 100, category: 'ovrig', createdAt: 1 },
+      { id: 'b', date: '2026-03-02', amount: 200, category: 'ovrig', createdAt: 2 },
+      { id: 'c', date: '2026-08-09', amount: 300, category: 'ovrig', createdAt: 3 },
+    ])
+    expect((await listExpenses()).map((e) => e.id)).toEqual(['c', 'b', 'a'])
+    expect((await listExpenses('2026-01-01')).map((e) => e.id)).toEqual(['c', 'b'])
+    expect(await listExpenses('2027-01-01')).toEqual([])
+  })
+
+  it('gjør det samme for innbetalinger', async () => {
+    await db.inflows.clear()
+    await db.inflows.bulkAdd([
+      { id: 'x', date: '2024-05-01', amount: 50, kind: 'inntekt', createdAt: 1 },
+      { id: 'y', date: '2026-08-02', amount: 6000, kind: 'inntekt', createdAt: 2 },
+    ])
+    expect((await listInflows('2026-01-01')).map((r) => r.id)).toEqual(['y'])
   })
 })

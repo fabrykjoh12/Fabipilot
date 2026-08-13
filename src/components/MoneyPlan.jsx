@@ -51,10 +51,6 @@ function PlanForm({ suggestion, onDone, onCancel }) {
   return (
     <div className="plan-form card">
       <h3 className="plan-form-ttl">Ny spareperiode</h3>
-      <p className="plan-form-sub">
-        For en periode uten (eller med lite) inntekt — f.eks. en lang reise. Appen regner ut hvor mye
-        du kan bruke per dag for at pengene skal vare hele veien.
-      </p>
 
       <Field label="Hva kaller vi den?">
         <input className="plan-in" value={name} onChange={(e) => setName(e.target.value)} placeholder="Japan" />

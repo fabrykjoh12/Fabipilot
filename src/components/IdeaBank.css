@@ -77,7 +77,7 @@
    hvit-på-hvit i mørk modus (der --ink er nesten hvit). */
 .ideabank .chip.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 .ideabank .chip.star.active {

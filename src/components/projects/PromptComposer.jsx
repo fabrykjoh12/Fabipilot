@@ -30,7 +30,7 @@ export default function PromptComposer({ template, onSwitch, onAdd, onClose }) {
               className={'pcomp-tab' + (t.key === template.key ? ' on' : '')}
               onClick={() => pickTemplate(t)}
             >
-              <span className="tpl-emoji">{t.emoji}</span>{t.label}
+              <span className="tpl-emoji"><t.Icon /></span>{t.label}
             </button>
           ))}
         </div>

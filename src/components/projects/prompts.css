@@ -20,7 +20,7 @@
   transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
 }
 .roadmap .ai-pill.ai-asked { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-.roadmap .ai-pill.ai-built { color: #fff; border-color: var(--accent); background: var(--accent); }
+.roadmap .ai-pill.ai-built { color: var(--on-accent); border-color: var(--accent); background: var(--accent); }
 .roadmap .ai-pill.ai-verified { color: #fff; border-color: var(--forest); background: var(--forest); }
 
 
@@ -83,7 +83,7 @@
   border: 0;
   border-radius: var(--r-sm);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-sm);
   font-weight: 700;
@@ -154,7 +154,7 @@
   border: 0;
   border-radius: var(--r-full);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-md);
   font-weight: 700;
@@ -257,7 +257,7 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-md);
   font-weight: 700;
@@ -325,7 +325,7 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-md);
   font-weight: 700;

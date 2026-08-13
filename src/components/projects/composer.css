@@ -30,7 +30,7 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-md);
   font-weight: 700;
@@ -178,7 +178,7 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-family: inherit;
   font-size: var(--t-lg);
   font-weight: 700;

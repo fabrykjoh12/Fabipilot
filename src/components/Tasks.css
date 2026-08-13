@@ -65,7 +65,7 @@
   cursor: pointer;
   transition: background var(--t-fast), color var(--t-fast);
 }
-.th-carry:hover { background: var(--accent); color: #fff; }
+.th-carry:hover { background: var(--accent); color: var(--on-accent); }
 
 /* seksjon: rolig grå label, ingen strek/pille */
 .tasks .sec { margin-top: var(--sec-gap); }

@@ -85,7 +85,7 @@
   background: var(--accent);
   border-color: var(--accent);
 }
-.wd-cell.me .wd-day { color: #fff; }
+.wd-cell.me .wd-day { color: var(--on-accent); }
 /* Kjærestens jobb-dag — liten prikk øverst til høyre */
 .wd-partner-dot {
   position: absolute;

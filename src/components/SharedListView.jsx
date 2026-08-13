@@ -5,6 +5,7 @@ import {
   listSharedMembers, inviteToShared, removeSharedMember, ensureSharedRealm, db,
 } from '../db.js'
 import { vibrate, burst } from '../lib/fx.js'
+import { Users, ShoppingCart } from 'lucide-react'
 
 const CHECK = (
   <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" /></svg>
@@ -53,7 +54,7 @@ function Item({ item }) {
 /* Delt, avhukbar liste — motoren bak «Delt» og «Handleliste». Begge lister
    deler ÉTT Dexie Cloud-realm (samme personer ser begge), og partisjoneres
    kun via `list`-feltet på hvert item. Se `ensureSharedRealm` i db.js. */
-export default function SharedListView({ list, title, placeholder, emptyGlyph, emptyTitle, emptyHint }) {
+export default function SharedListView({ list, title, placeholder, emptyTitle, emptyHint, tabs }) {
   const items = useLiveQuery(() => listSharedItems(list), [list], [])
   const members = useLiveQuery(() => listSharedMembers().catch(() => []), [], [])
   const realmId = useLiveQuery(() => ensureSharedRealm().catch(() => null), [], null)
@@ -101,6 +102,8 @@ export default function SharedListView({ list, title, placeholder, emptyGlyph, e
           </button>
         </div>
 
+        {tabs}
+
         {showInvite && (
           <div className="share-panel card">
             <span className="share-lbl">Inviter på e-post</span>
@@ -144,7 +147,7 @@ export default function SharedListView({ list, title, placeholder, emptyGlyph, e
         <div style={{ marginTop: 20 }}>
           {items.length === 0 ? (
             <div className="empty">
-              <div className="glyph">{emptyGlyph}</div>
+              <div className="glyph">{list === 'handleliste' ? <ShoppingCart /> : <Users />}</div>
               <p className="em-ttl">{emptyTitle}</p>
               <p>{emptyHint}</p>
             </div>
