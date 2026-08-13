@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star, Check } from 'lucide-react'
+import { Sun, Repeat, Wallet, FolderKanban, Lightbulb, ArrowRight, Flower2, Star, Check, LayoutGrid } from 'lucide-react'
 import { db, todayKey, tomorrowKey, monthlyCost, setTaskDone, setTaskDate } from '../db.js'
 import { kr, burst, vibrate } from '../lib/fx.js'
 import { AnimatedNumber, Reveal } from '../lib/ui.jsx'
@@ -399,7 +399,7 @@ export default function Overview({ onNav }) {
 
         {visible.length === 0 && !editing && (
           <div className="empty">
-            <div className="glyph">🫥</div>
+            <div className="glyph"><LayoutGrid /></div>
             <p className="em-ttl">Alle kort er skjult</p>
             <p>Trykk «Tilpass» for å hente dem tilbake.</p>
           </div>

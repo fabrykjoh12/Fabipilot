@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion, useMotionValue, useTransform } from 'motion/react'
-import { Star, Moon, CalendarPlus, ChevronDown, Plus, Clock, Repeat, X } from 'lucide-react'
+import { Star, Moon, CalendarPlus, ChevronDown, Plus, Clock, Repeat, X, Sprout, Compass } from 'lucide-react'
 import {
   db, addTask, updateTask, setTaskDone, setTaskFocus,
   snoozeTaskToTomorrow, deleteWithRestore, restoreRecord, setTaskDate,
@@ -108,10 +108,10 @@ function TaskRow({ task, today, tom, focusCount }) {
   }
   function onDragEnd(_e, info) {
     if (info.offset.x > THRESH) handleCheck()
-    else if (info.offset.x < -THRESH) { snoozeTaskToTomorrow(task.id); toast.message('Utsatt til i morgen 🌙') }
+    else if (info.offset.x < -THRESH) { snoozeTaskToTomorrow(task.id); toast.message('Utsatt til i morgen') }
   }
   function onFocusToggle() {
-    if (!task.isFocus && focusCount >= MAX_FOCUS) { toast.message('Maks 3 i fokus — hold det enkelt 🌱'); return }
+    if (!task.isFocus && focusCount >= MAX_FOCUS) { toast.message('Maks 3 i fokus — hold det enkelt'); return }
     vibrate(6); setTaskFocus(task.id, !task.isFocus)
   }
   function saveEdit() {
@@ -265,7 +265,7 @@ function TodayHero({ done, total, remaining, overdue, onCarry, onSuggest }) {
         <div className="th-main">
           <span className="th-lbl">I dag</span>
           <span className="th-sub">
-            {total === 0 ? 'ingenting planlagt ennå' : allDone ? 'alt gjort — nyt det 🎉' : `${remaining} igjen · ${done} gjort`}
+            {total === 0 ? 'ingenting planlagt ennå' : allDone ? 'alt gjort — nyt det' : `${remaining} igjen · ${done} gjort`}
           </span>
           {overdue > 0 && (
             <button type="button" className="th-carry" onClick={onCarry}>
@@ -274,7 +274,7 @@ function TodayHero({ done, total, remaining, overdue, onCarry, onSuggest }) {
           )}
           {total === 0 && onSuggest && (
             <button type="button" className="th-carry" onClick={onSuggest}>
-              💡 Foreslå noe fra listene mine
+              <Compass /> Foreslå noe fra listene mine
             </button>
           )}
         </div>
@@ -352,7 +352,7 @@ export default function Tasks({ onNav }) {
 
         {empty && (
           <div className="empty">
-            <div className="glyph">🌱</div>
+            <div className="glyph"><Sprout /></div>
             <p className="em-ttl">Blank liste</p>
             <p>Skriv det første du vil få gjort nederst. Prøv «ring tannlegen fredag» — den daterer seg selv.</p>
           </div>

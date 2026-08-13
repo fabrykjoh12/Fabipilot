@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Repeat, ChevronUp, ChevronDown } from 'lucide-react'
 import { listHabits, addHabit, updateHabit, deleteWithRestore, restoreRecord, toggleHabitDay, todayKey, db } from '../db.js'
 import { vibrate } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
@@ -69,7 +70,7 @@ function HabitCard({ habit, habits, idx, days, today, view }) {
   }
 
   return (
-    <div className="habit card">
+    <div className="habit">
       <div className="habit-row">
         <button
           type="button"
@@ -105,10 +106,6 @@ function HabitCard({ habit, habits, idx, days, today, view }) {
         ) : (
           <div className="habit-name" onClick={startEdit} title="Trykk for å redigere">{habit.name}</div>
         )}
-        <div className="habit-actions">
-          <button type="button" className="sort-btn" aria-label="Flytt opp" disabled={idx === 0} onClick={() => moveHabit(habit.id, -1, habits)}>▲</button>
-          <button type="button" className="sort-btn" aria-label="Flytt ned" disabled={idx === habits.length - 1} onClick={() => moveHabit(habit.id, 1, habits)}>▼</button>
-        </div>
       </div>
 
       {customizing && (
@@ -134,6 +131,13 @@ function HabitCard({ habit, habits, idx, days, today, view }) {
                   onClick={() => updateHabit(habit.id, { weeklyGoal: w })}
                 >{w ? `${w}x` : 'Av'}</button>
               ))}
+            </div>
+          </div>
+          <div className="hc-sort">
+            <span className="hc-weekly-lbl">Rekkefølge</span>
+            <div className="hc-sort-btns">
+              <button type="button" className="sort-btn" aria-label="Flytt opp" disabled={idx === 0} onClick={() => moveHabit(habit.id, -1, habits)}><ChevronUp /></button>
+              <button type="button" className="sort-btn" aria-label="Flytt ned" disabled={idx === habits.length - 1} onClick={() => moveHabit(habit.id, 1, habits)}><ChevronDown /></button>
             </div>
           </div>
           <div className="hc-acts">
@@ -227,7 +231,7 @@ export default function Habits() {
         <div style={{ marginTop: 20 }}>
           {habits.length === 0 ? (
             <div className="empty">
-              <div className="glyph">🌿</div>
+              <div className="glyph"><Repeat /></div>
               <p className="em-ttl">Ingen vaner enda</p>
               <p>Legg til én liten ting du vil gjøre ofte — drikke vann, lese, gå en tur. Ingen streaks, ingen skam.</p>
             </div>
@@ -239,7 +243,7 @@ export default function Habits() {
             <div className="habit-archive">
               <button type="button" className="habit-archive-head" onClick={() => setShowArchived((s) => !s)}>
                 Arkiverte<span className="ct">{archived.length}</span>
-                <span className={'chev' + (showArchived ? ' open' : '')}>▼</span>
+                <ChevronDown className={'chev' + (showArchived ? ' open' : '')} />
               </button>
               {showArchived && archived.map((h) => (
                 <div key={h.id} className="archived-row">

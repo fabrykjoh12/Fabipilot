@@ -901,14 +901,32 @@
   padding: 48px 20px 20px;
   color: var(--muted);
 }
+/* Tomtilstandene brukte emoji som illustrasjon. Et strekikon i en rolig sirkel
+   sier det samme uten å bryte med ikonspråket ellers. */
 .empty .glyph {
-  font-size: 32px;
-  margin-bottom: 10px;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+}
+.empty .glyph svg {
+  width: 23px;
+  height: 23px;
+  stroke: var(--muted);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .empty .em-ttl {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 20px;
+  font-weight: 700;
+  font-size: var(--t-h2);
+  letter-spacing: -0.02em;
   color: var(--ink);
   margin: 0 0 8px;
 }
@@ -1284,13 +1302,18 @@
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 0.3s ease 0.05s;
 }
+/* Vaner er en LISTE — regelen sier rene rader med hårstrek, ikke ett kort per rad.
+   Tretti vaner som tretti hvite kort blir en tung skroll uten at noe blir tydeligere. */
 .habit {
-  padding: 14px 16px 12px;
+  padding: 4px 2px 12px;
+  border-bottom: 1px solid var(--line);
 }
+.habit:last-of-type { border-bottom: 0; }
 .habit-row {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
+  padding: 12px 0 2px;
 }
 .habit-emoji {
   flex: 0 0 auto;
@@ -1305,7 +1328,7 @@
 }
 .habit-name {
   flex: 1;
-  font-size: 16px;
+  font-size: var(--t-lg);
   font-weight: 500;
   min-width: 0;
   word-break: break-word;
@@ -1456,7 +1479,11 @@
   padding: 6px 2px;
 }
 .habit-archive-head .ct { font-weight: 600; }
-.habit-archive-head .chev { margin-left: auto; transition: transform 0.2s; font-size: 11px; }
+.habit-archive-head .chev {
+  margin-left: auto; transition: transform 0.2s;
+  width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2;
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+}
 .habit-archive-head .chev.open { transform: rotate(180deg); }
 .archived-row {
   display: flex;
@@ -3377,3 +3404,21 @@ label.backup-action {
 /* ===== Startpakke-kort ===== */
 .starter-card { text-align: center; }
 .starter-glyph { font-size: 38px; margin-bottom: 4px; }
+
+/* Rekkefølge-knappene bor i tilpass-panelet, ikke på hver rad — der konkurrerte
+   de med avhukingen, som er det du faktisk kommer for å gjøre. */
+.hc-sort {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 10px;
+}
+.hc-sort-btns { display: flex; gap: 6px; }
+.hc-sort .sort-btn {
+  width: 34px; height: 34px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--surface);
+  display: grid; place-items: center; cursor: pointer; color: var(--ink);
+}
+.hc-sort .sort-btn:disabled { opacity: .35; cursor: default; }
+.hc-sort .sort-btn svg {
+  width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.2;
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+}

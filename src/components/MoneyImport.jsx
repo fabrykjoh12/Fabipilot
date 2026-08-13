@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Landmark } from 'lucide-react'
 import { buildImportPlan } from '../lib/bankImport.js'
 import { CATEGORIES, subsFor } from '../lib/categories.js'
 import { importBankExpenses, listExpenseImportKeys, importBankInflows, listInflowImportKeys } from '../db.js'
@@ -104,7 +105,7 @@ export default function MoneyImportSheet({ onClose }) {
             </p>
             <label className="imp-file-btn">
               <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={onFile} />
-              🏦 Velg fil fra banken…
+              <Landmark /> Velg fil fra banken…
             </label>
             <p className="imp-note">
               Overføringer mellom egne kontoer og alt som er importert før, hoppes over automatisk.

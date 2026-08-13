@@ -1,18 +1,21 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useLiveQuery } from 'dexie-react-hooks'
+import { CheckCircle2, Lightbulb, FolderKanban, CornerDownRight, CalendarDays, Repeat, Receipt, CreditCard } from 'lucide-react'
 import { db } from '../db.js'
 
 /* Søkeindeks på tvers av modulene — brukes av ⌘K-paletten (Capture).
    Hvert treff peker på modulen sin (matcher MODULES-nøklene i App.jsx). */
+/* Ikon, ikke emoji: treffene står side om side med appens strekikoner, og emoji
+   der ser ut som noe som ble glemt. */
 export const SEARCH_TYPES = {
-  task: { label: 'Oppgave', emoji: '✅', mod: 'today' },
-  idea: { label: 'Idébank', emoji: '💡', mod: 'ideas' },
-  project: { label: 'Prosjekt', emoji: '📁', mod: 'projects' },
-  step: { label: 'Prosjektsteg', emoji: '↳', mod: 'projects' },
-  event: { label: 'Kalender', emoji: '📅', mod: 'calendar' },
-  habit: { label: 'Vane', emoji: '🌿', mod: 'habits' },
-  expense: { label: 'Forbruk', emoji: '💸', mod: 'money' },
-  sub: { label: 'Abonnement', emoji: '💳', mod: 'money' },
+  task: { label: 'Oppgave', Icon: CheckCircle2, mod: 'today' },
+  idea: { label: 'Idébank', Icon: Lightbulb, mod: 'ideas' },
+  project: { label: 'Prosjekt', Icon: FolderKanban, mod: 'projects' },
+  step: { label: 'Prosjektsteg', Icon: CornerDownRight, mod: 'projects' },
+  event: { label: 'Kalender', Icon: CalendarDays, mod: 'calendar' },
+  habit: { label: 'Vane', Icon: Repeat, mod: 'habits' },
+  expense: { label: 'Forbruk', Icon: Receipt, mod: 'money' },
+  sub: { label: 'Abonnement', Icon: CreditCard, mod: 'money' },
 }
 
 /** Bygger hele indeksen. `enabled=false` → tom liste (koster ingenting). */

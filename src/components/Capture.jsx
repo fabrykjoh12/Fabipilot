@@ -147,7 +147,7 @@ export default function Capture({ open, onClose, onNav }) {
                   className="cap-hit"
                   onClick={() => { onNav?.(m.mod); close() }}
                 >
-                  <span className="cap-hit-emoji">{m.emoji}</span>
+                  <span className="cap-hit-emoji"><m.Icon /></span>
                   <span className="cap-hit-text"><Highlight text={r.text || ''} q={query} /></span>
                   <span className="cap-hit-tag">{m.label}</span>
                 </button>

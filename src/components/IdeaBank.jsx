@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Star } from 'lucide-react'
+import { Star, Lightbulb, Plus } from 'lucide-react'
 import { listIdeas, addIdea, updateIdea, deleteWithRestore, restoreRecord, promoteIdeaToProject } from '../db.js'
 import { burst, vibrate, reduceMotion, autoGrow, fmtDate } from '../lib/fx.js'
 import { toast } from '../lib/ui.jsx'
@@ -316,7 +316,7 @@ export default function IdeaBank() {
         <div id="list">
           {view.length === 0 ? (
             <div className="empty">
-              <div className="glyph">💡</div>
+              <div className="glyph"><Lightbulb /></div>
               <p className="em-ttl">{ideas.length === 0 ? 'Ingen ideer enda' : 'Ingenting her'}</p>
               <p>
                 {ideas.length === 0
@@ -363,9 +363,7 @@ export default function IdeaBank() {
             disabled={cap.trim() === ''}
             onClick={handleAdd}
           >
-            <svg viewBox="0 0 24 24">
-              <path d="M12 19V5M5 12l7-7 7 7" />
-            </svg>
+            <Plus />
           </button>
         </div>
       </div>

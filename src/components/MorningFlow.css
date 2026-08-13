@@ -27,7 +27,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -46,7 +46,7 @@
   line-height: 1.05;
 }
 .mf-pep {
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--muted);
   font-weight: 500;
   margin: 0 0 16px;
@@ -64,7 +64,7 @@
 }
 .mf-carry-txt {
   flex: 1;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   color: var(--ink-soft);
 }
@@ -74,7 +74,7 @@
   background: var(--forest);
   color: #fff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   padding: 8px 13px;
   border-radius: var(--r-sm);
@@ -91,7 +91,7 @@
 }
 .mf-block-lbl {
   display: block;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -99,7 +99,7 @@
   margin-bottom: 10px;
 }
 .mf-empty {
-  font-size: 14px;
+  font-size: var(--t-md);
   color: var(--muted);
   line-height: 1.5;
   margin: 0;
@@ -152,14 +152,14 @@
 .mf-task-ttl {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: var(--t-md);
   font-weight: 500;
   color: var(--ink);
   word-break: break-word;
 }
 .mf-task-est {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: var(--t-xs);
   font-weight: 600;
   color: var(--forest);
   font-variant-numeric: tabular-nums;
@@ -195,13 +195,13 @@
   margin-bottom: 5px;
 }
 .mf-stat-main {
-  font-size: 15px;
+  font-size: var(--t-md);
   font-weight: 700;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .mf-stat-sub {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--muted);
   font-weight: 500;
 }
@@ -219,7 +219,7 @@
   border-radius: var(--r-md);
   padding: 14px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: var(--t-lg);
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--sh-accent);
@@ -246,7 +246,7 @@
   border: 0;
   color: var(--muted);
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--t-md);
   font-weight: 600;
   padding: 12px 8px 4px;
   cursor: pointer;

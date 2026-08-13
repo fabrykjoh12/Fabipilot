@@ -307,22 +307,26 @@
 
 /* forbruk-liste */
 .exp-list { display: flex; flex-direction: column; gap: 8px; }
+/* Forbruk er en LISTE — rene rader med hårstrek, ikke ett kort per kjøp.
+   Tretti kjøp ble tretti hvite kort med hver sin skygge; det var den tyngste
+   skrollen i appen. */
 .exp-row {
   display: flex; align-items: center; gap: 12px;
   width: 100%; text-align: left;
-  background: var(--surface); border: 1px solid transparent;
-  border-radius: 14px; padding: 12px 14px;
-  box-shadow: var(--shadow); cursor: pointer; font-family: inherit;
-  animation: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  background: none; border: 0; border-top: 1px solid var(--line);
+  border-radius: 0; padding: 13px 2px;
+  box-shadow: none; cursor: pointer; font-family: inherit;
 }
+.exp-row:first-of-type { border-top: 0; }
+.exp-row:active { background: var(--surface-2); }
 .exp-emoji {
-  flex: 0 0 auto; width: 36px; height: 36px;
-  border-radius: 10px; display: grid; place-items: center; font-size: 18px;
+  flex: 0 0 auto; width: 32px; height: 32px;
+  border-radius: 9px; display: grid; place-items: center; font-size: 16px;
 }
-.exp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.exp-title { font-size: 15px; font-weight: 500; color: var(--ink); word-break: break-word; }
-.exp-meta { font-size: 12.5px; color: var(--muted); }
-.exp-amt { flex: 0 0 auto; font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.exp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.exp-title { font-size: var(--t-md); font-weight: 550; color: var(--ink); word-break: break-word; }
+.exp-meta { font-size: var(--t-xs); color: var(--muted); }
+.exp-amt { flex: 0 0 auto; font-size: var(--t-md); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 /* legg-til-forbruk-knapp (bunn) */
 .money-fab {
@@ -771,17 +775,17 @@
 }
 
 /* ===== Forbruk: dagsgrupper ===== */
-.exp-day { display: flex; flex-direction: column; gap: 6px; }
-.exp-day + .exp-day { margin-top: 14px; }
+.exp-day { display: flex; flex-direction: column; }
+.exp-day + .exp-day { margin-top: var(--sec-gap); }
 .exp-day-head {
   display: flex; align-items: baseline; justify-content: space-between;
-  padding: 0 6px;
+  padding: 0 2px 8px;
 }
 .exp-day-lbl {
-  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.07em;
   text-transform: uppercase; color: var(--muted);
 }
-.exp-day-sum { font-size: 12.5px; font-weight: 600; color: var(--faint); font-variant-numeric: tabular-nums; }
+.exp-day-sum { font-size: var(--t-xs); font-weight: 600; color: var(--faint); font-variant-numeric: tabular-nums; }
 .exp-tools { display: flex; gap: 8px; margin-bottom: 16px; }
 .exp-tools .budget-add { flex: 1; }
 

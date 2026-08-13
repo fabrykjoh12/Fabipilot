@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion } from 'motion/react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, X, PieChart as PieChartIcon, Target, Receipt, CreditCard, Landmark, BarChart3, Lightbulb, Wand2 } from 'lucide-react'
 import {
   listSubscriptions, addSubscription, updateSubscription, monthlyCost,
   listExpenses, addExpense, updateExpense, deleteExpense, listBudgets, setBudget, todayKey,
@@ -932,7 +932,7 @@ export default function Money() {
               {isCurrentMonth && projected > 0 && paceBasis > 0 && today.getDate() >= 3 && (
                 <span className={'bs-pace ' + (paceDiff >= 0 ? 'good' : 'bad')}>
                   {paceDiff >= 0
-                    ? `Holder tempoet ender du ${kr(paceDiff)} under ${totalBudget > 0 ? 'budsjett' : 'inntekt'} 🎉`
+                    ? `Holder tempoet ender du ${kr(paceDiff)} under ${totalBudget > 0 ? 'budsjett' : 'inntekt'}`
                     : `Holder tempoet ender du ${kr(Math.abs(paceDiff))} over ${totalBudget > 0 ? 'budsjett' : 'inntekt'}`}
                 </span>
               )}
@@ -954,7 +954,7 @@ export default function Money() {
                   </div>
                 ))}
                 {reserve > 0 && (
-                  <div className="uc-reserve">💡 Sett av {kr(reserve)}/mnd til årlige regninger</div>
+                  <div className="uc-reserve"><Lightbulb /> Sett av {kr(reserve)}/mnd til årlige regninger</div>
                 )}
               </div>
             )}
@@ -970,7 +970,7 @@ export default function Money() {
 
             {catRows.length === 0 ? (
               <div className="empty">
-                <div className="glyph">📊</div>
+                <div className="glyph"><PieChartIcon /></div>
                 <p className="em-ttl">Ingen tall enda</p>
                 <p>Logg forbruk under «Forbruk», eller sett et budsjett her — så ser du oversikten.</p>
               </div>
@@ -1003,7 +1003,7 @@ export default function Money() {
 
             {budgetSuggestion.monthsCounted >= 2 && totalBudget === 0 && (
               <button type="button" className="budget-suggest" onClick={applySuggestedBudgets}>
-                ✨ Foreslå budsjett fra de siste {budgetSuggestion.monthsCounted} månedene
+                <Wand2 /> Foreslå budsjett fra de siste {budgetSuggestion.monthsCounted} månedene
                 <span>Du har brukt {kr(Math.round(budgetSuggestion.perMonth))} i snitt per måned</span>
               </button>
             )}
@@ -1063,7 +1063,7 @@ export default function Money() {
           <>
             {goals.length === 0 ? (
               <div className="empty">
-                <div className="glyph">🎯</div>
+                <div className="glyph"><Target /></div>
                 <p className="em-ttl">Ingen sparemål enda</p>
                 <p>Lag et mål nederst — ferie, ny telefon, buffer — og legg til etter hvert som du sparer.</p>
               </div>
@@ -1140,16 +1140,16 @@ export default function Money() {
 
             <div className="exp-tools">
               <button type="button" className="budget-add" onClick={() => setSheet({ type: 'bankImport' })}>
-                🏦 Importer fra banken
+                <Landmark /> Importer fra banken
               </button>
               <button type="button" className="budget-add" onClick={() => setSheet({ type: 'monthlyTotals' })}>
-                📊 Fyll inn hele måneden
+                <BarChart3 /> Fyll inn hele måneden
               </button>
             </div>
 
             {monthExpenses.length === 0 ? (
               <div className="empty">
-                <div className="glyph">🧾</div>
+                <div className="glyph"><Receipt /></div>
                 <p className="em-ttl">Ingen forbruk logget</p>
                 <p>Importer kontoutskriften fra banken over — eller logg kjøp med knappen nederst.</p>
               </div>
@@ -1250,7 +1250,7 @@ export default function Money() {
 
             {subs.length === 0 && recurringFound.length === 0 ? (
               <div className="empty">
-                <div className="glyph">💳</div>
+                <div className="glyph"><CreditCard /></div>
                 <p className="em-ttl">Ingen abonnement enda</p>
                 <p>Legg inn faste utgifter nederst — Spotify, Netflix, treningssenter.</p>
               </div>

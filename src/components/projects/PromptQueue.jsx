@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PartyPopper } from 'lucide-react'
 import { updateProjectItem } from '../../db.js'
 import { vibrate } from '../../lib/fx.js'
 import { toast, useEscape } from '../../lib/ui.jsx'
@@ -51,7 +52,7 @@ export default function PromptQueue({ items, project, onClose }) {
         </div>
         {atEnd ? (
           <div className="pq-done">
-            <div className="pq-done-glyph">🎉</div>
+            <div className="pq-done-glyph"><PartyPopper /></div>
             <p className="pq-done-ttl">Køen er gjennomgått</p>
             <button type="button" className="pq-cta" onClick={onClose}>Ferdig</button>
           </div>

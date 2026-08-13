@@ -59,7 +59,7 @@ export default function MorningFlow({ onNav, onDone }) {
 
   function toggleFocus(t) {
     if (!t.isFocus && focusCount >= MAX_FOCUS) {
-      toast.message('Maks 3 i fokus — hold det enkelt 🌱')
+      toast.message('Maks 3 i fokus — hold det enkelt')
       return
     }
     vibrate(8)

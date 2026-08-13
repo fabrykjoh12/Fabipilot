@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Rocket } from 'lucide-react'
 import { db, listProjects, addProject, moveProject, updateProjectItem } from '../../db.js'
 import { vibrate } from '../../lib/fx.js'
 import { colorVal, touchedText } from './shared.jsx'
@@ -136,7 +137,7 @@ export default function ProjectsList({ onOpen }) {
               )}
               {stat.total > 0 && (
                 <span className={'plist-chip launch' + (launch.ready ? ' ready' : '')} title="Launch-beredskap">
-                  🚀 {launch.doneCount}/{launch.total}
+                  <Rocket /> {launch.doneCount}/{launch.total}
                 </span>
               )}
               {p.liveUrl && <span className="plist-ind" title="Har live-lenke">↗</span>}
@@ -204,7 +205,7 @@ export default function ProjectsList({ onOpen }) {
 
         {projects.length === 0 && (
           <div className="empty">
-            <div className="glyph">🛩️</div>
+            <div className="glyph"><Rocket /></div>
             <p className="em-ttl">Start ditt første prosjekt</p>
             <p>Et prosjekt samler alt: mål, repo- og live-lenker, Claude-kontekst, en roadmap og en prompt-kø.</p>
             <p className="em-flow">Idé → Prosjekt → Roadmap → Prompt-kø → Levert</p>

@@ -20,7 +20,7 @@
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 10px;
-  font-size: 18px;
+  font-size: var(--t-h2);
   color: var(--ink-soft);
   cursor: pointer;
   display: grid;
@@ -34,7 +34,7 @@
   background: none;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 17px;
+  font-size: var(--t-lg);
   letter-spacing: -0.01em;
   color: var(--ink);
   text-transform: capitalize;
@@ -51,7 +51,7 @@
 }
 .wd-wd {
   text-align: center;
-  font-size: 11px;
+  font-size: var(--t-2xs);
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--faint);
@@ -71,7 +71,7 @@
 }
 .wd-cell:active { transform: scale(0.93); }
 .wd-day {
-  font-size: 14.5px;
+  font-size: var(--t-md);
   font-weight: 600;
   color: var(--ink-soft);
 }
@@ -111,7 +111,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 500;
   color: var(--muted);
 }

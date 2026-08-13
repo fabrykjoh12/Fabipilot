@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { Play, BrainCircuit } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   db,
@@ -297,7 +298,7 @@ export default function Roadmap({ projectId, onBack }) {
           {queue.length > 0 && (
             <div className="phead-run">
               <button type="button" className="prun" onClick={() => setQueueOpen(true)}>
-                ▶ Kjør i Claude <span className="prun-ct">{queue.length}</span>
+                <Play /> Kjør i Claude <span className="prun-ct">{queue.length}</span>
               </button>
               <button type="button" className="pcopyall" onClick={copyAll} title="Kopier hele prompt-køen som én liste">
                 {COPY} Kopier prompt-kø
@@ -454,7 +455,7 @@ export default function Roadmap({ projectId, onBack }) {
           />
         ) : (
           <button type="button" className="pcontext" onClick={() => { setContextVal(project.context || ''); setEditingContext(true) }}>
-            <span className="pcontext-lbl">🧠 Claude-kontekst</span>
+            <span className="pcontext-lbl"><BrainCircuit /> Claude-kontekst</span>
             {project.context
               ? <span className="pcontext-txt">{project.context}</span>
               : <span className="pcontext-placeholder">+ stack &amp; konvensjoner — blir med i hver prompt</span>}

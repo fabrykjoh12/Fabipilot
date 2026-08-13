@@ -23,7 +23,7 @@
   border-radius: 13px;
   padding: 12px 14px;
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--t-md);
   color: var(--ink);
   outline: 0;
 }
@@ -53,7 +53,7 @@
   background: var(--surface);
   color: var(--muted);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   padding: 8px 14px;
   border-radius: var(--r-full);
@@ -89,16 +89,19 @@
 }
 
 /* idea card */
+/* Idébanken er en LISTE — rene rader med hårstrek, samme språk som Oppgaver. */
 .ideabank .idea {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 15px 16px;
-  margin-top: 11px;
-  box-shadow: var(--shadow);
-  border: 1px solid transparent;
+  background: none;
+  border-radius: 0;
+  padding: 15px 2px;
+  margin-top: 0;
+  box-shadow: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
   animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   cursor: pointer;
 }
+.ideabank .idea:last-of-type { border-bottom: 0; }
 .ideabank .idea.leaving {
   animation: leave 0.34s ease forwards;
 }
@@ -112,8 +115,8 @@
   min-width: 0;
 }
 .ideabank .idea-text {
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: var(--t-lg);
+  line-height: var(--lh-snug);
   font-weight: 500;
   word-break: break-word;
   white-space: pre-wrap;
@@ -122,10 +125,10 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-top: 9px;
+  margin-top: 6px;
 }
 .ideabank .pill {
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -142,7 +145,7 @@
   background: #f7f0e2;
 }
 .ideabank .date {
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--faint);
   font-weight: 500;
 }
@@ -185,7 +188,7 @@
   background: var(--surface);
   border-radius: 12px;
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--t-md);
   color: var(--ink);
   padding: 11px 12px;
   outline: 0;
@@ -207,7 +210,7 @@
   background: var(--surface);
   color: var(--muted);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--t-sm);
   font-weight: 600;
   padding: 7px 12px;
   border-radius: 99px;
@@ -223,7 +226,7 @@
   background: var(--surface);
   color: var(--danger);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   padding: 9px 14px;
   border-radius: 11px;
@@ -241,7 +244,7 @@
   background: var(--surface);
   color: var(--forest);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: var(--t-sm);
   font-weight: 600;
   padding: 9px 14px;
   border-radius: 11px;
@@ -257,7 +260,7 @@
   background: var(--surface-2);
   color: var(--muted);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: var(--t-2xs);
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 7px;
@@ -283,7 +286,7 @@
   border: 0;
   background: none;
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--t-md);
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -294,7 +297,7 @@
   border-radius: 7px;
   padding: 4px 9px;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--t-xs);
   color: var(--ink);
   outline: 0;
   width: 90px;

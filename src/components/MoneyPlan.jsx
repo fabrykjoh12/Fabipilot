@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2, Scale } from 'lucide-react'
+import { Trash2, Scale, Plane, Lightbulb } from 'lucide-react'
 import { addPlan, updatePlan, deletePlan, todayKey } from '../db.js'
 import { dailyAllowance, planProgress, planMonths, monthlyAverages, daysBetween } from '../lib/plan.js'
 import { kr, vibrate } from '../lib/fx.js'
@@ -83,7 +83,7 @@ function PlanForm({ suggestion, onDone, onCancel }) {
 
       {suggestion?.monthsCounted > 0 && (
         <p className="plan-tip">
-          💡 Du har brukt <strong>{kr(Math.round(suggestion.perMonth))}</strong> i snitt per måned de siste
+          <Lightbulb /> Du har brukt <strong>{kr(Math.round(suggestion.perMonth))}</strong> i snitt per måned de siste
           {' '}{suggestion.monthsCounted} månedene. Det tilsvarer{' '}
           <strong>{kr(Math.round(suggestion.perMonth * 5))}</strong> på fem måneder.
         </p>
@@ -308,7 +308,7 @@ export default function MoneyPlan({ plans, expenses }) {
       <>
         {!plan && (
           <div className="empty">
-            <div className="glyph">🗾</div>
+            <div className="glyph"><Plane /></div>
             <p className="em-ttl">Skal du en periode uten lønn?</p>
             <p>Sett en spareperiode — så regner appen ut hvor mye du kan bruke per dag for at pengene varer hele veien, og følger med underveis.</p>
           </div>

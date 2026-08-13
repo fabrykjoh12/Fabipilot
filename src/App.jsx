@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { useObservable, useLiveQuery } from 'dexie-react-hooks'
 import { Toaster } from 'sonner'
 import { motion } from 'motion/react'
-import { Plus, Moon, Sun, Palette, ChevronRight } from 'lucide-react'
+import { Plus, Moon, Sun, Palette, ChevronRight, Sprout } from 'lucide-react'
 import './components/AppShell.css'
 import Overview from './components/Overview.jsx'
 import Tasks from './components/Tasks.jsx'
@@ -132,7 +132,7 @@ export default function App() {
       .then(({ registerSW }) => {
         updateSW = registerSW({
           onNeedRefresh() {
-            toast.message('Ny versjon klar ✨', {
+            toast.message('Ny versjon klar', {
               description: 'Oppdater for å få de siste endringene.',
               duration: Infinity,
               action: { label: 'Oppdater', onClick: () => updateSW?.(true) },
@@ -159,7 +159,7 @@ export default function App() {
     setStarterOpen(false)
     if (withExamples) {
       await seedStarterPack()
-      toast.success('Eksempler lagt inn ✨', {
+      toast.success('Eksempler lagt inn', {
         description: 'Et lite prosjekt, tre oppgaver og to vaner — alt kan slettes.',
       })
     }
@@ -176,7 +176,7 @@ export default function App() {
     const DAY = 86400000
     if (Date.now() - ref > 30 * DAY && Date.now() - nudged > 7 * DAY) {
       localStorage.setItem('backupNudgedAt', String(Date.now()))
-      toast.message('🗄️ En stund siden sist backup', {
+      toast.message('En stund siden sist backup', {
         description: 'Ta en rask JSON-backup — god samvittighet på 5 sekunder.',
         duration: 12000,
         action: { label: 'Ta backup', onClick: () => setBackupOpen(true) },
@@ -433,7 +433,7 @@ export default function App() {
       {starterOpen && (
         <div className="backup-overlay" role="dialog" aria-modal="true">
           <div className="backup-card starter-card">
-            <div className="starter-glyph" aria-hidden="true">🌱</div>
+            <div className="starter-glyph" aria-hidden="true"><Sprout /></div>
             <h2 className="backup-title">Vil du starte med eksempler?</h2>
             <p className="backup-text">
               Jeg kan legge inn et lite demo-prosjekt, tre oppgaver og to vaner, så du ser
