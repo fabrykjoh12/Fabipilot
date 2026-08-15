@@ -14,6 +14,8 @@ Flytt punkter oppover etter hvert som de blir gjort (se vedlikeholdsregelen i CL
 - (Kanskje) flytte synk/innlogging fra Dexie Cloud til Supabase — plan i `SUPABASE-MIGRATION.md`. Aktuelt hvis flere brukere / lyst på Postgres.
 
 ## Ferdig
+- Penger/Oversikt delt i navngitte bolker («Hva du har» → «Måned for måned» → «Mønster» → «Framover»),
+  saldokortet halvert, pengeflyten flyttet under månedsvelgeren, kategoriene som linjerader.
 - Flere kontoer i Penger (`accounts`, v15): én kontoutskrift per konto, saldo per konto, total på tvers.
   Overføringer mellom egne kontoer teller for saldoen men ikke som forbruk, så totalen står stille når
   du bare flytter penger.

@@ -2,6 +2,19 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-13 — **Penger delt i navngitte bolker** («kan designet bli mer oversiktlig? det er litt
+  trangt»). Målte først: skjermen var 3,2 skjermer med tolv kort på rad og ingenting som sa hvor ett
+  tema sluttet. Det var ikke skriftstørrelsen — det var mengden udifferensiert informasjon per skjerm.
+  Saldokortet alene var 431px og pakket åtte opplysninger bak identiske hårstreker. Pengeflyten
+  (inn/ut/netto) hørte dessuten ikke hjemme der: den beskriver måneden du blar i, ikke saldoen, og lå
+  over månedsvelgeren. Den er nå et eget kort under velgeren, og saldokortet er 199px.
+  Skjermen er delt i fire navngitte bolker: «Hva du har» → «Måned for måned» → «Mønster» → «Framover».
+  «Kommende trekk» er flyttet fra midt i månedstallene til «Framover» der det hører hjemme.
+  Kategorilista var 608px som kort med skygge — nå linjerader (samme regel som resten av listene), med
+  navn og beløp på én linje og budsjett/endring under baren, så navnene ikke lenger brekker.
+  Fjernet også to linjer som gjentok tall fra kortene rett over.
+  Én feil oppdaget underveis: seksjonsetiketten «Mønster» sto igjen tom uten data, fordi den ikke hadde
+  samme betingelse som innholdet under.
 - 2026-08-13 — **Flere kontoer** (ønske fra brukeren: «jeg har flere kontoer jeg overfører fram og
   tilbake mellom»). Ny `accounts`-store (v15); `expenses`, `inflows` og `balances` bærer `accountId`.
   Hver konto leses av for seg og rulles framover for seg; totalen er summen (`totalBalance`).

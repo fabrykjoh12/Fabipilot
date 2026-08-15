@@ -63,8 +63,14 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   (`--forest`) kun for positiv status (aktivt prosjekt, vane gjort). Kategori-farger (prosjekt/hendelse/
   penger/vaner) er egne valgbare swatcher fra `SWATCH` (`src/lib/palette.js`) — en muset pastell-familie
   avledet fra den BLÅ aksenten uansett, ikke direkte bundet til aksent-valget (uendret av rosa-bryteren).
-- Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver) — de ligger
-  rett på lerretet; luftige glasskort ellers. Seksjonsetiketter = rolig grå majuskel, ingen bokser.
+- Layout: rene rader med tynn skillelinje (ikke tunge kort) der lista er primær (Oppgaver, Forbruk,
+  Vaner, Idébank, kategoriene på Penger) — de ligger rett på lerretet; luftige glasskort ellers.
+  Seksjonsetiketter = rolig grå majuskel, ingen bokser.
+- **Ett kort = ett spørsmål.** Penger/Oversikt hadde ett saldokort på 431px som pakket åtte
+  opplysninger bak identiske hårstreker, og tolv kort på rad uten noe som sa hvor et tema sluttet.
+  Skjermer med mye innhold deles i navngitte bolker (`.money-sec`: «Hva du har» → «Måned for måned» →
+  «Mønster» → «Framover»), og hvert kort svarer på én ting. En seksjonsetikett må ha nøyaktig samme
+  betingelse som innholdet under seg — ellers står den igjen tom.
 - **Type- og tetthetsskala** (`--t-hero/h1/h2/lg/md/sm/xs/2xs`, `--lh-tight/snug/body`, `--card-pad`/
   `--card-gap`/`--sec-gap` i `:root`). Bruk disse — ikke nye px-verdier. Appen ble bygget med hardkodede
   størrelser per komponent, og de krøp oppover til alt ropte samtidig og skjermene føltes trange.

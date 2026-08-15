@@ -858,6 +858,14 @@ export default function Money() {
   const diff = monthDiff(spending, monthPrefix, prevMonthPrefix)
   const diffText = explainMonth(diff, (k) => catMeta(k).label, kr)
 
+  /* «Mønster»-seksjonen finnes bare når noe faktisk kan tegnes: kaka trenger to
+     kategorier med forbruk denne måneden, trendgrafen trenger minst én måned med
+     tall. Uten dette fikk vi enten en tom overskrift eller en graf uten. */
+  const hasDonut = catRows.filter((c) => c.spent > 0).length >= 2
+  const hasTrend = lastNMonths(12, cursor.y, cursor.m).some((mo) =>
+    spending.some((e) => (e.date || '').startsWith(mo.prefix)) || subTotal > 0)
+  const showPattern = hasDonut || hasTrend
+
   const budgetSuggestion = suggestBudgets(spending, { monthsBack: 6 })
   async function applySuggestedBudgets() {
     const entries = Object.entries(budgetSuggestion.budgets)
@@ -909,6 +917,8 @@ export default function Money() {
         {/* ===== OVERSIKT ===== */}
         {tab === 'oversikt' && (
           <>
+            <p className="money-sec first">Hva du har</p>
+
             {/* Saldo først: «hva har jeg?» før «hva kan jeg bruke?».
                 Pengeflyten henger UNDER saldoen som en tynn linjerad i samme kort — den
                 forklarer tallet over, og fortjener ikke et eget kort som konkurrerer om blikket. */}
@@ -963,39 +973,6 @@ export default function Money() {
                 </div>
               )}
 
-              {(flow.income > 0 || flow.out > 0 || flow.transfers > 0) && (
-                <div className="flow">
-                  {/* Inntekt og forbruk — ikke «alt inn» og «alt ut». Med flere
-                      kontoer ville interne overføringer blåst opp begge sider og
-                      fått det til å se ut som formuen vokste av å flytte penger. */}
-                  <div className="flow-row">
-                    <span className="flow-lbl">Inn i {MONTHS[cursor.m]}</span>
-                    <span className="flow-amt pos">+{kr(Math.round(flow.income))}</span>
-                  </div>
-                  <div className="flow-row">
-                    <span className="flow-lbl">Ut</span>
-                    <span className="flow-amt">−{kr(Math.round(flow.out))}</span>
-                  </div>
-                  <div className="flow-row net">
-                    <span className="flow-lbl">Netto</span>
-                    <span className={'flow-amt' + (flow.netReal >= 0 ? ' pos' : ' neg')}>
-                      {flow.netReal >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.netReal)))}
-                    </span>
-                  </div>
-                  {flow.transfers > 0 && (
-                    <p className="flow-note">
-                      I tillegg flyttet du {kr(Math.round(flow.transfers))} mellom egne kontoer. Det er
-                      ikke inntekt og ikke forbruk, så det holdes utenfor tallene over — totalen din
-                      står stille når du bare flytter penger.
-                    </p>
-                  )}
-                  {flow.savingRate !== null && flow.transfers === 0 && (
-                    <p className="flow-note">
-                      Du satt igjen med {Math.round(flow.savingRate * 100)} % av inntekten denne måneden.
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
 
             {isCurrentMonth && (
@@ -1019,6 +996,11 @@ export default function Money() {
               )
             )}
 
+            {/* Herfra og ned handler ALT om én måned. Skillet gjør at skjermen
+                deler seg i to spørsmål — «hva har jeg?» over, «hva skjedde denne
+                måneden?» under — i stedet for tolv kort på rad. */}
+            <p className="money-sec">Måned for måned</p>
+
             <div className="month-nav">
               <button type="button" className="cal-arrow" aria-label="Forrige måned" onClick={() => shiftMonth(-1)}>
                 <ChevronLeft />
@@ -1029,6 +1011,39 @@ export default function Money() {
               </button>
             </div>
 
+            {(flow.income > 0 || flow.out > 0 || flow.transfers > 0) && (
+              <div className="flow card">
+                {/* Inntekt og forbruk — ikke «alt inn» og «alt ut». Med flere kontoer
+                    ville interne overføringer blåst opp begge sider og fått det til å
+                    se ut som formuen vokste av å flytte penger. */}
+                <div className="flow-row">
+                  <span className="flow-lbl">Inn</span>
+                  <span className="flow-amt pos">+{kr(Math.round(flow.income))}</span>
+                </div>
+                <div className="flow-row">
+                  <span className="flow-lbl">Ut</span>
+                  <span className="flow-amt">−{kr(Math.round(flow.out))}</span>
+                </div>
+                <div className="flow-row net">
+                  <span className="flow-lbl">Netto</span>
+                  <span className={'flow-amt' + (flow.netReal >= 0 ? ' pos' : ' neg')}>
+                    {flow.netReal >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.netReal)))}
+                  </span>
+                </div>
+                {flow.transfers > 0 && (
+                  <p className="flow-note">
+                    + {kr(Math.round(flow.transfers))} flyttet mellom egne kontoer — verken inntekt
+                    eller forbruk.
+                  </p>
+                )}
+                {flow.savingRate !== null && flow.transfers === 0 && (
+                  <p className="flow-note">
+                    Du satt igjen med {Math.round(flow.savingRate * 100)} % av inntekten.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="budget-summary">
               <span className="bs-label">brukt denne måneden</span>
               <AnimatedNumber className="bs-amount" value={totalSpent} format={kr} />
@@ -1037,7 +1052,7 @@ export default function Money() {
                   er trukket ennå. De som ER trukket ligger allerede i kjøpssummen. */}
               {subTotal > 0 && (
                 <span className="bs-split">
-                  {kr(expTotal)} kjøp + {kr(subTotal)} faste som ikke er trukket ennå
+                  {kr(expTotal)} kjøp + {kr(subTotal)} faste
                 </span>
               )}
               {subTotal === 0 && fixedNow.coveredAmount > 0 && (
@@ -1066,11 +1081,6 @@ export default function Money() {
                 </span>
               )}
               {diffText && <span className="bs-why">{diffText}</span>}
-              {totalIncome > 0 && (
-                <span className="bs-income">
-                  Inntekt {kr(totalIncome)} · {kr(totalIncome - totalSpent)} igjen å bruke
-                </span>
-              )}
               {isCurrentMonth && projected > 0 && paceBasis > 0 && today.getDate() >= 3 && (
                 <span className={'bs-pace ' + (paceDiff >= 0 ? 'good' : 'bad')}>
                   {paceDiff >= 0
@@ -1079,6 +1089,68 @@ export default function Money() {
                 </span>
               )}
             </div>
+
+            {catRows.length === 0 ? (
+              <div className="empty">
+                <div className="glyph"><PieChartIcon /></div>
+                <p className="em-ttl">Ingen tall enda</p>
+                <p>Logg forbruk under «Forbruk», eller sett et budsjett her — så ser du oversikten.</p>
+              </div>
+            ) : (
+              <div className="budget-cats">
+                {catRows.map((c) => {
+                  const ratio = c.budget > 0 ? c.spent / c.budget : 0
+                  return (
+                    <button key={c.k} type="button" className="budget-cat" onClick={() => setSheet({ type: 'catDetail', cat: c.k })}>
+                      <span className="bc-emoji">{c.emoji}</span>
+                      <div className="bc-main">
+                        {/* Navn og beløp på én linje, resten under. Med budsjett og
+                            endring på samme linje ble det for trangt, og navnene
+                            brakk over to linjer. */}
+                        <div className="bc-top">
+                          <span className="bc-name">{c.label}</span>
+                          <span className="bc-amt">{kr(c.spent)}</span>
+                        </div>
+                        <div className="bc-bar">
+                          <i style={{ width: (c.budget > 0 ? Math.min(100, ratio * 100) : 0) + '%', background: barColor(ratio) }} />
+                        </div>
+                        <div className="bc-foot">
+                          {c.budget > 0 && <span className="bc-of">av {kr(c.budget)}</span>}
+                          <ChangeBadge cur={c.spent} prev={c.prevSpent} />
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {budgetSuggestion.monthsCounted >= 2 && totalBudget === 0 && (
+              <button type="button" className="budget-suggest" onClick={applySuggestedBudgets}>
+                <Wand2 /> Foreslå budsjett fra de siste {budgetSuggestion.monthsCounted} månedene
+                <span>Du har brukt {kr(Math.round(budgetSuggestion.perMonth))} i snitt per måned</span>
+              </button>
+            )}
+
+            <button type="button" className="budget-add" onClick={() => setSheet({ type: 'budget' })}>
+              + Sett / endre budsjett
+            </button>
+
+            {/* Mønster over tid — et annet spørsmål enn «hva brukte jeg denne
+                måneden», og fortjener sitt eget avsnitt i stedet for å ligge
+                midt i månedstallene. */}
+            {showPattern && <p className="money-sec">Mønster</p>}
+
+            <CategoryDonut rows={catRows} total={totalSpent} />
+
+            <MonthTrend
+              expenses={spending}
+              subTotal={subTotal}
+              cursor={cursor}
+              onPick={(y, m) => setCursor({ y, m })}
+            />
+
+            <p className="money-sec">Framover</p>
 
             {isCurrentMonth && (upcomingMonthly.length > 0 || reserve > 0) && (
               <div className="card upcoming-card">
@@ -1100,59 +1172,6 @@ export default function Money() {
                 )}
               </div>
             )}
-
-            <CategoryDonut rows={catRows} total={totalSpent} />
-
-            <MonthTrend
-              expenses={spending}
-              subTotal={subTotal}
-              cursor={cursor}
-              onPick={(y, m) => setCursor({ y, m })}
-            />
-
-            {catRows.length === 0 ? (
-              <div className="empty">
-                <div className="glyph"><PieChartIcon /></div>
-                <p className="em-ttl">Ingen tall enda</p>
-                <p>Logg forbruk under «Forbruk», eller sett et budsjett her — så ser du oversikten.</p>
-              </div>
-            ) : (
-              <div className="budget-cats">
-                {catRows.map((c) => {
-                  const ratio = c.budget > 0 ? c.spent / c.budget : 0
-                  return (
-                    <button key={c.k} type="button" className="budget-cat" onClick={() => setSheet({ type: 'catDetail', cat: c.k })}>
-                      <span className="bc-emoji">{c.emoji}</span>
-                      <div className="bc-main">
-                        <div className="bc-top">
-                          <span className="bc-name">{c.label}</span>
-                          <div className="bc-amt-wrap">
-                            <span className="bc-amt">
-                              {kr(c.spent)}{c.budget > 0 && <span className="bc-of"> / {kr(c.budget)}</span>}
-                            </span>
-                            <ChangeBadge cur={c.spent} prev={c.prevSpent} />
-                          </div>
-                        </div>
-                        <div className="bc-bar">
-                          <i style={{ width: (c.budget > 0 ? Math.min(100, ratio * 100) : 0) + '%', background: barColor(ratio) }} />
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-
-            {budgetSuggestion.monthsCounted >= 2 && totalBudget === 0 && (
-              <button type="button" className="budget-suggest" onClick={applySuggestedBudgets}>
-                <Wand2 /> Foreslå budsjett fra de siste {budgetSuggestion.monthsCounted} månedene
-                <span>Du har brukt {kr(Math.round(budgetSuggestion.perMonth))} i snitt per måned</span>
-              </button>
-            )}
-
-            <button type="button" className="budget-add" onClick={() => setSheet({ type: 'budget' })}>
-              + Sett / endre budsjett
-            </button>
 
             <div className="income-card">
               <span className="income-lbl">Månedsinntekt</span>
