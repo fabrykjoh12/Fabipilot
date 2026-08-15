@@ -213,6 +213,39 @@ db.version(14).stores({
   balances: 'id, date, createdAt',
 })
 
+/* v15: flere kontoer.
+
+   Brukeren har flere kontoer og flytter penger mellom dem hver måned. Da holder
+   det ikke med ETT saldo-holdepunkt: hver konto må leses av for seg, og totalen
+   er summen. `balances` får derfor en compound-indeks [accountId+date] — én
+   avlesning per konto per dato.
+
+   Migreringen lager «Hovedkonto» og stempler alt som finnes fra før, så
+   eksisterende data havner ett sted i stedet for å bli kontoløse. */
+/* Eksportert så den kan testes direkte (src/db.migrate.test.js). Testen kan ikke
+   gå veien om `db` her: sky-addonen eier opprettelsen av basen, og en base laget
+   med ren Dexie blir ikke gjenkjent som sin egen. */
+export async function upgradeToAccounts(tx) {
+  const hasAny = (await tx.table('expenses').count())
+    + (await tx.table('inflows').count())
+    + (await tx.table('balances').count())
+  if (!hasAny) return
+  const id = crypto.randomUUID()
+  await tx.table('accounts').add({ id, name: 'Hovedkonto', sortOrder: 1, createdAt: Date.now() })
+  for (const t of ['expenses', 'inflows', 'balances']) {
+    await tx.table(t).toCollection().modify((row) => { row.accountId = id })
+  }
+}
+
+db.version(15)
+  .stores({
+    accounts: 'id, sortOrder, createdAt',
+    expenses: 'id, date, category, accountId, createdAt',
+    inflows: 'id, date, kind, accountId, createdAt',
+    balances: 'id, date, accountId, [accountId+date], createdAt',
+  })
+  .upgrade(upgradeToAccounts)
+
 db.cloud.configure({
   databaseUrl: 'https://zl78q9yu3.dexie.cloud',
   requireAuth: false,
@@ -438,18 +471,21 @@ export const deleteExpense = (id) => db.expenses.delete(id)
 /* Bankimport (src/lib/bankImport.js): lagre godkjente rader fra CSV-fila.
    `importKey` (uindeksert, dato|beløp|butikk) gjør re-import av samme/
    overlappende eksport trygg — se listExpenseImportKeys. */
-export async function importBankExpenses(rows) {
+export async function importBankExpenses(rows, accountId) {
   const t = now()
   const recs = (rows || [])
     .filter((r) => Number(r.amount) > 0 && r.date)
     .map((r, i) => ({
       id: uid(),
+      accountId,
       amount: Number(r.amount),
       category: r.category || 'ovrig',
       sub: r.sub || null,
       note: r.merchant || '',
       date: r.date,
       importKey: r.key,
+      // Overføringer ut av kontoen: teller for saldoen, ikke for forbruket.
+      ...(r.transfer ? { transfer: true } : {}),
       createdAt: t + i, // stigende, så rekkefølgen innen én import er stabil
     }))
   if (recs.length) await db.expenses.bulkAdd(recs)
@@ -457,8 +493,13 @@ export async function importBankExpenses(rows) {
 }
 
 // Map<importKey, antall> over alt som allerede er importert — dedup-grunnlaget.
-export async function listExpenseImportKeys() {
-  const all = await db.expenses.toArray()
+/* Dedup-nøkler for ÉN konto. Nøklene må være per konto: samme beløp hos samme
+   butikk på samme dato kan skje på to ulike kontoer, og da er det to ekte kjøp
+   — ikke et duplikat. */
+export async function listExpenseImportKeys(accountId) {
+  const all = accountId
+    ? await db.expenses.where('accountId').equals(accountId).toArray()
+    : await db.expenses.toArray()
   const map = new Map()
   for (const e of all) if (e.importKey) map.set(e.importKey, (map.get(e.importKey) || 0) + 1)
   return map
@@ -927,12 +968,13 @@ export async function listInflows(since = null) {
   const rows = await q.toArray()
   return rows.sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 }
-export async function importBankInflows(rows) {
+export async function importBankInflows(rows, accountId) {
   const t = now()
   const recs = (rows || [])
     .filter((r) => Number(r.amount) > 0 && r.date)
     .map((r, i) => ({
       id: uid(),
+      accountId,
       amount: Number(r.amount),
       date: r.date,
       kind: r.kind || 'inntekt',
@@ -943,8 +985,11 @@ export async function importBankInflows(rows) {
   if (recs.length) await db.inflows.bulkAdd(recs)
   return recs.length
 }
-export async function listInflowImportKeys() {
-  const all = await db.inflows.toArray()
+/** Som listExpenseImportKeys — per konto, av samme grunn. */
+export async function listInflowImportKeys(accountId) {
+  const all = accountId
+    ? await db.inflows.where('accountId').equals(accountId).toArray()
+    : await db.inflows.toArray()
   const map = new Map()
   for (const r of all) if (r.importKey) map.set(r.importKey, (map.get(r.importKey) || 0) + 1)
   return map
@@ -953,21 +998,56 @@ export async function listInflowImportKeys() {
 export async function listBalances() {
   return db.balances.orderBy('date').reverse().toArray()
 }
-export async function setBalanceSnapshot({ date, amount, note = '' }) {
-  if (!date || !Number.isFinite(Number(amount))) return null
-  // Én avlesning per dato — en ny erstatter den gamle i stedet for å stable seg.
-  const existing = await db.balances.where('date').equals(date).first()
+export async function setBalanceSnapshot({ accountId, date, amount, note = '' }) {
+  if (!date || !accountId || !Number.isFinite(Number(amount))) return null
+  /* Én avlesning per KONTO per dato — en ny erstatter den gamle i stedet for å
+     stable seg. Uten accountId i nøkkelen ville en avlesning av sparekontoen
+     overskrevet brukskontoens tall samme dag. */
+  const existing = await db.balances.where('[accountId+date]').equals([accountId, date]).first()
   if (existing) {
     await db.balances.update(existing.id, { amount: Number(amount), note })
     return { ...existing, amount: Number(amount), note }
   }
-  const rec = { id: uid(), date, amount: Number(amount), note, createdAt: now() }
+  const rec = { id: uid(), accountId, date, amount: Number(amount), note, createdAt: now() }
   await db.balances.add(rec)
   return rec
 }
 export const deleteBalanceSnapshot = (id) => db.balances.delete(id)
 
-const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals', 'plans', 'inflows', 'balances']
+/* ---------- Kontoer ---------- */
+
+export async function listAccounts() {
+  return db.accounts.orderBy('sortOrder').toArray()
+}
+export async function addAccount(name) {
+  const n = String(name || '').trim()
+  if (!n) return null
+  const rec = { id: uid(), name: n, sortOrder: now(), createdAt: now() }
+  await db.accounts.add(rec)
+  return rec
+}
+export const updateAccount = (id, patch) => db.accounts.update(id, patch)
+
+/* Sletter kontoen OG alt som hører til den. Uten dette blir kjøpene liggende
+   igjen som kontoløse rader som ikke vises noe sted, men fortsatt teller. */
+export async function deleteAccount(id) {
+  await db.transaction('rw', db.accounts, db.expenses, db.inflows, db.balances, async () => {
+    await db.expenses.where('accountId').equals(id).delete()
+    await db.inflows.where('accountId').equals(id).delete()
+    await db.balances.where('accountId').equals(id).delete()
+    await db.accounts.delete(id)
+  })
+}
+
+/* Sørger for at det finnes minst én konto — brukes før første import og av
+   saldo-avlesningen, så du ikke må opprette konto manuelt for å komme i gang. */
+export async function ensureAccount(name = 'Hovedkonto') {
+  const first = await db.accounts.orderBy('sortOrder').first()
+  if (first) return first
+  return addAccount(name)
+}
+
+const TABLES = ['ideas', 'tasks', 'habits', 'subscriptions', 'projects', 'projectItems', 'events', 'todos', 'expenses', 'budgets', 'incomes', 'goals', 'plans', 'inflows', 'balances', 'accounts']
 
 export async function exportAll() {
   const out = { type: 'dashboard-backup', version: 8, exportedAt: new Date().toISOString() }

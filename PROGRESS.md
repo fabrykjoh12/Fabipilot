@@ -2,6 +2,23 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-13 — **Flere kontoer** (ønske fra brukeren: «jeg har flere kontoer jeg overfører fram og
+  tilbake mellom»). Ny `accounts`-store (v15); `expenses`, `inflows` og `balances` bærer `accountId`.
+  Hver konto leses av for seg og rulles framover for seg; totalen er summen (`totalBalance`).
+  Det avgjørende var overføringene. De ble før forkastet ved import — greit med én konto, siden de
+  ikke er forbruk. Med flere kontoer betyr det at avsenderkontoens saldo aldri går ned mens
+  mottakerens går opp, så totalen vokser hver gang du flytter dine egne penger. Nå lagres de som
+  utgifter med `transfer: true`: de teller for saldoen, men filtreres bort fra alt som handler om
+  forbruk. Da nuller de seg selv ut i totalen når begge utskriftene er importert.
+  Samme feilklasse i «Inn og ut»-kortet: `net` (alt inn minus alt ut) blåste opp med hele
+  overføringsbeløpet. Nytt `netReal` = ekte inntekt minus forbruk, og overføringene forklares i én
+  setning under.
+  To feil dukket opp underveis: dedup-nøklene måtte bli per konto (samme kjøp på to kontoer er to ekte
+  kjøp), og en utskrift uten kjøp — en sparekonto du bare overfører til — kunne ikke importeres i det
+  hele tatt, fordi lagre-knappen bare telte kjøp og ble et stille null-trykk.
+  Migreringen er testet mot ekte kode (`db.migrate.test.js`): et års bankdata uten `accountId` får
+  «Hovedkonto» og blir liggende synlig. Verifisert i nettleser med to kontoer og en overføring mellom
+  dem: 20 000 + 80 000 = 100 000 til sammen, 1 270 i forbruk, netto +32 730. 275 tester.
 - 2026-08-13 — **Runde to: tre ekte feil til, og backup-panelet snudd riktig vei.**
   **Regresjon jeg selv innførte:** 13-måneders-vinduet på Penger-dataene brøt månedsvelgeren, som ikke
   har noen bunn — blar du 18 måneder tilbake fantes kjøpene i basen, men skjermen sa «0 kr». Vinduet

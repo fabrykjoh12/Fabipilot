@@ -215,6 +215,12 @@ export function buildImportPlan(csvText, { existingKeys, existingInflowKeys, ove
   const seen = new Map(existingKeys || [])
   const inflowSeen = new Map(existingInflowKeys || [])
   const inflows = []
+  /* Utgående overføringer til egne kontoer er ikke forbruk — men de forlater
+     KONTOEN. Med flere kontoer må de derfor lagres, ellers ville saldoen på
+     avsenderkontoen aldri gått ned mens mottakerkontoens gikk opp, og totalen
+     hadde vokst for hver overføring. De lagres som utgifter med transfer:true
+     og holdes utenfor alle forbrukssummer. */
+  const transfersOut = []
   const skipped = { reserved: 0, transfers: 0, incoming: 0, duplicates: 0 }
   const byMerchant = new Map()
   let from = null
@@ -234,7 +240,15 @@ export function buildImportPlan(csvText, { existingKeys, existingInflowKeys, ove
       continue
     }
     if (tx.reserved) { skipped.reserved++; continue } // kommer tilbake som bokført i neste eksport
-    if (isTransfer(tx.text)) { skipped.transfers++; continue }
+    if (isTransfer(tx.text)) {
+      const merchant = cleanMerchant(tx.text)
+      const key = importKey(tx.date, tx.amountOut, merchant)
+      const have = seen.get(key) || 0
+      if (have > 0) seen.set(key, have - 1)
+      else transfersOut.push({ date: tx.date, amount: tx.amountOut, merchant, key })
+      skipped.transfers++
+      continue
+    }
 
     const merchant = cleanMerchant(tx.text)
     const key = importKey(tx.date, tx.amountOut, merchant)
@@ -276,9 +290,12 @@ export function buildImportPlan(csvText, { existingKeys, existingInflowKeys, ove
   for (const i of inflows) inflowByKind[i.kind] = (inflowByKind[i.kind] || 0) + i.amount
   const inflowTotal = inflows.reduce((s, i) => s + i.amount, 0)
 
+  const transferOutTotal = transfersOut.reduce((s, r) => s + r.amount, 0)
+
   return {
     ok: true, groups, skipped, from, to, count, total,
     inflows, inflowTotal, inflowByKind,
+    transfersOut, transferOutTotal,
   }
 }
 

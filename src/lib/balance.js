@@ -69,7 +69,59 @@ export function monthlyFlow(inflows, expenses, ym) {
     income, // det du faktisk fikk inn utenfra
     transfers: byKind.overforing,
     byKind,
+    /* Ekte endring i formuen: inntekt minus forbruk, uten interne overføringer
+       på noen av sidene. Med flere kontoer er `net` (alt inn minus alt ut)
+       misvisende — flytter du 15 000 fra bruks- til sparekonto, teller de som
+       inn på den ene, mens uttaket er en overføring og ikke forbruk. Da ser det
+       ut som du ble 15 000 rikere av å flytte dine egne penger. */
+    netReal: income - out,
     // Sparerate gir bare mening når det finnes ekte inntekt å måle mot.
     savingRate: income > 0 ? (income - out) / income : null,
+  }
+}
+
+
+/* ---------- Flere kontoer ----------
+
+   Brukeren har flere kontoer og flytter penger mellom dem hver måned. Da må
+   hver konto rulles for seg — én felles avlesning ville ikke visst hvilken
+   konto tallet gjaldt — og totalen er summen av dem.
+
+   Overføringer nettes ut av seg selv når begge kontoene er importert: pengene
+   forsvinner fra den ene (utgift med transfer:true) og dukker opp på den andre
+   (innbetaling med kind 'overforing'). Totalen står derfor stille, slik den
+   skal. */
+
+const byAccount = (rows, accountId) => (rows || []).filter((r) => r && r.accountId === accountId)
+
+/** Saldo for ÉN konto — samme regnestykke som balanceAt, filtrert på kontoen. */
+export function accountBalance(accountId, snapshots, inflows, expenses, dateIso) {
+  return balanceAt(
+    byAccount(snapshots, accountId),
+    byAccount(inflows, accountId),
+    byAccount(expenses, accountId),
+    dateIso,
+  )
+}
+
+/* Samlet saldo på tvers av kontoene.
+
+   `accounts[]` som ikke har noe holdepunkt ennå får `balance: null` og holdes
+   UTENFOR totalen — vi gjetter aldri på en saldo. `missing` sier hvor mange som
+   mangler avlesning, så UI-et kan si «2 av 3 kontoer lest av» i stedet for å
+   presentere en ufullstendig sum som fasit. */
+export function totalBalance(accounts, snapshots, inflows, expenses, dateIso) {
+  const rows = (accounts || []).map((a) => ({
+    account: a,
+    ...(accountBalance(a.id, snapshots, inflows, expenses, dateIso) || { balance: null }),
+  }))
+  const known = rows.filter((r) => r.balance !== null)
+  return {
+    rows,
+    total: known.reduce((s, r) => s + r.balance, 0),
+    known: known.length,
+    missing: rows.length - known.length,
+    // ingen kontoer lest av → vi har ingenting å vise
+    hasAny: known.length > 0,
   }
 }

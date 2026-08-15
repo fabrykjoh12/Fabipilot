@@ -1,8 +1,12 @@
 import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { Landmark } from 'lucide-react'
 import { buildImportPlan } from '../lib/bankImport.js'
 import { CATEGORIES, subsFor } from '../lib/categories.js'
-import { importBankExpenses, listExpenseImportKeys, importBankInflows, listInflowImportKeys } from '../db.js'
+import {
+  importBankExpenses, listExpenseImportKeys, importBankInflows, listInflowImportKeys,
+  listAccounts, addAccount,
+} from '../db.js'
 import { toast, useEscape } from '../lib/ui.jsx'
 import { kr, vibrate } from '../lib/fx.js'
 
@@ -29,7 +33,24 @@ export default function MoneyImportSheet({ onClose }) {
   const [skip, setSkip] = useState(() => new Set()) // butikk-nøkler som ikke skal med
   const [cats, setCats] = useState({}) // butikk-nøkkel → {category, sub} overstyrt denne økta
   const [busy, setBusy] = useState(false)
+  /* Hvilken konto gjelder utskriften? Med flere kontoer må dette velges FØR fila
+     leses: dedup-nøklene er per konto, så samme kjøp på to kontoer er to ekte
+     kjøp — ikke et duplikat. */
+  const accounts = useLiveQuery(() => listAccounts(), [], null)
+  const [accountId, setAccountId] = useState(null)
+  const [newName, setNewName] = useState('')
+  // Har du bare én konto er valget gitt — utledet, ikke satt i state under render.
+  const pickedId = accountId ?? (accounts?.length === 1 ? accounts[0].id : null)
+  const account = accounts?.find((a) => a.id === pickedId) || null
   useEscape(onClose)
+
+  async function createAccount() {
+    const n = newName.trim()
+    if (!n) return
+    const rec = await addAccount(n)
+    setNewName('')
+    if (rec) setAccountId(rec.id)
+  }
 
   const catMeta = (k) => categories.find((c) => c.k === k) || categories[categories.length - 1]
   const gkey = (g) => g.merchant.toLowerCase()
@@ -43,11 +64,11 @@ export default function MoneyImportSheet({ onClose }) {
     setError('')
     try {
       const text = await file.text()
-      const existingKeys = await listExpenseImportKeys()
-      const existingInflowKeys = await listInflowImportKeys()
+      const existingKeys = await listExpenseImportKeys(pickedId)
+      const existingInflowKeys = await listInflowImportKeys(pickedId)
       const p = buildImportPlan(text, { existingKeys, existingInflowKeys, overrides: loadOverrides() })
       if (!p.ok) { setError(p.error); return }
-      if (p.count === 0 && p.inflows.length === 0) {
+      if (p.count === 0 && p.inflows.length === 0 && p.transfersOut.length === 0) {
         const d = p.skipped.duplicates
         setError(d > 0 ? `Alt i fila (${d} kjøp) er importert fra før — ingenting nytt å hente.` : 'Fant ingen kjøp å importere i fila.')
         return
@@ -64,24 +85,41 @@ export default function MoneyImportSheet({ onClose }) {
   const activeCount = activeGroups.reduce((s, g) => s + g.count, 0)
   const activeTotal = activeGroups.reduce((s, g) => s + g.total, 0)
 
+  /* En konto kan ha en utskrift UTEN kjøp — en sparekonto du bare overfører til
+     har bare innbetalinger. Knappen sjekket bare antall kjøp, så lagringen ble
+     et stille null-trykk og arket lukket seg aldri. */
+  const hasSomething = activeCount > 0 || plan?.inflows.length > 0 || plan?.transfersOut.length > 0
+
   async function doImport() {
-    if (busy || !activeCount) return
+    if (busy || !hasSomething) return
     setBusy(true)
     try {
       const rows = activeGroups.flatMap((g) => g.rows.map((r) => ({ ...r, category: chosenCat(g), sub: chosenSub(g) })))
-      const n = await importBankExpenses(rows)
+      /* Overføringer UT lagres sammen med kjøpene, men merket transfer:true.
+         De er ikke forbruk, men de forlater kontoen — uten dem ville saldoen på
+         avsenderkontoen aldri gått ned. */
+      const transferRows = (plan.transfersOut || []).map((r) => ({ ...r, category: 'ovrig', sub: null, transfer: true }))
+      await importBankExpenses([...rows, ...transferRows], pickedId)
       // Innbetalinger lagres alltid — de trenger ingen kategorisering, og de er
       // det saldoen rulles framover med.
-      const nIn = await importBankInflows(plan.inflows)
+      const nIn = await importBankInflows(plan.inflows, pickedId)
       // husk kategorivalget per butikk til neste import
       const overrides = loadOverrides()
       for (const g of plan.groups) overrides[gkey(g)] = { category: chosenCat(g), sub: chosenSub(g) }
       localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides))
       vibrate(12)
-      toast.success(`Importerte ${n} kjøp fra banken`, {
-        description: `${kr(Math.round(activeTotal))} fordelt på ${activeGroups.length} steder`
-          + (nIn ? ` · ${nIn} innbetalinger` : ''),
-      })
+      toast.success(
+        activeCount > 0
+          ? `Importerte ${activeCount} kjøp til ${account?.name || 'kontoen'}`
+          : `Oppdaterte ${account?.name || 'kontoen'}`,
+        {
+          description: [
+            activeCount > 0 && `${kr(Math.round(activeTotal))} fordelt på ${activeGroups.length} steder`,
+            nIn > 0 && `${nIn} innbetalinger`,
+            transferRows.length > 0 && `${transferRows.length} overføringer ut`,
+          ].filter(Boolean).join(' · '),
+        },
+      )
       onClose()
     } catch (err) {
       setError(err?.message || 'Importen feilet.')
@@ -101,15 +139,40 @@ export default function MoneyImportSheet({ onClose }) {
           <>
             <p className="imp-help">
               Hent fila i DNB-nettbanken: <strong>Konto → Siste bevegelser</strong>, velg periode og trykk
-              <strong> «Lagre til fil»</strong>. Velg CSV-fila her — kjøpene grupperes per butikk før noe lagres.
+              <strong> «Lagre til fil»</strong>. Én fil per konto.
             </p>
-            <label className="imp-file-btn">
-              <input type="file" accept=".csv,.txt,text/csv,text/plain" onChange={onFile} />
-              <Landmark /> Velg fil fra banken…
+
+            {/* Kontoen må velges FØR fila leses: dedup-nøklene er per konto, så
+                samme kjøp på to kontoer er to ekte kjøp, ikke et duplikat. */}
+            <span className="msheet-lbl">Hvilken konto er utskriften fra?</span>
+            <div className="imp-accounts">
+              {(accounts || []).map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  className={'imp-account' + (pickedId === a.id ? ' on' : '')}
+                  onClick={() => setAccountId(a.id)}
+                >{a.name}</button>
+              ))}
+            </div>
+            <div className="imp-newacc">
+              <input
+                type="text"
+                placeholder={accounts?.length ? 'Ny konto…' : 'Navn på kontoen (f.eks. Brukskonto)'}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') createAccount() }}
+              />
+              <button type="button" disabled={!newName.trim()} onClick={createAccount}>Legg til</button>
+            </div>
+
+            <label className={'imp-file-btn' + (pickedId ? '' : ' disabled')}>
+              <input type="file" accept=".csv,.txt,text/csv,text/plain" disabled={!pickedId} onChange={onFile} />
+              <Landmark /> {pickedId ? `Velg fil for ${account?.name}…` : 'Velg konto først'}
             </label>
             <p className="imp-note">
-              Overføringer mellom egne kontoer og alt som er importert før, hoppes over automatisk.
-              Ingenting lagres før du bekrefter.
+              Alt som er importert før hoppes over automatisk. Overføringer mellom egne kontoer teller
+              for saldoen, men ikke som forbruk. Ingenting lagres før du bekrefter.
             </p>
           </>
         )}
@@ -119,12 +182,13 @@ export default function MoneyImportSheet({ onClose }) {
         {plan && (
           <>
             <div className="imp-summary">
+              <span className="imp-sum-acc">{account?.name}</span>
               <span className="imp-sum-big">{plan.count} kjøp · {kr(Math.round(plan.total))}</span>
               <span className="imp-sum-sub">{fmtDate(plan.from)} – {fmtDate(plan.to)}</span>
               {(plan.skipped.transfers > 0 || plan.skipped.duplicates > 0 || plan.skipped.reserved > 0) && (
                 <span className="imp-sum-skip">
                   Hoppet over: {[
-                    plan.skipped.transfers > 0 && `${plan.skipped.transfers} overføringer`,
+                    plan.skipped.transfers > 0 && `${plan.skipped.transfers} overføringer (teller for saldoen)`,
                     plan.skipped.duplicates > 0 && `${plan.skipped.duplicates} allerede importert`,
                     plan.skipped.reserved > 0 && `${plan.skipped.reserved} reserverte`,
                   ].filter(Boolean).join(' · ')}
@@ -200,8 +264,12 @@ export default function MoneyImportSheet({ onClose }) {
               })}
             </div>
 
-            <button type="button" className="msheet-save" disabled={busy || (activeCount === 0 && plan.inflows.length === 0)} onClick={doImport}>
-              {busy ? 'Importerer…' : `Importer ${activeCount} kjøp (${kr(Math.round(activeTotal))})`}
+            <button type="button" className="msheet-save" disabled={busy || !hasSomething} onClick={doImport}>
+              {busy
+                ? 'Importerer…'
+                : activeCount > 0
+                  ? `Importer ${activeCount} kjøp (${kr(Math.round(activeTotal))})`
+                  : `Importer ${plan.inflows.length + plan.transfersOut.length} bevegelser`}
             </button>
           </>
         )}

@@ -3,6 +3,13 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { db, addTask, setTaskDone, addIdea, addProject, addHabit, addProjectItem, exportAll, importAll,
   listExpenses,
   listInflows,
+  addAccount,
+  listAccounts,
+  deleteAccount,
+  importBankExpenses,
+  setBalanceSnapshot,
+  listExpenseImportKeys,
+  listBalances,
 } from './db.js'
 import { legacyMoneyCategory } from './lib/migrations.js'
 
@@ -132,5 +139,67 @@ describe('listExpenses/listInflows med tidsvindu', () => {
       { id: 'y', date: '2026-08-02', amount: 6000, kind: 'inntekt', createdAt: 2 },
     ])
     expect((await listInflows('2026-01-01')).map((r) => r.id)).toEqual(['y'])
+  })
+})
+
+describe('v15: kontoer', () => {
+  it('holder saldoene på kontoene fra hverandre — én avlesning per konto per dato', async () => {
+    await db.accounts.clear(); await db.balances.clear()
+    const a = await addAccount('Brukskonto')
+    const b = await addAccount('Sparekonto')
+    await setBalanceSnapshot({ accountId: a.id, date: '2026-08-01', amount: 20000 })
+    await setBalanceSnapshot({ accountId: b.id, date: '2026-08-01', amount: 80000 })
+    const rows = await listBalances()
+    expect(rows).toHaveLength(2)
+    expect(rows.find((r) => r.accountId === a.id).amount).toBe(20000)
+    expect(rows.find((r) => r.accountId === b.id).amount).toBe(80000)
+  })
+
+  it('overskriver samme konto samme dag i stedet for å stable', async () => {
+    await db.accounts.clear(); await db.balances.clear()
+    const a = await addAccount('Brukskonto')
+    await setBalanceSnapshot({ accountId: a.id, date: '2026-08-01', amount: 20000 })
+    await setBalanceSnapshot({ accountId: a.id, date: '2026-08-01', amount: 21500 })
+    const rows = await listBalances()
+    expect(rows).toHaveLength(1)
+    expect(rows[0].amount).toBe(21500)
+  })
+
+  it('krever konto — uten den vet vi ikke hvilket tall som ble lest av', async () => {
+    expect(await setBalanceSnapshot({ date: '2026-08-01', amount: 5000 })).toBeNull()
+  })
+
+  it('dedup-nøkler er per konto: samme kjøp på to kontoer er to ekte kjøp', async () => {
+    await db.accounts.clear(); await db.expenses.clear()
+    const a = await addAccount('A'); const b = await addAccount('B')
+    const row = [{ date: '2026-08-04', amount: 450, merchant: 'Rema 1000', key: '2026-08-04|450|rema 1000' }]
+    await importBankExpenses(row, a.id)
+    await importBankExpenses(row, b.id)
+    expect(await db.expenses.count()).toBe(2)
+    expect((await listExpenseImportKeys(a.id)).size).toBe(1)
+  })
+
+  it('sletter kontoens data med kontoen — ellers blir de liggende usynlig og telle', async () => {
+    await db.accounts.clear(); await db.expenses.clear(); await db.inflows.clear(); await db.balances.clear()
+    const a = await addAccount('Slettes'); const b = await addAccount('Beholdes')
+    await importBankExpenses([{ date: '2026-08-04', amount: 450, merchant: 'Rema', key: 'k1' }], a.id)
+    await importBankExpenses([{ date: '2026-08-04', amount: 99, merchant: 'Kiwi', key: 'k2' }], b.id)
+    await setBalanceSnapshot({ accountId: a.id, date: '2026-08-01', amount: 1000 })
+    await deleteAccount(a.id)
+    expect(await db.expenses.count()).toBe(1)
+    expect(await db.balances.count()).toBe(0)
+    expect((await listAccounts()).map((x) => x.name)).toEqual(['Beholdes'])
+  })
+
+  it('markerer overføringer ut så de teller for saldoen men ikke som forbruk', async () => {
+    await db.accounts.clear(); await db.expenses.clear()
+    const a = await addAccount('A')
+    await importBankExpenses([
+      { date: '2026-08-03', amount: 15000, merchant: 'Overføring', key: 't1', transfer: true },
+      { date: '2026-08-04', amount: 450, merchant: 'Rema', key: 'k1' },
+    ], a.id)
+    const rows = await db.expenses.toArray()
+    expect(rows.filter((r) => r.transfer)).toHaveLength(1)
+    expect(rows.filter((r) => !r.transfer).reduce((s, r) => s + r.amount, 0)).toBe(450)
   })
 })

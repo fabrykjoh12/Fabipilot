@@ -1014,3 +1014,90 @@
   padding-top: 8px;
   border-top: 1px solid var(--line);
 }
+
+/* ===== Kontovelger i import-arket ===== */
+.imp-accounts { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+.imp-account {
+  border: 1.5px solid var(--line); background: var(--surface);
+  border-radius: var(--r-full); padding: 9px 15px;
+  font-family: inherit; font-size: var(--t-sm); font-weight: 600; color: var(--ink);
+  cursor: pointer; transition: border-color var(--t-fast), background var(--t-fast);
+}
+.imp-account.on { border-color: var(--accent); background: var(--surface-focus); color: var(--accent); }
+.imp-newacc { display: flex; gap: 8px; margin-bottom: 16px; }
+.imp-newacc input {
+  flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--r-sm); padding: 11px 12px; font-family: inherit;
+  font-size: var(--t-md); color: var(--ink); outline: 0;
+}
+.imp-newacc input:focus { border-color: var(--accent); }
+.imp-newacc button {
+  flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--r-sm); padding: 0 15px;
+  font-family: inherit; font-size: var(--t-sm); font-weight: 650; color: var(--ink); cursor: pointer;
+}
+.imp-newacc button:disabled { opacity: .4; cursor: default; }
+.imp-file-btn.disabled { opacity: .5; cursor: default; }
+.imp-sum-acc {
+  display: block; font-size: var(--t-2xs); font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
+}
+
+/* ===== Kontoer ===== */
+/* Fordelingen under totalen: det er nettopp fordelingen som forsvinner når du
+   flytter penger fram og tilbake, og som ett samletall ikke kan svare på. */
+.bal-accounts { padding: 0 20px 6px; }
+.bal-acc {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 11px 0; border: 0; border-top: 1px solid var(--line);
+  background: none; font-family: inherit; text-align: left; cursor: pointer;
+}
+.bal-acc-name { font-size: var(--t-sm); color: var(--muted); font-weight: 500; }
+.bal-acc-amt {
+  font-size: var(--t-md); font-weight: 600; color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.bal-acc.unset .bal-acc-amt { color: var(--accent); font-weight: 650; }
+
+.acc-total {
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface-2); border-radius: var(--r-md);
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.acc-total-lbl {
+  font-size: var(--t-2xs); font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--muted);
+}
+.acc-total-amt {
+  font-family: var(--font-display); font-size: 27px; font-weight: 700;
+  letter-spacing: -.025em; line-height: var(--lh-tight); color: var(--ink);
+}
+.acc-total-note { font-size: var(--t-xs); color: var(--muted); line-height: var(--lh-snug); margin-top: 3px; }
+
+.acc-rows { display: flex; flex-direction: column; margin-bottom: 16px; }
+.acc-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 0; border-top: 1px solid var(--line);
+}
+.acc-row:first-child { border-top: 0; }
+.acc-name {
+  flex: 1; min-width: 0; border: 0; background: none; padding: 10px 0;
+  font-family: inherit; font-size: var(--t-md); font-weight: 600; color: var(--ink);
+  text-align: left; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.acc-amt {
+  flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--r-full); padding: 7px 13px;
+  font-family: inherit; font-size: var(--t-sm); font-weight: 650; color: var(--ink);
+  font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.acc-amt.unset { border-color: var(--accent-soft); background: var(--accent-soft); color: var(--accent); }
+.acc-del {
+  flex: 0 0 auto; width: 32px; height: 32px; border: 0; background: none;
+  display: grid; place-items: center; cursor: pointer; color: var(--faint);
+  border-radius: var(--r-sm);
+}
+.acc-del:hover { color: var(--danger); background: var(--danger-soft); }
+.acc-del svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+.acc-hint { margin: 4px 0 0; }

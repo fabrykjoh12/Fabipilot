@@ -88,7 +88,7 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 - Dumme-enkelt slår smart. Ikke bygg funksjoner jeg ikke har bedt om.
 
 ## 6. Datamodell (nåtilstand — hold oppdatert)
-Dexie-database `dashboard`, gjeldende schema-versjon **14**. Én store per modul. `id = crypto.randomUUID()`.
+Dexie-database `dashboard`, gjeldende schema-versjon **15**. Én store per modul. `id = crypto.randomUUID()`.
 Synces via Dexie Cloud (se §3).
 
 - **ideas** — `id, text, category, isFavorite, note, createdAt`
@@ -107,6 +107,10 @@ Synces via Dexie Cloud (se §3).
   de største restene i «Øvrig» ved bankimport — derfor trengs ingen migrering.
   `renewDay` = dag i måneden (1–31) abonnementet trekkes, eller `null` (uindeksert).
 - **expenses** (Penger/Forbruk) — `id, amount, category, sub, note, date, bulk, importKey, createdAt`
+  `accountId` = hvilken konto kjøpet ligger på. `transfer` (uindeksert): `true` for overføringer UT til
+  egne kontoer — de forlater kontoen og teller for saldoen, men er ikke forbruk og filtreres bort av
+  alt som handler om hva du BRUKER (`spending` i Money.jsx). Uten dem ville avsenderkontoens saldo
+  aldri gått ned mens mottakerens gikk opp, og totalen hadde vokst for hver overføring.
   `sub` (uindeksert, valgfri): underkategori — nøkkel i `SUBCATEGORIES[category]` (`src/lib/categories.js`).
   Kan mangle; alt summeres på `category` uansett.
   `date` = `YYYY-MM-DD`. Logget engangsforbruk. `importKey` (uindeksert, valgfri): `dato|beløp|butikk`
@@ -127,18 +131,25 @@ Synces via Dexie Cloud (se §3).
   En periode uten (eller med lite) inntekt, f.eks. en lang reise. `income` = samlet inntekt i HELE
   perioden (0 = uten lønn), `fixedMonthly` = faste utgifter som løper videre mens du er borte.
   Alt annet er utledet i `src/lib/plan.js` — ingenting beregnet lagres. v13 la til storen.
-- **inflows** (Penger — alt som kommer INN) — `id, date, kind, amount, merchant, note, importKey, createdAt`
+- **accounts** (Penger — kontoene dine) — `id, name, sortOrder, createdAt`
+  Brukeren har flere kontoer og flytter penger mellom dem. `expenses`, `inflows` og `balances` bærer
+  derfor `accountId`. v15 la til storen og migrerte alt som fantes til «Hovedkonto» (`upgradeToAccounts`
+  i db.js — eksportert så `db.migrate.test.js` kan treffe den ekte koden; testen kan ikke gå via
+  `db`-instansen fordi sky-addonen eier opprettelsen av basen). `deleteAccount` sletter kontoens kjøp,
+  innbetalinger og avlesninger sammen med den — ellers blir de liggende usynlige og fortsetter å telle.
+- **inflows** (Penger — alt som kommer INN) — `id, accountId, date, kind, amount, merchant, note, importKey, createdAt`
   (indekser: `date`, `kind`). Speilbildet av `expenses`: satt av bankimporten fra beløp-inn-kolonnen.
   `kind` = `'inntekt' | 'refusjon' | 'overforing'`, gjettet av `classifyInflow` (`src/lib/bankImport.js`).
   Skillet er hele poenget: på brukerens ekte konto er 289 223 av 301 833 kr inn bare flyttet fra egne
   kontoer — telles de som inntekt, ser hver måned ut som en lottogevinst. ALT teller for saldoen (pengene
   kom jo inn), men bare `inntekt`+`refusjon` regnes som inntekt. `importKey` = samme dedup-form som
   `expenses` (`listInflowImportKeys` teller som multiset), så re-import ikke dobbeltfører.
-- **balances** (Penger — saldo-holdepunkt) — `id, date, amount, createdAt`
-  (indeks: `date`). Én rad per dato — `setBalanceSnapshot` OPPDATERER dagens rad i stedet for å stable
-  nye. `amount` = saldo ved SLUTTEN av `date`, lest av i banken. Appen ruller den framover med `inflows`
-  minus `expenses` (`balanceAt` i `src/lib/balance.js`); en ny avlesning overstyrer alt før den, så avvik
-  rettes uten sletting. Uten holdepunkt vises ingen saldo — vi gjetter aldri. v14 la til `inflows`+`balances`.
+- **balances** (Penger — saldo-holdepunkt) — `id, accountId, date, amount, createdAt`
+  (indekser: `date`, `accountId`, `[accountId+date]`). Én rad per KONTO per dato — `setBalanceSnapshot`
+  oppdaterer den raden i stedet for å stable nye. `amount` = saldo ved SLUTTEN av `date`, lest av i
+  banken. Hver konto rulles framover for seg med sine `inflows` minus sine `expenses` (`accountBalance`);
+  totalen er summen av kontoene som ER lest av (`totalBalance`). Kontoer uten holdepunkt holdes UTENFOR
+  totalen — vi gjetter aldri på saldo. v14 la til `inflows`+`balances`, v15 la til `accountId`.
 - **goals** (Penger/Sparing) — `id, name, target, saved, createdAt`
   Sparemål. `addToGoal(id, delta)` justerer `saved` (min 0).
 - **projects** (Prosjekter) — `id, name, why, status, color, emoji, sortOrder, createdAt, lastTouched`
@@ -238,9 +249,11 @@ Alle stores er med i JSON-eksport/import (se §8).
   `window.prompt`/`window.confirm`, som ikke kan styles og ser ut som feilmeldinger på mobil.
   Komponenten bor i `src/components/AskSheet.jsx`, stilene i Money.css (`.msheet-*`)
 - `src/lib/balance.js` — saldo og pengeflyt: `balanceAt` (holdepunkt rullet framover med inn minus ut —
-  returnerer `null` uten holdepunkt, vi gjetter aldri på saldo), `latestSnapshot`, `monthlyFlow`
-  (inn/ut/netto for én måned, med `income` skilt fra `transfers` og sparerate målt mot ekte inntekt).
-  Alt utledet, ingenting lagret; testet i `balance.test.js`
+  returnerer `null` uten holdepunkt, vi gjetter aldri på saldo), `latestSnapshot`, `accountBalance`
+  (én konto), `totalBalance` (sum av kontoene som er lest av + hvor mange som mangler), `monthlyFlow`
+  (med `income` skilt fra `transfers`, og `netReal` = inntekt minus forbruk — `net` alene ville sagt at
+  du ble rikere av å flytte dine egne penger mellom kontoer). Alt utledet, ingenting lagret; testet i
+  `balance.test.js`
 - `src/lib/fx.js` — delte effekter: `burst` (gnist), `vibrate`, `fmtDate`, `autoGrow`, `kr`, `reduceMotion`
 - `src/lib/ui.jsx` — premium-primitiver: `AnimatedNumber`, `Skeleton`/`SkeletonCard`/`ScreenSkeleton`, `PageTransition`,
   `Reveal`, `toast` (sonner-wrapper), `useEscape` (lukk ark/dialoger på Escape). Bygd på `motion`; respekterer
@@ -297,7 +310,10 @@ Alle stores er med i JSON-eksport/import (se §8).
     gruppert per butikk (kategori-select + ta-med-avkryssing per butikk) → lagres via
     `importBankExpenses` (db.js). Kategorivalg huskes per butikk i localStorage (`bankCatOverrides`).
     Samme import tar også med INNbetalingene (`importBankInflows`) — vist som eget grønt kort med
-    inntekt/refusjon skilt fra overføringer, så saldoen holder seg riktig uten ekstra arbeid
+    inntekt/refusjon skilt fra overføringer, så saldoen holder seg riktig uten ekstra arbeid.
+    Kontoen velges FØR fila leses: dedup-nøklene er per konto, siden samme kjøp på to kontoer er to
+    ekte kjøp. En utskrift kan mangle kjøp helt (en sparekonto du bare overfører til) — importen
+    godtar rene innbetalings-/overføringsutskrifter
   - `Money.jsx` / `Money.css` — «Penger»: faner Oversikt (saldo-hero «På konto nå» øverst — trykk for å
     lese av saldoen i banken, deretter ruller den seg selv (`src/lib/balance.js`) — + «Inn og ut»-kort
     som skiller ekte inntekt fra flyttede penger, + «Trygt å bruke i dag»-hero +

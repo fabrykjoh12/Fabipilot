@@ -146,3 +146,38 @@ describe('buildImportPlan', () => {
     expect(old.groups.find((g) => g.merchant === 'EasyPark AS').category).toBe('fritid')
   })
 })
+
+describe('utgående overføringer med flere kontoer', () => {
+  /* Overføringer mellom egne kontoer er ikke forbruk, men de forlater kontoen.
+     Blir de forkastet, går aldri avsenderkontoens saldo ned mens mottakerens går
+     opp — og totalen vokser for hver overføring. */
+  const csv = [
+    'Dato;Forklaring;Rentedato;Ut fra konto;Inn på konto',
+    '"03.08.2026";"Overføring til sparekonto";"03.08.2026";"15000.00";""',
+    '"04.08.2026";"Rema 1000 Eik";"04.08.2026";"450.00";""',
+  ].join('\r\n')
+
+  it('lagrer overføringen ut i stedet for å forkaste den', () => {
+    const plan = buildImportPlan(csv)
+    expect(plan.transfersOut).toHaveLength(1)
+    expect(plan.transfersOut[0]).toMatchObject({ date: '2026-08-03', amount: 15000 })
+    expect(plan.transferOutTotal).toBe(15000)
+  })
+
+  it('holder den utenfor forbruket — den er ikke et kjøp', () => {
+    const plan = buildImportPlan(csv)
+    expect(plan.total).toBe(450)
+    expect(plan.count).toBe(1)
+    expect(plan.groups.map((g) => g.merchant)).not.toContain('Overføring til sparekonto')
+  })
+
+  it('dedupliserer overføringer ved re-import, som alt annet', () => {
+    const first = buildImportPlan(csv)
+    const keys = new Map()
+    for (const r of first.transfersOut) keys.set(r.key, (keys.get(r.key) || 0) + 1)
+    for (const g of first.groups) for (const r of g.rows) keys.set(r.key, (keys.get(r.key) || 0) + 1)
+    const again = buildImportPlan(csv, { existingKeys: keys })
+    expect(again.transfersOut).toHaveLength(0)
+    expect(again.count).toBe(0)
+  })
+})

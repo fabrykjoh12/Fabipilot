@@ -10,6 +10,7 @@ import {
   listIncomes, addIncome, updateIncome, deleteIncome,
   listGoals, addGoal, updateGoal, addToGoal,
   listPlans, listInflows, listBalances, setBalanceSnapshot,
+  listAccounts, addAccount, updateAccount, deleteAccount, ensureAccount,
   deleteWithRestore, restoreRecord,
 } from '../db.js'
 import { kr, vibrate, burst, reduceMotion } from '../lib/fx.js'
@@ -20,7 +21,7 @@ import { safeToSpend, projectMonthEnd, remainingChargesThisMonth, yearlyReserve,
 import MoneyImportSheet from './MoneyImport.jsx'
 import MoneyPlan from './MoneyPlan.jsx'
 import { suggestBudgets } from '../lib/plan.js'
-import { balanceAt, monthlyFlow } from '../lib/balance.js'
+import { monthlyFlow, totalBalance } from '../lib/balance.js'
 import { fixedThisMonth, detectRecurring } from '../lib/recurring.js'
 import { monthDiff, explainMonth } from '../lib/monthDiff.js'
 import { useAskSheet } from '../lib/askSheet.jsx'
@@ -634,6 +635,69 @@ function SubCard({ sub, onAsk }) {
 }
 
 /* ============ hovedmodul ============ */
+/* Kontoene: les av saldo, legg til, slett.
+
+   Flere kontoer er hele grunnen til at «hvor mye har jeg?» er vanskelig — du
+   flytter penger fram og tilbake, og ett samletall skjuler hvor de er. Derfor
+   viser arket både summen og fordelingen, og hver rad er avlesningsknappen. */
+function AccountsSheet({ rows, total, missing, onRead, onAdd, onRename, onDelete, onClose }) {
+  useEscape(onClose)
+  const [name, setName] = useState('')
+  return (
+    <div className="msheet-overlay" onClick={onClose}>
+      <div className="msheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="msheet-grip" />
+        <h3 className="msheet-title">Kontoene dine</h3>
+
+        <div className="acc-total">
+          <span className="acc-total-lbl">Til sammen</span>
+          <span className="acc-total-amt">{kr(Math.round(total))}</span>
+          {missing > 0 && (
+            <span className="acc-total-note">
+              {missing} {missing === 1 ? 'konto er' : 'kontoer er'} ikke lest av og teller ikke med.
+            </span>
+          )}
+        </div>
+
+        <div className="acc-rows">
+          {rows.map((r) => (
+            <div key={r.account.id} className="acc-row">
+              <button
+                type="button"
+                className="acc-name"
+                onClick={() => onRename(r.account)}
+                aria-label={`Gi ${r.account.name} nytt navn`}
+              >{r.account.name}</button>
+              <button type="button" className={'acc-amt' + (r.balance === null ? ' unset' : '')} onClick={() => onRead(r.account, r.balance)}>
+                {r.balance === null ? 'Les av' : kr(Math.round(r.balance))}
+              </button>
+              <button type="button" className="acc-del" aria-label={`Slett ${r.account.name}`} onClick={() => onDelete(r.account)}>
+                <X />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="imp-newacc">
+          <input
+            type="text"
+            placeholder="Ny konto…"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { onAdd(name.trim()); setName('') } }}
+          />
+          <button type="button" disabled={!name.trim()} onClick={() => { onAdd(name.trim()); setName('') }}>Legg til</button>
+        </div>
+
+        <p className="msheet-hint acc-hint">
+          Importer én kontoutskrift per konto. Overføringer mellom dem teller for saldoen, men ikke som
+          forbruk — så totalen står stille når du bare flytter penger.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function Money() {
   const subs = useLiveQuery(() => listSubscriptions(), [], [])
   const budgets = useLiveQuery(() => listBudgets(), [], [])
@@ -641,6 +705,7 @@ export default function Money() {
   const goals = useLiveQuery(() => listGoals(), [], [])
   const plans = useLiveQuery(() => listPlans(), [], [])
   const balances = useLiveQuery(() => listBalances(), [], [])
+  const accounts = useLiveQuery(() => listAccounts(), [], [])
 
   const [tab, setTab] = useState('oversikt')
   const [cursor, setCursor] = useState(() => {
@@ -672,12 +737,16 @@ export default function Money() {
   const [incAmount, setIncAmount] = useState('')
   const [goalName, setGoalName] = useState('')
   const [goalTarget, setGoalTarget] = useState('')
-  const { ask, sheet: askSheet } = useAskSheet()
+  const { ask, confirm: askConfirm, sheet: askSheet } = useAskSheet()
 
   const totalIncome = incomes.reduce((s, i) => s + (i.amount || 0), 0)
 
   const monthPrefix = `${cursor.y}-${pad(cursor.m + 1)}`
-  const monthExpenses = expenses.filter((e) => (e.date || '').startsWith(monthPrefix))
+  /* Overføringer mellom egne kontoer ligger i `expenses` fordi de forlater
+     kontoen og må telle for saldoen — men de er ikke forbruk og skal ut av alt
+     som handler om hva du BRUKER. */
+  const spending = expenses.filter((e) => !e.transfer)
+  const monthExpenses = spending.filter((e) => (e.date || '').startsWith(monthPrefix))
   const expTotal = monthExpenses.reduce((s, x) => s + (x.amount || 0), 0)
   /* Faste trekk som ALLEREDE ligger som importerte kjøp skal ikke legges til igjen —
      ellers telles Spotify/Telia to ganger (`src/lib/recurring.js`). Bare de som ikke
@@ -692,7 +761,7 @@ export default function Money() {
   const prevDt = new Date(cursor.y, cursor.m - 1, 1)
   const prevMonthPrefix = `${prevDt.getFullYear()}-${pad(prevDt.getMonth() + 1)}`
   const prevMonthLabel = MONTHS[prevDt.getMonth()]
-  const prevMonthExpenses = expenses.filter((e) => (e.date || '').startsWith(prevMonthPrefix))
+  const prevMonthExpenses = spending.filter((e) => (e.date || '').startsWith(prevMonthPrefix))
   const prevExpTotal = prevMonthExpenses.reduce((s, x) => s + (x.amount || 0), 0)
   const prevFixed = fixedThisMonth(subs, prevMonthExpenses, monthlyCost)
   const prevTotalSpent = prevFixed.total + prevExpTotal
@@ -745,39 +814,51 @@ export default function Money() {
     setCursor({ y: dt.getFullYear(), m: dt.getMonth() })
   }
 
-  /* Saldo + pengeflyt. `bal` er null helt til du har oppgitt saldoen én gang —
-     vi gjetter ikke på hva du har. */
-  const bal = balanceAt(balances, inflows, expenses, todayKey())
-  const flow = monthlyFlow(inflows, expenses, monthPrefix)
-  // Samme ark som resten av modulen bruker — ikke nettleserens grå systemboks.
-  function askBalance() {
+  /* Saldo på tvers av kontoene. Hver konto rulles for seg fra sitt eget
+     holdepunkt; totalen er summen av dem som ER lest av. Kontoer uten avlesning
+     holdes utenfor — vi gjetter aldri på en saldo.
+
+     Overføringer mellom egne kontoer nuller seg selv ut i totalen når begge
+     utskriftene er importert: ut på den ene, inn på den andre. */
+  const bal = totalBalance(accounts, balances, inflows, expenses, todayKey())
+  const flow = monthlyFlow(inflows, spending, monthPrefix)
+
+  // Les av én konto i banken. Samme ark som resten av modulen bruker.
+  function askAccountBalance(acc, current) {
     ask({
-      title: 'Hva står det på kontoen nå?',
-      label: 'Les av i banken. Så holder appen saldoen oppdatert med det du importerer.',
-      initial: bal ? Math.round(bal.balance) : '',
+      title: `Saldo på ${acc.name}`,
+      label: 'Les av i banken. Så holder appen den oppdatert med det du importerer.',
+      initial: current == null ? '' : Math.round(current),
       suffix: 'kr',
       onSave: async (v) => {
         const n = Number(String(v).replace(/[\s\u00a0]/g, '').replace(',', '.'))
         if (String(v).trim() === '' || !Number.isFinite(n)) { toast.error('Skjønte ikke beløpet'); return }
-        await setBalanceSnapshot({ date: todayKey(), amount: n })
+        await setBalanceSnapshot({ accountId: acc.id, date: todayKey(), amount: n })
         vibrate(12)
-        toast.success('Saldo lagret', { description: 'Den oppdateres nå automatisk ved hver import.' })
+        toast.success(`${acc.name} oppdatert`)
       },
     })
+  }
+
+  /* Ingen kontoer ennå: lag den første og les den av med én gang, så du slipper
+     å skjønne datamodellen for å komme i gang. */
+  async function startFirstAccount() {
+    const acc = await ensureAccount('Brukskonto')
+    if (acc) askAccountBalance(acc, null)
   }
 
   /* Faste utgifter appen finner selv i bankhistorikken: samme butikk, stabilt
      beløp, samme dag, flere måneder på rad. Å legge dem inn her fjerner samtidig
      dobbelttellingen, siden de da kjennes igjen i kjøpene. */
-  const recurringFound = detectRecurring(expenses, { subs })
+  const recurringFound = detectRecurring(spending, { subs })
 
   // Budsjettforslag fra faktisk historikk — mye bedre utgangspunkt enn blanke felt.
   /* «Hva var annerledes?» — endringsmerket sier at du brukte 7 % mer, men ikke
      HVA som flyttet seg. Ofte er hele utslaget ett kjøp. */
-  const diff = monthDiff(expenses, monthPrefix, prevMonthPrefix)
+  const diff = monthDiff(spending, monthPrefix, prevMonthPrefix)
   const diffText = explainMonth(diff, (k) => catMeta(k).label, kr)
 
-  const budgetSuggestion = suggestBudgets(expenses, { monthsBack: 6 })
+  const budgetSuggestion = suggestBudgets(spending, { monthsBack: 6 })
   async function applySuggestedBudgets() {
     const entries = Object.entries(budgetSuggestion.budgets)
     for (const [cat, amt] of entries) await setBudget(cat, amt)
@@ -832,30 +913,64 @@ export default function Money() {
                 Pengeflyten henger UNDER saldoen som en tynn linjerad i samme kort — den
                 forklarer tallet over, og fortjener ikke et eget kort som konkurrerer om blikket. */}
             <div className="bal-card">
-              {bal ? (
-                <button type="button" className="bal-hero" onClick={askBalance}>
-                  <span className="bal-lbl">På konto nå</span>
-                  <AnimatedNumber className="bal-amount" value={Math.round(bal.balance)} format={kr} />
+              {bal.hasAny ? (
+                <button type="button" className="bal-hero" onClick={() => setSheet({ type: 'accounts' })}>
+                  <span className="bal-lbl">
+                    {bal.rows.length > 1 ? 'Til sammen' : 'På konto nå'}
+                  </span>
+                  <AnimatedNumber className="bal-amount" value={Math.round(bal.total)} format={kr} />
                   <span className="bal-sub">
-                    {bal.exact
-                      ? `avlest ${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)}`
-                      : `${bal.anchor.date.slice(8)}.${bal.anchor.date.slice(5, 7)} + ${kr(Math.round(bal.inSince))} inn − ${kr(Math.round(bal.outSince))} ut`}
+                    {bal.rows.length > 1
+                      ? `${bal.known} ${bal.known === 1 ? 'konto' : 'kontoer'}`
+                        + (bal.missing > 0 ? ` · ${bal.missing} mangler avlesning` : '')
+                      : bal.rows[0]?.exact
+                        ? `avlest ${bal.rows[0].anchor.date.slice(8)}.${bal.rows[0].anchor.date.slice(5, 7)}`
+                        : `${bal.rows[0].anchor.date.slice(8)}.${bal.rows[0].anchor.date.slice(5, 7)} + ${kr(Math.round(bal.rows[0].inSince))} inn − ${kr(Math.round(bal.rows[0].outSince))} ut`}
                   </span>
                 </button>
               ) : (
-                <button type="button" className="bal-hero prompt" onClick={askBalance}>
+                <button
+                  type="button"
+                  className="bal-hero prompt"
+                  onClick={() => (accounts.length ? setSheet({ type: 'accounts' }) : startFirstAccount())}
+                >
                   <span className="bal-lbl">På konto</span>
                   <span className="bal-prompt-txt">
-                    Skriv inn saldoen din én gang — så holder appen den oppdatert med det du importerer fra banken.
+                    Les av saldoen på kontoene dine én gang — så holder appen dem oppdatert med det du
+                    importerer fra banken.
                   </span>
                 </button>
               )}
 
-              {(flow.in > 0 || flow.out > 0) && (
+              {/* Flere kontoer: vis fordelingen med én gang. Det er nettopp
+                  fordelingen som forsvinner når du flytter penger fram og
+                  tilbake, og som ett samletall ikke kan svare på. */}
+              {bal.rows.length > 1 && (
+                <div className="bal-accounts">
+                  {bal.rows.map((r) => (
+                    <button
+                      key={r.account.id}
+                      type="button"
+                      className={'bal-acc' + (r.balance === null ? ' unset' : '')}
+                      onClick={() => askAccountBalance(r.account, r.balance)}
+                    >
+                      <span className="bal-acc-name">{r.account.name}</span>
+                      <span className="bal-acc-amt">
+                        {r.balance === null ? 'les av' : kr(Math.round(r.balance))}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {(flow.income > 0 || flow.out > 0 || flow.transfers > 0) && (
                 <div className="flow">
+                  {/* Inntekt og forbruk — ikke «alt inn» og «alt ut». Med flere
+                      kontoer ville interne overføringer blåst opp begge sider og
+                      fått det til å se ut som formuen vokste av å flytte penger. */}
                   <div className="flow-row">
                     <span className="flow-lbl">Inn i {MONTHS[cursor.m]}</span>
-                    <span className="flow-amt pos">+{kr(Math.round(flow.in))}</span>
+                    <span className="flow-amt pos">+{kr(Math.round(flow.income))}</span>
                   </div>
                   <div className="flow-row">
                     <span className="flow-lbl">Ut</span>
@@ -863,15 +978,15 @@ export default function Money() {
                   </div>
                   <div className="flow-row net">
                     <span className="flow-lbl">Netto</span>
-                    <span className={'flow-amt' + (flow.net >= 0 ? ' pos' : ' neg')}>
-                      {flow.net >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.net)))}
+                    <span className={'flow-amt' + (flow.netReal >= 0 ? ' pos' : ' neg')}>
+                      {flow.netReal >= 0 ? '+' : '−'}{kr(Math.round(Math.abs(flow.netReal)))}
                     </span>
                   </div>
                   {flow.transfers > 0 && (
                     <p className="flow-note">
-                      {kr(Math.round(flow.transfers))} av innbetalingene er overført fra egne kontoer — det er
-                      flyttede penger, ikke inntekt.
-                      {flow.income > 0 && ` Ekte inntekt: ${kr(Math.round(flow.income))}.`}
+                      I tillegg flyttet du {kr(Math.round(flow.transfers))} mellom egne kontoer. Det er
+                      ikke inntekt og ikke forbruk, så det holdes utenfor tallene over — totalen din
+                      står stille når du bare flytter penger.
                     </p>
                   )}
                   {flow.savingRate !== null && flow.transfers === 0 && (
@@ -989,7 +1104,7 @@ export default function Money() {
             <CategoryDonut rows={catRows} total={totalSpent} />
 
             <MonthTrend
-              expenses={expenses}
+              expenses={spending}
               subTotal={subTotal}
               cursor={cursor}
               onPick={(y, m) => setCursor({ y, m })}
@@ -1219,7 +1334,7 @@ export default function Money() {
         )}
 
         {/* ===== PLAN (sparemodus / reise uten lønn) ===== */}
-        {tab === 'plan' && <MoneyPlan plans={plans} expenses={expenses} />}
+        {tab === 'plan' && <MoneyPlan plans={plans} expenses={spending} />}
 
         {/* ===== FASTE (abonnement) ===== */}
         {tab === 'faste' && (
@@ -1354,6 +1469,30 @@ export default function Money() {
         <MonthlyTotalsSheet y={cursor.y} m={cursor.m} onClose={() => setSheet(null)} />
       )}
       {sheet?.type === 'bankImport' && <MoneyImportSheet onClose={() => setSheet(null)} />}
+      {sheet?.type === 'accounts' && (
+        <AccountsSheet
+          rows={bal.rows}
+          total={bal.total}
+          missing={bal.missing}
+          onRead={askAccountBalance}
+          onAdd={(n) => addAccount(n)}
+          onRename={(acc) => ask({
+            title: 'Nytt navn på kontoen',
+            inputMode: 'text',
+            initial: acc.name,
+            placeholder: 'Brukskonto',
+            onSave: (v) => { const n = String(v).trim(); if (n) updateAccount(acc.id, { name: n }) },
+          })}
+          onDelete={(acc) => askConfirm({
+            title: `Slette «${acc.name}»?`,
+            label: 'Kjøpene, innbetalingene og avlesningene på denne kontoen slettes også. Det kan ikke angres.',
+            confirmLabel: 'Slett kontoen',
+            danger: true,
+            onSave: async () => { await deleteAccount(acc.id); vibrate(12); toast.message(`${acc.name} slettet`) },
+          })}
+          onClose={() => setSheet(null)}
+        />
+      )}
       {sheet?.type === 'catDetail' && (
         <CategorySheet
           cat={sheet.cat}

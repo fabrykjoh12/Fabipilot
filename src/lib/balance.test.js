@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { balanceAt, latestSnapshot, monthlyFlow } from './balance.js'
+import { balanceAt, latestSnapshot, monthlyFlow, accountBalance, totalBalance } from './balance.js'
 
 const snap = (date, amount) => ({ date, amount })
 const inn = (date, amount, kind = 'inntekt') => ({ date, amount, kind })
@@ -98,5 +98,78 @@ describe('monthlyFlow', () => {
     const f = monthlyFlow(inflows, expenses, '2026-07')
     expect(f.in).toBe(9999)
     expect(f.out).toBe(5555)
+  })
+})
+
+describe('flere kontoer', () => {
+  const accounts = [{ id: 'brukskonto', name: 'Brukskonto' }, { id: 'sparekonto', name: 'Sparekonto' }]
+  const snaps = [
+    { accountId: 'brukskonto', date: '2026-08-01', amount: 20000 },
+    { accountId: 'sparekonto', date: '2026-08-01', amount: 80000 },
+  ]
+  /* En overføring på 15 000 fra brukskonto til sparekonto, slik den ser ut når
+     BEGGE kontoutskriftene er importert: ut på den ene, inn på den andre. */
+  const expenses = [
+    { accountId: 'brukskonto', date: '2026-08-05', amount: 15000, transfer: true },
+    { accountId: 'brukskonto', date: '2026-08-06', amount: 900 },
+  ]
+  const inflows = [{ accountId: 'sparekonto', date: '2026-08-05', amount: 15000, kind: 'overforing' }]
+
+  it('ruller hver konto for seg', () => {
+    expect(accountBalance('brukskonto', snaps, inflows, expenses, '2026-08-31').balance).toBe(20000 - 15000 - 900)
+    expect(accountBalance('sparekonto', snaps, inflows, expenses, '2026-08-31').balance).toBe(80000 + 15000)
+  })
+
+  it('lar overføringen nette seg ut i totalen — pengene forsvant ikke', () => {
+    const t = totalBalance(accounts, snaps, inflows, expenses, '2026-08-31')
+    // 100 000 inn, minus det ene ekte kjøpet på 900
+    expect(t.total).toBe(100000 - 900)
+    expect(t.missing).toBe(0)
+  })
+
+  it('holder kontoer uten avlesning UTENFOR totalen i stedet for å gjette', () => {
+    const withNew = [...accounts, { id: 'kredittkort', name: 'Kredittkort' }]
+    const t = totalBalance(withNew, snaps, inflows, expenses, '2026-08-31')
+    expect(t.total).toBe(100000 - 900) // uendret
+    expect(t.missing).toBe(1)
+    expect(t.known).toBe(2)
+    expect(t.rows.find((r) => r.account.id === 'kredittkort').balance).toBeNull()
+  })
+
+  it('sier fra når ingenting er lest av', () => {
+    const t = totalBalance(accounts, [], inflows, expenses, '2026-08-31')
+    expect(t.hasAny).toBe(false)
+    expect(t.missing).toBe(2)
+  })
+
+  it('blander ikke kontoenes bevegelser', () => {
+    // sparekontoens innbetaling skal ikke løfte brukskontoen
+    expect(accountBalance('brukskonto', snaps, inflows, [], '2026-08-31').inSince).toBe(0)
+  })
+})
+
+describe('netReal — ekte endring, ikke flyttede penger', () => {
+  /* Flytter du 15 000 fra brukskonto til sparekonto, kommer de inn på den ene
+     kontoen mens uttaket er en overføring som ikke er forbruk. `net` ville da
+     sagt at du ble 15 000 rikere av å flytte dine egne penger. */
+  const inflows = [
+    { date: '2026-08-02', amount: 34000, kind: 'inntekt' },
+    { date: '2026-08-03', amount: 15000, kind: 'overforing' },
+  ]
+  const spending = [{ date: '2026-08-04', amount: 1270 }] // overføringen ut er filtrert bort
+
+  it('teller bare ekte inntekt minus forbruk', () => {
+    const f = monthlyFlow(inflows, spending, '2026-08')
+    expect(f.netReal).toBe(34000 - 1270)
+  })
+
+  it('lar `net` stå urørt for dem som vil se all bevegelse', () => {
+    const f = monthlyFlow(inflows, spending, '2026-08')
+    expect(f.net).toBe(49000 - 1270)
+  })
+
+  it('er negativ når du bruker mer enn du tjener', () => {
+    const f = monthlyFlow([{ date: '2026-08-02', amount: 1000, kind: 'inntekt' }], [{ date: '2026-08-05', amount: 4000 }], '2026-08')
+    expect(f.netReal).toBe(-3000)
   })
 })
