@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { motion } from 'motion/react'
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { ChevronLeft, ChevronRight, Plus, X, PieChart as PieChartIcon, Target, Receipt, CreditCard, Landmark, BarChart3, Lightbulb, Wand2 } from 'lucide-react'
 import {
   listSubscriptions, addSubscription, updateSubscription, monthlyCost,
@@ -47,12 +46,18 @@ function barColor(ratio) {
 }
 
 /** Endring vs forrige måned — mer bruk = rødt, mindre = grønt. */
-function ChangeBadge({ cur, prev }) {
+/* `quiet` (kategoriradene): vis merket bare når endringen faktisk betyr noe.
+   Med et merke på hver eneste rad blir syv rader syv fargeflekker, og fargen
+   slutter å bety «se her». Terskelen er både relativ og absolutt — 15 % ELLER
+   500 kr — så små beløp med stor prosent (12 → 24 kr er +100 %) ikke roper, og
+   store beløp med liten prosent ikke forsvinner. */
+function ChangeBadge({ cur, prev, quiet = false }) {
   if (cur === 0 && prev === 0) return null
   const diff = cur - prev
-  if (Math.abs(diff) < 1) return <span className="delta flat">uendret</span>
+  if (Math.abs(diff) < 1) return quiet ? null : <span className="delta flat">uendret</span>
   const up = diff > 0
   const pct = prev > 0 ? Math.round((Math.abs(diff) / prev) * 100) : null
+  if (quiet && Math.abs(diff) < 500 && (pct === null || pct < 15)) return null
   return (
     <span className={'delta ' + (up ? 'up' : 'down')}>
       {up ? '↑' : '↓'} {kr(Math.abs(diff))}{pct !== null ? ` · ${pct}%` : ''}
@@ -122,54 +127,6 @@ function MonthTrend({ expenses, subTotal, cursor, onPick }) {
 }
 
 /* ============ kakediagram: fordeling per kategori ============ */
-function CategoryDonut({ rows, total }) {
-  const data = rows.filter((r) => r.spent > 0)
-  if (data.length < 2) return null
-  return (
-    <div className="card donut-card">
-      <span className="trend-lbl">Fordeling denne måneden</span>
-      <div className="donut-wrap">
-        <div className="donut-chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="spent"
-                nameKey="label"
-                innerRadius="68%"
-                outerRadius="100%"
-                paddingAngle={data.length > 1 ? 2 : 0}
-                stroke="none"
-                startAngle={90}
-                endAngle={-270}
-                isAnimationActive={!reduceMotion()}
-                animationDuration={650}
-              >
-                {data.map((d) => (
-                  <Cell key={d.k} fill={d.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="donut-center">
-            <AnimatedNumber className="donut-total" value={total} format={kr} />
-            <span className="donut-sub">totalt</span>
-          </div>
-        </div>
-        <ul className="donut-legend">
-          {data.slice(0, 6).map((d) => (
-            <li key={d.k}>
-              <span className="dl-dot" style={{ background: d.color }} />
-              <span className="dl-name">{d.emoji} {d.label}</span>
-              <span className="dl-amt">{kr(d.spent)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
-}
-
 /* ============ bunn-sheet: hva gikk pengene til i én kategori ============
    «Dagligvarer: 8 200 kr» sier ingenting om HVA. Her brytes summen ned på
    type (underkategori) og sted (butikk), med alle kjøpene under. */
@@ -788,11 +745,6 @@ export default function Money() {
     .filter((c) => c.spent > 0 || c.budget > 0)
     .sort((a, b) => b.spent - a.spent)
 
-  const upcoming = subs
-    .filter((s) => s.renewDay)
-    .map((s) => ({ id: s.id, name: s.name, amount: s.amount, days: daysUntilDay(s.renewDay) }))
-    .sort((a, b) => a.days - b.days)
-    .slice(0, 4)
 
   const isCurrentMonth = monthPrefix === todayKey().slice(0, 7)
   const monthLabel = `${MONTHS[cursor.m].charAt(0).toUpperCase() + MONTHS[cursor.m].slice(1)} ${cursor.y}`
@@ -989,9 +941,9 @@ export default function Money() {
                   )}
                 </div>
               ) : (
-                <button type="button" className="safe-hero prompt" onClick={() => document.querySelector('.income-add input')?.focus()}>
+                <button type="button" className="safe-hero prompt" onClick={() => setTab('faste')}>
                   <span className="safe-lbl">Trygt å bruke</span>
-                  <span className="safe-prompt-txt">Legg inn månedsinntekt eller et budsjett — så regner jeg ut hvor mye du trygt kan bruke hver dag.</span>
+                  <span className="safe-prompt-txt">Legg inn månedsinntekt under «Faste», eller et budsjett her — så regner jeg ut hvor mye du trygt kan bruke hver dag.</span>
                 </button>
               )
             )}
@@ -1116,7 +1068,7 @@ export default function Money() {
                         </div>
                         <div className="bc-foot">
                           {c.budget > 0 && <span className="bc-of">av {kr(c.budget)}</span>}
-                          <ChangeBadge cur={c.spent} prev={c.prevSpent} />
+                          <ChangeBadge cur={c.spent} prev={c.prevSpent} quiet />
                         </div>
                       </div>
                     </button>
@@ -1141,8 +1093,6 @@ export default function Money() {
                 midt i månedstallene. */}
             {showPattern && <p className="money-sec">Mønster</p>}
 
-            <CategoryDonut rows={catRows} total={totalSpent} />
-
             <MonthTrend
               expenses={spending}
               subTotal={subTotal}
@@ -1150,72 +1100,6 @@ export default function Money() {
               onPick={(y, m) => setCursor({ y, m })}
             />
 
-            <p className="money-sec">Framover</p>
-
-            {isCurrentMonth && (upcomingMonthly.length > 0 || reserve > 0) && (
-              <div className="card upcoming-card">
-                <div className="uc-head">
-                  <span className="trend-lbl">Kommende trekk</span>
-                  {remainingCharges > 0 && <span className="uc-sum">{kr(remainingCharges)} igjen i mnd</span>}
-                </div>
-                {upcomingMonthly.map((u) => (
-                  <div key={u.id} className="uc-row">
-                    <span className={'uc-days' + (u.days <= 3 ? ' soon' : '')}>
-                      {u.days === 0 ? 'i dag' : u.days === 1 ? 'i morgen' : `om ${u.days} d`}
-                    </span>
-                    <span className="uc-name">{u.name}</span>
-                    <span className="uc-amt">{kr(u.amount)}<span className="uc-year">{kr(u.amount * 12)}/år</span></span>
-                  </div>
-                ))}
-                {reserve > 0 && (
-                  <div className="uc-reserve"><Lightbulb /> Sett av {kr(reserve)}/mnd til årlige regninger</div>
-                )}
-              </div>
-            )}
-
-            <div className="income-card">
-              <span className="income-lbl">Månedsinntekt</span>
-              {incomes.map((i) => (
-                <div key={i.id} className="income-row">
-                  <span className="income-name">{i.name}</span>
-                  <button
-                    type="button"
-                    className="income-amt"
-                    onClick={() => ask({
-                      title: `Inntekt · ${i.name}`,
-                      label: 'Kroner per måned',
-                      initial: i.amount,
-                      suffix: 'kr',
-                      onSave: (v) => { const n = Number(v); if (!Number.isNaN(n)) updateIncome(i.id, { amount: n }) },
-                    })}
-                  >{kr(i.amount)}</button>
-                  <button type="button" className="income-del" aria-label="Slett" onClick={() => deleteIncome(i.id)}>×</button>
-                </div>
-              ))}
-              <div className="income-add">
-                <input
-                  type="text"
-                  placeholder="Lønn, stipend…"
-                  value={incName}
-                  onChange={(e) => setIncName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && incName.trim() && (addIncome({ name: incName, amount: incAmount }), setIncName(''), setIncAmount(''))}
-                />
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="kr"
-                  className="income-amt-in"
-                  value={incAmount}
-                  onChange={(e) => setIncAmount(e.target.value)}
-                />
-                <button
-                  type="button"
-                  disabled={!incName.trim()}
-                  onClick={() => { addIncome({ name: incName, amount: incAmount }); setIncName(''); setIncAmount('') }}
-                  aria-label="Legg til inntekt"
-                >+</button>
-              </div>
-            </div>
           </>
         )}
 
@@ -1356,24 +1240,84 @@ export default function Money() {
         {tab === 'plan' && <MoneyPlan plans={plans} expenses={spending} />}
 
         {/* ===== FASTE (abonnement) ===== */}
+        {/* «Faste» = alt som gjentar seg hver måned, både inn og ut. Inntekten og
+            de kommende trekkene lå før på Oversikt, som gjorde den fanen til en
+            blanding av status og innstillinger — og de hører uansett hjemme her,
+            sammen med abonnementene de kommer fra. */}
         {tab === 'faste' && (
           <>
+            <p className="money-sec first">Inn hver måned</p>
+
+            <div className="income-card">
+              <span className="income-lbl">Månedsinntekt</span>
+              {incomes.map((i) => (
+                <div key={i.id} className="income-row">
+                  <span className="income-name">{i.name}</span>
+                  <button
+                    type="button"
+                    className="income-amt"
+                    onClick={() => ask({
+                      title: `Inntekt · ${i.name}`,
+                      label: 'Kroner per måned',
+                      initial: i.amount,
+                      suffix: 'kr',
+                      onSave: (v) => { const n = Number(v); if (!Number.isNaN(n)) updateIncome(i.id, { amount: n }) },
+                    })}
+                  >{kr(i.amount)}</button>
+                  <button type="button" className="income-del" aria-label="Slett" onClick={() => deleteIncome(i.id)}>×</button>
+                </div>
+              ))}
+              <div className="income-add">
+                <input
+                  type="text"
+                  placeholder="Lønn, stipend…"
+                  value={incName}
+                  onChange={(e) => setIncName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && incName.trim() && (addIncome({ name: incName, amount: incAmount }), setIncName(''), setIncAmount(''))}
+                />
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="kr"
+                  className="income-amt-in"
+                  value={incAmount}
+                  onChange={(e) => setIncAmount(e.target.value)}
+                />
+                <button
+                  type="button"
+                  disabled={!incName.trim()}
+                  onClick={() => { addIncome({ name: incName, amount: incAmount }); setIncName(''); setIncAmount('') }}
+                  aria-label="Legg til inntekt"
+                >+</button>
+              </div>
+            </div>
+
+            <p className="money-sec">Ut hver måned</p>
+
             <div className="budget-summary slim">
               <span className="bs-label">faste utgifter per måned</span>
               <AnimatedNumber className="bs-amount" value={Math.round(subsMonthly)} format={kr} />
               <span className="bs-sub">{subs.length} abonnement · {kr(Math.round(subsMonthly * 12))} per år</span>
             </div>
 
-            {upcoming.length > 0 && (
-              <div className="upcoming">
-                <span className="upcoming-lbl">Kommende</span>
-                {upcoming.map((u) => (
-                  <div key={u.id} className="upcoming-row">
-                    <span className="upcoming-days">{u.days === 0 ? 'i dag' : u.days === 1 ? 'i morgen' : `om ${u.days} d`}</span>
-                    <span className="upcoming-name">{u.name}</span>
-                    <span className="upcoming-amt">{kr(u.amount)}</span>
+            {isCurrentMonth && (upcomingMonthly.length > 0 || reserve > 0) && (
+              <div className="card upcoming-card">
+                <div className="uc-head">
+                  <span className="trend-lbl">Kommende trekk</span>
+                  {remainingCharges > 0 && <span className="uc-sum">{kr(remainingCharges)} igjen i mnd</span>}
+                </div>
+                {upcomingMonthly.map((u) => (
+                  <div key={u.id} className="uc-row">
+                    <span className={'uc-days' + (u.days <= 3 ? ' soon' : '')}>
+                      {u.days === 0 ? 'i dag' : u.days === 1 ? 'i morgen' : `om ${u.days} d`}
+                    </span>
+                    <span className="uc-name">{u.name}</span>
+                    <span className="uc-amt">{kr(u.amount)}<span className="uc-year">{kr(u.amount * 12)}/år</span></span>
                   </div>
                 ))}
+                {reserve > 0 && (
+                  <div className="uc-reserve"><Lightbulb /> Sett av {kr(reserve)}/mnd til årlige regninger</div>
+                )}
               </div>
             )}
 

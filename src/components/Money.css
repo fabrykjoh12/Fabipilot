@@ -2,54 +2,6 @@
    (Segmentkontrollen .money-tabs bor i AppShell.css — den deles med «Lister»,
    og Money.css lat-lastes, så stilen må ligge i det delte laget.) */
 
-/* kommende betalinger */
-.upcoming {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-}
-.upcoming-lbl {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.upcoming-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 0;
-}
-.upcoming-days {
-  flex: 0 0 auto;
-  width: 64px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.upcoming-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.upcoming-amt {
-  flex: 0 0 auto;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
 /* trekkdag-merkelapp på abonnement */
 .sub-day {
   border: 1px solid var(--line);
@@ -99,95 +51,6 @@
   width: 18px; height: 18px;
   stroke: currentColor; stroke-width: 2.2; fill: none;
   stroke-linecap: round; stroke-linejoin: round;
-}
-
-/* ===== kakediagram (donut) ===== */
-.donut-card {
-  margin-top: 14px;
-  padding: 16px 16px 14px;
-}
-.donut-wrap {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.donut-chart {
-  position: relative;
-  flex: 0 0 auto;
-  width: 132px;
-  height: 132px;
-}
-.donut-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.donut-total {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 19px;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-}
-.donut-sub {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.donut-legend {
-  flex: 1;
-  min-width: 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.donut-legend li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-.dl-dot {
-  flex: 0 0 auto;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-.dl-name {
-  flex: 1;
-  min-width: 0;
-  font-weight: 500;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dl-amt {
-  flex: 0 0 auto;
-  font-weight: 600;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-@media (max-width: 420px) {
-  .donut-wrap {
-    gap: 14px;
-  }
-  .donut-chart {
-    width: 110px;
-    height: 110px;
-  }
 }
 
 /* sammendrags-kort */
@@ -1133,3 +996,6 @@
    og lå før inni saldokortet som gjorde det 431px høyt. */
 .flow.card { padding: 4px 16px 10px; }
 .flow.card .flow-row:first-child { border-top: 0; }
+
+/* Uten endringsmerke skal budsjettlinja stå alene til venstre, ikke midtstilt. */
+.bc-foot:has(> :only-child) { justify-content: flex-start; }

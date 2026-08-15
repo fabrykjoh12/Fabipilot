@@ -15,8 +15,9 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
 
 ## 3. Stack
 - React 19 + Vite
-- UI-bibliotek: `motion` (bevegelse/sideoverganger), `lucide-react` (ikoner), `sonner` (toast),
-  `recharts` (diagram, lazy-lastet med Penger). Delte primitiver i `src/lib/ui.jsx`.
+- UI-bibliotek: `motion` (bevegelse/sideoverganger), `lucide-react` (ikoner), `sonner` (toast).
+  Delte primitiver i `src/lib/ui.jsx`. (`recharts` er fjernet — kakediagrammet var eneste bruker, og
+  viste samme tall som kategorilista under seg. Det tok 280 KB av Penger-pakken.)
 - Designsystem-tokens (radius/spacing/skygge/bevegelse/typografi/farger) i `:root` i `AppShell.css`.
 - Fonter er selv-hostet via `@fontsource-variable/plus-jakarta-sans` (importert i `main.jsx`) — ingen
   Google Fonts-CDN (proxy blokkerer den + fungerer offline i PWA).
@@ -68,9 +69,12 @@ Gi meg konkrete steg. Jeg tester alltid i browser før jeg committer.
   Seksjonsetiketter = rolig grå majuskel, ingen bokser.
 - **Ett kort = ett spørsmål.** Penger/Oversikt hadde ett saldokort på 431px som pakket åtte
   opplysninger bak identiske hårstreker, og tolv kort på rad uten noe som sa hvor et tema sluttet.
-  Skjermer med mye innhold deles i navngitte bolker (`.money-sec`: «Hva du har» → «Måned for måned» →
-  «Mønster» → «Framover»), og hvert kort svarer på én ting. En seksjonsetikett må ha nøyaktig samme
-  betingelse som innholdet under seg — ellers står den igjen tom.
+  Skjermer med mye innhold deles i navngitte bolker (`.money-sec`: Oversikt = «Hva du har» → «Måned for
+  måned» → «Mønster»; Faste = «Inn hver måned» → «Ut hver måned»), og hvert kort svarer på én ting. En
+  seksjonsetikett må ha nøyaktig samme betingelse som innholdet under seg — ellers står den igjen tom.
+  **To visninger av samme tall er rot, ikke rikdom** — kakediagrammet ble fjernet fordi kategorilista
+  under det viste nøyaktig de samme tallene. Og **farge må bety «se her»**: endringsmerket på
+  kategoriradene vises bare over 15 % ELLER 500 kr, ellers blir syv rader syv fargeflekker.
 - **Type- og tetthetsskala** (`--t-hero/h1/h2/lg/md/sm/xs/2xs`, `--lh-tight/snug/body`, `--card-pad`/
   `--card-gap`/`--sec-gap` i `:root`). Bruk disse — ikke nye px-verdier. Appen ble bygget med hardkodede
   størrelser per komponent, og de krøp oppover til alt ropte samtidig og skjermene føltes trange.

@@ -2,6 +2,21 @@
 
 Append-only logg, nyeste øverst. Format: `- YYYY-MM-DD — hva ble endret og hvorfor`.
 
+- 2026-08-13 — **Penger-fanen ryddet: fjernet, ikke bare flyttet** («hvordan kan vi gjøre pengesiden
+  mindre rotete?»). Forrige runde grupperte innholdet; denne fjernet det som ikke hørte hjemme.
+  **Kakediagrammet er borte.** Det viste nøyaktig de samme tallene som kategorilista rett under —
+  to kodinger av samme data er definisjonen på rot. Bonus: det var eneste bruker av `recharts`, så
+  Penger-pakken gikk fra 352 til 73 KB.
+  **«Kommende trekk» og «Månedsinntekt» er flyttet til «Faste»-fanen**, som nå er delt i «Inn hver
+  måned» → «Ut hver måned». Begge hørte hjemme der: de kommende trekkene ER abonnementene, og
+  inntekten er en innstilling, ikke status. Oversikt var blitt en blanding av de to.
+  **Endringsmerket på kategoriradene** sto på hver eneste rad — syv rader, syv fargeflekker, og fargen
+  sluttet å bety «se her». Nå vises det bare over 15 % ELLER 500 kr (både relativ og absolutt terskel,
+  så 12 → 24 kr ikke roper +100 %).
+  Resultat: 3,2 → 2,4 skjermer, elleve blokker → sju, tre seksjoner i stedet for fire.
+  NB til meg selv: første forsøk på å flytte blokkene brukte et tekstsøk som strakk seg forbi
+  fane-grensen og svelget fire faner. Lint og bygg var grønt, men strukturen var feil — det var
+  skjermbildet som avslørte det. Rullet tilbake og gjorde utklippet mot fane-grensen i stedet.
 - 2026-08-13 — **Penger delt i navngitte bolker** («kan designet bli mer oversiktlig? det er litt
   trangt»). Målte først: skjermen var 3,2 skjermer med tolv kort på rad og ingenting som sa hvor ett
   tema sluttet. Det var ikke skriftstørrelsen — det var mengden udifferensiert informasjon per skjerm.
